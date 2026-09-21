@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 790" width="1240" height="790" font-family="Helvetica, Arial, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 880" width="1240" height="880" font-family="Helvetica, Arial, sans-serif">
   <title>Architecture cible — speech-to-speech 100 % local (antares_ai)</title>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
@@ -16,124 +16,139 @@
     </style>
   </defs>
 
-  <rect x="0" y="0" width="1240" height="790" fill="#ffffff"/>
+  <rect x="0" y="0" width="1240" height="880" fill="#ffffff"/>
 
   <!-- Titre + légende -->
   <text x="20" y="36" font-size="20" font-weight="700" fill="#111827">antares_ai — speech-to-speech 100 % local</text>
-  <text x="20" y="58" class="lbl">Chaîne en cascade VAD → STT → LLM → TTS, en streaming phrase par phrase</text>
-
+  <text x="20" y="58" class="lbl">Interface d'appel web · chaîne VAD → STT → LLM → TTS en streaming · archive locale</text>
   <rect x="900" y="18" width="16" height="12" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/><text x="922" y="28" class="lbl">nouveau (antares_ai)</text>
   <rect x="900" y="38" width="16" height="12" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/><text x="922" y="48" class="lbl">existant (ai-to-boost), réutilisé</text>
   <rect x="900" y="58" width="16" height="12" fill="#fffbeb" stroke="#d97706" stroke-width="1.6" stroke-dasharray="6 4"/><text x="922" y="68" class="lbl">à ajouter dans la stack existante</text>
 
-  <!-- Utilisateur -->
-  <rect x="470" y="85" width="300" height="50" rx="25" fill="#f3f4f6" stroke="#374151" stroke-width="1.5"/>
-  <text x="620" y="106" class="t">Utilisateur</text>
-  <text x="620" y="123" class="s">micro / haut-parleur (casque recommandé au début)</text>
+  <!-- Navigateur -->
+  <rect x="20" y="85" width="1200" height="110" rx="10" fill="#f5f3ff" stroke="#7c3aed" stroke-width="1.8"/>
+  <text x="36" y="108" class="h" fill="#6d28d9">Interface web « appel » — navigateur local 127.0.0.1 (micro · haut-parleur)</text>
+  <rect x="40"  y="122" width="270" height="58" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="175" y="145" class="t">Appel</text><text x="175" y="163" class="s">décrocher · raccrocher · muet · modèle</text>
+  <rect x="330" y="122" width="270" height="58" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="465" y="145" class="t">Orbe animé</text><text x="465" y="163" class="s">écoute · réflexion · parole · interrompu</text>
+  <rect x="620" y="122" width="270" height="58" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="755" y="145" class="t">Sous-titres en direct</text><text x="755" y="163" class="s">utilisateur + assistant, horodatés</text>
+  <rect x="910" y="122" width="290" height="58" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="1055" y="145" class="t">Historique</text><text x="1055" y="163" class="s">recherche · relecture audio + sous-titres</text>
 
   <!-- Conteneur antares_ai -->
-  <rect x="20" y="160" width="1200" height="245" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.8"/>
-  <text x="200" y="184" class="h" fill="#1d4ed8">antares_ai — orchestrateur vocal (Python, Pipecat)</text>
-  <path d="M470 110 L110 110 L110 203" stroke="#374151" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
-  <text x="280" y="102" class="lbl">voix</text>
-  <path d="M1130 205 L1130 110 L772 110" stroke="#374151" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
-  <text x="900" y="102" class="lbl">réponse vocale</text>
+  <rect x="20" y="245" width="1200" height="245" rx="10" fill="#eff6ff" stroke="#2563eb" stroke-width="1.8"/>
+  <text x="200" y="269" class="h" fill="#1d4ed8">antares_ai — backend vocal (Python, Pipecat + FastAPI)</text>
+
+  <!-- Liaisons navigateur <-> antares_ai -->
+  <path d="M110 197 L110 288" stroke="#374151" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
+  <text x="120" y="225" class="lbl">voix (WebRTC)</text>
+  <path d="M1130 290 L1130 197" stroke="#374151" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
+  <text x="1120" y="225" class="lbl" text-anchor="end">voix + états + sous-titres (événements)</text>
+  <text x="1226" y="225" class="lbl" text-anchor="end">API historique</text>
 
   <!-- Pipeline principal -->
-  <rect x="40"   y="205" width="140" height="70" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
-  <text x="110"  y="235" class="t">Capture audio</text><text x="110" y="253" class="s">PipeWire / WebRTC</text>
-  <rect x="210"  y="205" width="140" height="70" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
-  <text x="280"  y="235" class="t">VAD</text><text x="280" y="253" class="s">Silero · CPU</text>
-  <rect x="380"  y="205" width="140" height="70" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
-  <text x="450"  y="235" class="t">Client STT</text><text x="450" y="253" class="s">audio → texte</text>
-  <rect x="550"  y="205" width="140" height="70" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
-  <text x="620"  y="235" class="t">Agent LLM</text><text x="620" y="253" class="s">streaming · outils</text>
-  <rect x="720"  y="205" width="140" height="70" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
-  <text x="790"  y="235" class="t">Découpage</text><text x="790" y="253" class="s">phrase par phrase</text>
-  <rect x="890"  y="205" width="140" height="70" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
-  <text x="960"  y="235" class="t">Client TTS</text><text x="960" y="253" class="s">texte → audio</text>
-  <rect x="1060" y="205" width="140" height="70" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
-  <text x="1130" y="235" class="t">Lecture audio</text><text x="1130" y="253" class="s">PipeWire / WebRTC</text>
+  <rect x="40"   y="290" width="140" height="70" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="110"  y="320" class="t">Entrée WebRTC</text><text x="110" y="338" class="s">AEC du navigateur</text>
+  <rect x="210"  y="290" width="140" height="70" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="280"  y="320" class="t">VAD</text><text x="280" y="338" class="s">Silero · CPU</text>
+  <rect x="380"  y="290" width="140" height="70" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="450"  y="320" class="t">Client STT</text><text x="450" y="338" class="s">audio → texte</text>
+  <rect x="550"  y="290" width="140" height="70" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="620"  y="320" class="t">Agent LLM</text><text x="620" y="338" class="s">streaming · outils</text>
+  <rect x="720"  y="290" width="140" height="70" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="790"  y="320" class="t">Découpage</text><text x="790" y="338" class="s">phrase par phrase</text>
+  <rect x="890"  y="290" width="140" height="70" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="960"  y="320" class="t">Client TTS</text><text x="960" y="338" class="s">texte → audio</text>
+  <rect x="1060" y="290" width="140" height="70" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="1130" y="320" class="t">Sortie WebRTC</text><text x="1130" y="338" class="s">audio + événements</text>
 
-  <path d="M180 240 L208 240" stroke="#374151" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
-  <path d="M350 240 L378 240" stroke="#374151" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
-  <path d="M520 240 L548 240" stroke="#374151" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
-  <path d="M690 240 L718 240" stroke="#374151" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
-  <path d="M860 240 L888 240" stroke="#374151" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
-  <path d="M1030 240 L1058 240" stroke="#374151" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
+  <path d="M180 325 L208 325" stroke="#374151" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
+  <path d="M350 325 L378 325" stroke="#374151" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
+  <path d="M520 325 L548 325" stroke="#374151" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
+  <path d="M690 325 L718 325" stroke="#374151" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
+  <path d="M860 325 L888 325" stroke="#374151" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
+  <path d="M1030 325 L1058 325" stroke="#374151" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
 
-  <!-- Contrôle + outil -->
-  <rect x="40" y="320" width="310" height="60" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
-  <text x="195" y="345" class="t">Coupure de parole &amp; tours de parole</text>
-  <text x="195" y="363" class="s">la voix de l'utilisateur interrompt TTS + LLM</text>
-  <path d="M280 320 L280 277" stroke="#6b7280" stroke-width="1.3" fill="none" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+  <!-- Ligne 2 : contrôle, outil, archive -->
+  <rect x="40" y="405" width="310" height="60" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="195" y="430" class="t">Coupure de parole &amp; tours de parole</text>
+  <text x="195" y="448" class="s">la voix de l'utilisateur interrompt TTS + LLM</text>
+  <path d="M280 405 L280 362" stroke="#6b7280" stroke-width="1.3" fill="none" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
 
-  <rect x="720" y="320" width="140" height="60" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
-  <text x="790" y="345" class="t">Outil ask_claude</text>
-  <text x="790" y="363" class="s">asynchrone</text>
-  <path d="M665 275 L665 350 L718 350" stroke="#374151" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
+  <rect x="720" y="405" width="140" height="60" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="790" y="430" class="t">Outil ask_claude</text>
+  <text x="790" y="448" class="s">asynchrone</text>
+  <path d="M665 360 L665 435 L718 435" stroke="#374151" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
 
-  <text x="30" y="436" class="lbl">Appels HTTP compatibles OpenAI — URLs configurables (local / cloud)</text>
+  <rect x="985" y="405" width="215" height="60" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.5"/>
+  <text x="1092" y="430" class="t">Archivage local</text>
+  <text x="1092" y="448" class="s">SQLite (FTS) + audio Opus</text>
+  <path d="M1130 362 L1130 403" stroke="#6b7280" stroke-width="1.3" fill="none" stroke-dasharray="5 4" marker-end="url(#arrow)"/>
+  <path d="M1200 435 L1232 435 L1232 151 L1202 151" stroke="#374151" stroke-width="1.4" fill="none" marker-start="url(#arrowStart)" marker-end="url(#arrow)"/>
 
+  <text x="30" y="521" class="lbl">Appels HTTP compatibles OpenAI — URLs configurables (local / cloud)</text>
 
   <!-- Conteneur ai-to-boost -->
-  <rect x="20" y="455" width="1200" height="200" rx="10" fill="#f9fafb" stroke="#6b7280" stroke-width="1.8"/>
-  <text x="36" y="479" class="h" fill="#374151">Stack ai-to-boost (existante)</text>
-  <text x="40" y="630" class="lbl">réseau docker ai-assistant-net</text>
-  <text x="40" y="646" class="lbl">aucun service GPU dupliqué</text>
+  <rect x="20" y="540" width="1200" height="200" rx="10" fill="#f9fafb" stroke="#6b7280" stroke-width="1.8"/>
+  <text x="36" y="564" class="h" fill="#374151">Stack ai-to-boost (existante)</text>
+  <text x="40" y="715" class="lbl">réseau docker ai-assistant-net</text>
+  <text x="40" y="731" class="lbl">aucun service GPU dupliqué</text>
+
   <!-- Liaisons antares_ai -> services -->
-  <path d="M450 277 L450 498" stroke="#374151" stroke-width="1.4" fill="none" marker-start="url(#arrowStart)" marker-end="url(#arrow)"/>
-  <path d="M620 277 L620 498" stroke="#374151" stroke-width="1.4" fill="none" marker-start="url(#arrowStart)" marker-end="url(#arrow)"/>
-  <path d="M790 382 L790 498" stroke="#374151" stroke-width="1.4" fill="none" marker-start="url(#arrowStart)" marker-end="url(#arrow)"/>
-  <path d="M960 277 L960 498" stroke="#374151" stroke-width="1.4" fill="none" marker-start="url(#arrowStart)" marker-end="url(#arrow)"/>
+  <path d="M450 362 L450 583" stroke="#374151" stroke-width="1.4" fill="none" marker-start="url(#arrowStart)" marker-end="url(#arrow)"/>
+  <path d="M620 362 L620 583" stroke="#374151" stroke-width="1.4" fill="none" marker-start="url(#arrowStart)" marker-end="url(#arrow)"/>
+  <path d="M790 467 L790 583" stroke="#374151" stroke-width="1.4" fill="none" marker-start="url(#arrowStart)" marker-end="url(#arrow)"/>
+  <path d="M960 362 L960 583" stroke="#374151" stroke-width="1.4" fill="none" marker-start="url(#arrowStart)" marker-end="url(#arrow)"/>
 
-  <rect x="40" y="500" width="280" height="70" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="1.2"/>
-  <text x="180" y="522" class="ts">Autres services inchangés</text>
-  <text x="180" y="540" class="s">n8n · qdrant / RAG · webui :3001</text>
-  <text x="180" y="556" class="s">worker :8089</text>
+  <rect x="40" y="585" width="280" height="70" rx="8" fill="#ffffff" stroke="#9ca3af" stroke-width="1.2"/>
+  <text x="180" y="607" class="ts">Autres services inchangés</text>
+  <text x="180" y="625" class="s">n8n · qdrant / RAG · webui :3001</text>
+  <text x="180" y="641" class="s">worker :8089</text>
 
-  <rect x="340" y="500" width="200" height="70" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
-  <text x="440" y="522" class="ts">speaches :8000 (STT)</text>
-  <text x="440" y="540" class="s">faster-whisper medium</text>
-  <text x="440" y="556" class="s">→ large-v3-turbo (à évaluer)</text>
+  <rect x="340" y="585" width="200" height="70" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+  <text x="440" y="607" class="ts">speaches :8000 (STT)</text>
+  <text x="440" y="625" class="s">faster-whisper medium</text>
+  <text x="440" y="641" class="s">→ large-v3-turbo (à évaluer)</text>
 
-  <rect x="560" y="500" width="140" height="70" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
-  <text x="630" y="522" class="ts">LiteLLM :4000</text>
-  <text x="630" y="540" class="s">+ alias local-voice</text>
-  <text x="630" y="556" class="s">ctx 8k, sans thinking</text>
+  <rect x="560" y="585" width="140" height="70" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+  <text x="630" y="607" class="ts">LiteLLM :4000</text>
+  <text x="630" y="625" class="s">+ alias local-voice</text>
+  <text x="630" y="641" class="s">ctx 8k, sans thinking</text>
 
-  <rect x="715" y="500" width="150" height="70" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
-  <text x="790" y="522" class="ts">claude-bridge :8088</text>
-  <text x="790" y="540" class="s">hôte · POST /run</text>
-  <text x="790" y="556" class="s">réponse JSON bloquante</text>
+  <rect x="715" y="585" width="150" height="70" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+  <text x="790" y="607" class="ts">claude-bridge :8088</text>
+  <text x="790" y="625" class="s">hôte · POST /run</text>
+  <text x="790" y="641" class="s">réponse JSON bloquante</text>
 
-  <rect x="880" y="500" width="180" height="70" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6" stroke-dasharray="6 4"/>
-  <text x="970" y="522" class="ts">TTS /v1/audio/speech</text>
-  <text x="970" y="540" class="s">Kokoro ou Piper</text>
-  <text x="970" y="556" class="s">speaches ou conteneur dédié</text>
+  <rect x="880" y="585" width="180" height="70" rx="8" fill="#fffbeb" stroke="#d97706" stroke-width="1.6" stroke-dasharray="6 4"/>
+  <text x="970" y="607" class="ts">TTS /v1/audio/speech</text>
+  <text x="970" y="625" class="s">Kokoro ou Piper</text>
+  <text x="970" y="641" class="s">speaches ou conteneur dédié</text>
 
-  <rect x="560" y="595" width="140" height="50" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
-  <text x="630" y="615" class="ts">Ollama :11434</text>
-  <text x="630" y="632" class="s">gemma4:e4b · qwen3.5:9b</text>
-  <path d="M630 570 L630 593" stroke="#374151" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
+  <rect x="560" y="680" width="140" height="50" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+  <text x="630" y="700" class="ts">Ollama :11434</text>
+  <text x="630" y="717" class="s">gemma4:e4b · qwen3.5:9b</text>
+  <path d="M630 655 L630 678" stroke="#374151" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
 
-  <rect x="715" y="595" width="150" height="50" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
-  <text x="790" y="615" class="ts">claude -p</text>
-  <text x="790" y="632" class="s">forfait · sans clé API</text>
-  <path d="M790 570 L790 593" stroke="#374151" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
+  <rect x="715" y="680" width="150" height="50" rx="8" fill="#ecfdf5" stroke="#059669" stroke-width="1.5"/>
+  <text x="790" y="700" class="ts">claude -p</text>
+  <text x="790" y="717" class="s">forfait · sans clé API</text>
+  <path d="M790 655 L790 678" stroke="#374151" stroke-width="1.6" fill="none" marker-end="url(#arrow)"/>
 
   <!-- Budget VRAM -->
-  <text x="20" y="700" class="h" fill="#111827">GPU partagé — 12 Go VRAM</text>
-  <text x="20" y="718" class="lbl">RTX 5070 Ti Laptop · ordres de grandeur à mesurer</text>
-  <rect x="300" y="685" width="900" height="36" rx="4" fill="#f3f4f6" stroke="#9ca3af"/>
-  <rect x="300" y="685" width="188" height="36" fill="#bbf7d0" stroke="#059669"/>
-  <text x="394" y="708" class="s">Whisper ~1,5–3 Go</text>
-  <rect x="488" y="685" width="300" height="36" fill="#bfdbfe" stroke="#2563eb"/>
-  <text x="638" y="708" class="s">LLM vocal (gemma4:e4b, ctx 8k) ~3–5 Go</text>
-  <rect x="788" y="685" width="56" height="36" fill="#fde68a" stroke="#d97706"/>
-  <text x="816" y="708" class="s">TTS</text>
-  <text x="1022" y="708" class="s">marge ~4 Go — un seul LLM chargé à la fois</text>
-  <text x="300" y="740" class="lbl">0 Go</text>
-  <text x="1200" y="740" class="lbl" text-anchor="end">12 Go</text>
-  <text x="20" y="770" class="lbl">Risque : un autre usage de la stack (pipeline BMAD, RAG, contexte long) charge un modèle et évince le LLM vocal.</text>
+  <text x="20" y="785" class="h" fill="#111827">GPU partagé — 12 Go VRAM</text>
+  <text x="20" y="803" class="lbl">RTX 5070 Ti Laptop · ordres de grandeur à mesurer</text>
+  <rect x="300" y="770" width="900" height="36" rx="4" fill="#f3f4f6" stroke="#9ca3af"/>
+  <rect x="300" y="770" width="188" height="36" fill="#bbf7d0" stroke="#059669"/>
+  <text x="394" y="793" class="s">Whisper ~1,5–3 Go</text>
+  <rect x="488" y="770" width="300" height="36" fill="#bfdbfe" stroke="#2563eb"/>
+  <text x="638" y="793" class="s">LLM vocal (gemma4:e4b, ctx 8k) ~3–5 Go</text>
+  <rect x="788" y="770" width="56" height="36" fill="#fde68a" stroke="#d97706"/>
+  <text x="816" y="793" class="s">TTS</text>
+  <text x="1022" y="793" class="s">marge ~4 Go — un seul LLM chargé à la fois</text>
+  <text x="300" y="825" class="lbl">0 Go</text>
+  <text x="1200" y="825" class="lbl" text-anchor="end">12 Go</text>
+  <text x="20" y="860" class="lbl">Risque : un autre usage de la stack (pipeline BMAD, RAG, contexte long) charge un modèle et évince le LLM vocal.</text>
 </svg>
