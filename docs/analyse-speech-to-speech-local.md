@@ -2,7 +2,7 @@
 
 - **Projet** : antares_ai
 - **Date** : 2026-09-21
-- **Statut** : brouillon — décisions en attente (cf. [§ 13](#13-décisions-à-prendre))
+- **Statut** : brouillon — décisions en attente (cf. [§ 14](#14-décisions-à-prendre))
 - **Périmètre** : assistant vocal entièrement local, utilisé depuis une **interface web
   d'appel** (comme un appel téléphonique), s'appuyant sur les LLM Ollama, la gateway
   LiteLLM et Claude Code (forfait), déjà en place dans la stack `ai-to-boost`
@@ -24,6 +24,9 @@
   (VAD), la coupure de parole (barge-in), l'enregistrement et l'archive.
 - **Claude Code** : ne peut pas être le cerveau de la boucle vocale (latence de `claude -p`).
   Il intervient comme **outil asynchrone** (`ask_claude`) pour les demandes complexes.
+- **Accès distant (optionnel)** : via un **tunnel ngrok** (HTTPS, authentification en
+  bordure). ngrok ne transportant pas l'UDP de WebRTC, l'audio passe en **WebSocket** en
+  mode distant. Le traitement et le stockage restent 100 % locaux.
 - **Contrainte dimensionnante** : **12 Go de VRAM** partagés — un seul LLM vocal chargé à la fois.
 - **Latence visée** : environ **0,6 à 1,4 s** entre la fin de la phrase de l'utilisateur et le
   premier son de la réponse.
@@ -50,6 +53,9 @@
    `claude -p`, en asynchrone).
 9. Tout au long de l'appel, l'**archivage local** enregistre le transcript horodaté et
    l'audio. Au raccrochage, la session est finalisée et apparaît dans l'**historique**.
+
+**Mode distant** : depuis Internet, le navigateur passe par le **tunnel ngrok** et l'audio
+est transporté en **WebSocket** au lieu de WebRTC. Le reste du flux est identique (cf. § 8).
 
 ## 3. Existant réutilisable
 
@@ -97,17 +103,17 @@ Inventaire réalisé le 2026-09-21 sur le poste de développement.
 
 ## 5. Choix des briques (option A)
 
-| Brique                   | Recommandation                                                | Alternatives                         | Remarques                                                                                                                                                                            |
-| ------------------------ | ------------------------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Orchestration temps réel | **Pipecat** (Python)                                          | LiveKit Agents                       | Pipecat gère VAD, découpage, coupure de parole, services compatibles OpenAI, et fournit un transport WebRTC pair-à-pair sans serveur tiers. LiveKit ajoute un serveur média.         |
-| Transport audio          | **WebRTC navigateur**                                         | PipeWire (CLI)                       | WebRTC apporte l'annulation d'écho et la réduction de bruit du navigateur, indispensables à la coupure de parole sans casque. PipeWire reste utile pour le MVP en ligne de commande. |
-| VAD                      | **Silero VAD**, sur CPU                                       | —                                    | Coût en ressources négligeable.                                                                                                                                                      |
-| STT                      | speaches existant, passage à **large-v3-turbo**               | medium actuel                        | Meilleur en français et plus rapide que medium. VRAM à mesurer.                                                                                                                      |
-| LLM                      | **`local-gemma`** via LiteLLM                                 | `local-qwen`                         | Créer un **alias dédié `local-voice`** : contexte court (~8k), raisonnement désactivé, consigne de réponses brèves.                                                                  |
-| TTS                      | **Kokoro** (82M, GPU ou CPU) ou **Piper** (CPU, voix `fr_FR`) | Chatterbox multilingue, XTTS-v2      | Le français est le point faible de Kokoro : écouter avant de trancher.                                                                                                               |
-| Service TTS              | `/v1/audio/speech` de speaches                                | conteneur dédié                      | **À vérifier** : support TTS dans l'image speaches utilisée.                                                                                                                         |
-| Interface web            | **React + TypeScript**                                        | Next.js (comme la webui ai-to-boost) | Cf. § 7.6.                                                                                                                                                                           |
-| Archive                  | **SQLite** (+ FTS5) et fichiers audio **Opus**                | PostgreSQL existant                  | Cf. § 7.4.                                                                                                                                                                           |
+| Brique                   | Recommandation                                                | Alternatives                         | Remarques                                                                                                                                                                                                                                              |
+| ------------------------ | ------------------------------------------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Orchestration temps réel | **Pipecat** (Python)                                          | LiveKit Agents                       | Pipecat gère VAD, découpage, coupure de parole, services compatibles OpenAI, et fournit un transport WebRTC pair-à-pair sans serveur tiers. LiveKit ajoute un serveur média.                                                                           |
+| Transport audio          | **WebRTC navigateur** (local), **WebSocket** (distant)        | PipeWire (CLI)                       | WebRTC apporte l'annulation d'écho et la réduction de bruit du navigateur, indispensables à la coupure de parole sans casque. PipeWire reste utile pour le MVP en ligne de commande. En distant, ngrok ne transporte pas l\'UDP : WebSocket (cf. § 8). |
+| VAD                      | **Silero VAD**, sur CPU                                       | —                                    | Coût en ressources négligeable.                                                                                                                                                                                                                        |
+| STT                      | speaches existant, passage à **large-v3-turbo**               | medium actuel                        | Meilleur en français et plus rapide que medium. VRAM à mesurer.                                                                                                                                                                                        |
+| LLM                      | **`local-gemma`** via LiteLLM                                 | `local-qwen`                         | Créer un **alias dédié `local-voice`** : contexte court (~8k), raisonnement désactivé, consigne de réponses brèves.                                                                                                                                    |
+| TTS                      | **Kokoro** (82M, GPU ou CPU) ou **Piper** (CPU, voix `fr_FR`) | Chatterbox multilingue, XTTS-v2      | Le français est le point faible de Kokoro : écouter avant de trancher.                                                                                                                                                                                 |
+| Service TTS              | `/v1/audio/speech` de speaches                                | conteneur dédié                      | **À vérifier** : support TTS dans l'image speaches utilisée.                                                                                                                                                                                           |
+| Interface web            | **React + TypeScript**                                        | Next.js (comme la webui ai-to-boost) | Cf. § 7.6.                                                                                                                                                                                                                                             |
+| Archive                  | **SQLite** (+ FTS5) et fichiers audio **Opus**                | PostgreSQL existant                  | Cf. § 7.4.                                                                                                                                                                                                                                             |
 
 **Point d'attention LLM** : `OLLAMA_CONTEXT_LENGTH=32768` gonfle le cache KV et le temps avant
 le premier token. L'alias vocal doit fixer un contexte court par requête (connecteur
@@ -234,15 +240,102 @@ data/
 
 - **Écoute locale uniquement** : interface et backend liés à `127.0.0.1`, comme le reste de
   la stack. `localhost` est un contexte sécurisé : le navigateur autorise le micro sans HTTPS.
-- **Accès depuis un autre appareil** (téléphone sur le réseau local) : nécessite HTTPS
-  (certificat local) et une authentification. Hors périmètre de la v1.
+- **Accès depuis un autre appareil ou depuis Internet** : via le tunnel ngrok, qui fournit
+  le HTTPS nécessaire au micro. Mesures de sécurité dédiées au § 8.4.
 - **Voix = donnée personnelle** : voyant d'enregistrement permanent, possibilité de
   désactiver l'enregistrement audio en gardant le transcript, **durée de rétention**
   configurable avec purge automatique.
 - **Stockage** : dossier `data/` exclu de git ; chiffrement du disque recommandé si le poste
   est nomade.
 
-## 8. Budget VRAM (12 Go)
+## 8. Accès distant via ngrok
+
+### 8.1 Objectif
+
+Utiliser l'interface d'appel **depuis Internet** (téléphone en 4G/5G, autre ordinateur)
+alors que toute la chaîne (modèles, archive) reste sur le poste local.
+
+- ngrok ouvre un **tunnel sortant** depuis le poste : aucun port à ouvrir sur la box,
+  aucune IP publique nécessaire.
+- ngrok publie un domaine en **HTTPS** : le navigateur distant est en contexte sécurisé et
+  autorise donc le micro.
+- Le principe « 100 % local » s'applique au **traitement** et au **stockage**. En mode
+  distant, le **transport** passe par l'infrastructure ngrok.
+
+### 8.2 Principe
+
+- Un **agent ngrok** local (conteneur ou service systemd) publie **uniquement le backend
+  antares_ai** (interface web + API), sur un domaine statique.
+- Rien d'autre n'est exposé : LiteLLM (`:4000`), Ollama (`:11434`), speaches (`:8000`),
+  claude-bridge (`:8088`), n8n (`:5678`) et la webui ai-to-boost (`:3001`) restent sur
+  `127.0.0.1` ou le réseau docker.
+- Le tunnel est **désactivé par défaut** et s'active explicitement (profil ou commande
+  dédiée), avec un moyen simple de le couper.
+
+### 8.3 Contrainte majeure : WebRTC et UDP
+
+ngrok tunnelise du HTTP(S) et du TCP, **pas de l'UDP**. Or WebRTC transporte l'audio en UDP.
+En local, cela fonctionne car navigateur et backend sont sur la même machine ; depuis
+Internet, le navigateur distant ne peut pas joindre directement le backend derrière le NAT.
+
+| Option                                         | Principe                                                                                | Avantages                                              | Inconvénients                                                                                                                            |
+| ---------------------------------------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| **A. WebSocket en mode distant** — recommandée | Pipecat propose aussi un transport WebSocket : l'audio passe dans le tunnel HTTPS ngrok | Simple, un seul tunnel, rien d'autre à héberger        | TCP : un peu plus de latence et de sensibilité aux pertes sur réseau mobile ; encodage audio à optimiser                                 |
+| B. WebRTC + serveur TURN                       | Relais TURN (coturn local exposé en TCP via ngrok, ou service TURN hébergé)             | Conserve WebRTC (gestion de la gigue, qualité)         | Configuration ICE complexe ; tunnel TCP ngrok soumis à conditions d'offre (à vérifier) ; un TURN hébergé est un tiers qui relaie l'audio |
+| C. VPN maillé (Tailscale) à la place de ngrok  | Réseau privé WireGuard (UDP) entre l'appareil et le poste                               | WebRTC fonctionne tel quel, rien d'exposé publiquement | Client VPN à installer sur chaque appareil ; pas d'accès « depuis n'importe quel navigateur »                                            |
+
+- **Recommandation : option A.** Le backend expose les deux transports : WebRTC en local,
+  WebSocket en distant. Le frontend choisit selon l'origine de la page (`127.0.0.1` ou
+  domaine ngrok).
+- L'**annulation d'écho** reste active en distant : c'est une option de capture du micro
+  dans le navigateur, indépendante du transport.
+- Pour un usage **strictement personnel** depuis ses propres appareils, l'option C est plus
+  sûre (aucune exposition publique). Elle peut coexister avec ngrok.
+
+### 8.4 Sécurité de l'exposition Internet
+
+Le service exposé peut déclencher les LLM, lire l'archive des conversations et appeler
+Claude Code. Il faut donc plusieurs barrières :
+
+| Mesure                            | Détail                                                                                                                                                                                         |
+| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Authentification en bordure ngrok | Politique de trafic ngrok : OAuth (Google ou GitHub) restreint à tes adresses, ou OIDC. Les requêtes non authentifiées n'atteignent jamais le poste. Disponibilité selon l'offre : à vérifier. |
+| Authentification applicative      | Session ou jeton côté backend en plus de ngrok (défense en profondeur).                                                                                                                        |
+| Surface minimale                  | Un seul port publié (backend antares_ai). Jamais les ports de la stack ai-to-boost.                                                                                                            |
+| `ask_claude` en distant           | Désactivable ou soumis à confirmation, pour qu'un accès compromis ne puisse pas lancer `claude -p` sur le forfait.                                                                             |
+| Archive en distant                | Consultation autorisée, suppression et export désactivables à distance.                                                                                                                        |
+| Restriction d'IP                  | Optionnelle, via la politique de trafic ngrok.                                                                                                                                                 |
+| Secrets                           | Authtoken ngrok dans `.env`, jamais versionné (gitleaks et detect-secrets en pre-commit).                                                                                                      |
+| Traçabilité                       | Journalisation des accès (ngrok + backend), affichage « accès distant actif » dans l'interface locale.                                                                                         |
+| Confidentialité du transport      | ngrok termine le TLS à sa bordure : le trafic y est visible en clair. Un chiffrement de bout en bout (terminaison TLS locale) est possible selon l'offre : à vérifier si l'exigence est forte. |
+
+### 8.5 Mise en œuvre
+
+- **Agent ngrok** : service `ngrok` dans un `compose.yaml` d'antares_ai, sous un **profil
+  `remote`** non démarré par défaut, pointant vers le backend sur le réseau docker. Un
+  service systemd est une alternative.
+- **Configuration versionnée** : fichier de politique de trafic (authentification, IP)
+  dans `deploy/ngrok/`, sans secret.
+- **Domaine statique** : l'offre gratuite en fournit un, ce qui évite de changer d'URL à
+  chaque démarrage.
+- **Offre** : l'offre gratuite a des limites (bande passante, connexions, page
+  d'avertissement ngrok à la première visite). Une offre payante se justifie en usage
+  régulier. Chiffres à vérifier sur ngrok.com au moment du choix.
+- **Bande passante audio** : en Opus (~24 kbit/s par sens), un appel consomme environ
+  **20 Mo par heure** aller-retour ; en PCM 16 kHz brut (256 kbit/s par sens), environ
+  **230 Mo par heure**. L'encodage Opus sur le WebSocket est donc à privilégier (support à
+  vérifier en phase 0).
+
+### 8.6 Latence en mode distant
+
+| Étape supplémentaire                                  | Estimation       |
+| ----------------------------------------------------- | ---------------- |
+| Aller-retour vers le point de présence ngrok (Europe) | ~20 à 60 ms      |
+| Réseau mobile (4G/5G)                                 | ~30 à 100 ms     |
+| Gigue TCP sur réseau dégradé                          | variable         |
+| **Total perçu estimé**                                | **~0,8 à 1,8 s** |
+
+## 9. Budget VRAM (12 Go)
 
 Ordres de grandeur, **à mesurer** en phase 0. L'interface et l'archive ne consomment pas de VRAM.
 
@@ -258,7 +351,7 @@ Ordres de grandeur, **à mesurer** en phase 0. L'interface et l'archive ne conso
 - **Risque** : un autre usage de la stack (pipeline BMAD, RAG, contexte long) charge un
   modèle et **évince** le LLM vocal.
 
-## 9. Budget de latence
+## 10. Budget de latence
 
 | Étape                                 | Cible            |
 | ------------------------------------- | ---------------- |
@@ -267,27 +360,31 @@ Ordres de grandeur, **à mesurer** en phase 0. L'interface et l'archive ne conso
 | Premier token du LLM (modèle en VRAM) | 150 à 400 ms     |
 | Synthèse de la première phrase        | 100 à 300 ms     |
 | Transport WebRTC local                | < 50 ms          |
+| Mode distant (ngrok, cf. § 8.6)       | +0,2 à 0,4 s     |
 | **Total perçu**                       | **~0,6 à 1,4 s** |
 
 L'état **réflexion** de l'orbe (§ 7.2) rend ce délai lisible : l'utilisateur voit qu'il a
 été entendu.
 
-## 10. Risques
+## 11. Risques
 
-| Risque                                     | Impact                                                | Mitigation                                                                                                  |
-| ------------------------------------------ | ----------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- |
-| Qualité du TTS français                    | Expérience dégradée                                   | Écoute comparative Kokoro / Piper / Chatterbox en phase 0                                                   |
-| Écho et coupure de parole                  | L'assistant s'interrompt lui-même                     | Annulation d'écho WebRTC du navigateur ; casque en secours                                                  |
-| Concurrence VRAM avec le reste de la stack | Rechargement du modèle, latence de plusieurs secondes | Alias vocal dédié, un seul LLM chargé, surveillance `ollama ps`, état « erreur » explicite dans l'interface |
-| Latence de Claude                          | Silence prolongé                                      | Claude uniquement en escalade asynchrone, annonce vocale, badge dans l'interface                            |
-| Modèle « raisonnant » (qwen3.5)            | Latence élevée, contenu vide                          | Raisonnement désactivé (problème déjà rencontré dans ai-to-boost)                                           |
-| Désynchronisation sous-titres / voix       | Sous-titres en avance sur la voix                     | Afficher la phrase au début de sa lecture, pas à sa génération                                              |
-| Perte d'enregistrement (plantage)          | Appel non archivé                                     | Écriture du transcript au fil de l'eau, finalisation audio robuste                                          |
-| Données vocales sensibles                  | Exposition de données personnelles                    | Local uniquement, rétention configurable, voyant d'enregistrement, `data/` hors git                         |
-| Licences TTS                               | Blocage d'un usage commercial                         | Écarter XTTS-v2 et F5-TTS si usage commercial                                                               |
-| Support TTS de speaches                    | Service manquant                                      | Vérification en phase 0, repli sur un conteneur dédié                                                       |
+| Risque                                     | Impact                                                               | Mitigation                                                                                                             |
+| ------------------------------------------ | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| Qualité du TTS français                    | Expérience dégradée                                                  | Écoute comparative Kokoro / Piper / Chatterbox en phase 0                                                              |
+| Écho et coupure de parole                  | L'assistant s'interrompt lui-même                                    | Annulation d'écho WebRTC du navigateur ; casque en secours                                                             |
+| Concurrence VRAM avec le reste de la stack | Rechargement du modèle, latence de plusieurs secondes                | Alias vocal dédié, un seul LLM chargé, surveillance `ollama ps`, état « erreur » explicite dans l'interface            |
+| Latence de Claude                          | Silence prolongé                                                     | Claude uniquement en escalade asynchrone, annonce vocale, badge dans l'interface                                       |
+| Modèle « raisonnant » (qwen3.5)            | Latence élevée, contenu vide                                         | Raisonnement désactivé (problème déjà rencontré dans ai-to-boost)                                                      |
+| Désynchronisation sous-titres / voix       | Sous-titres en avance sur la voix                                    | Afficher la phrase au début de sa lecture, pas à sa génération                                                         |
+| Perte d'enregistrement (plantage)          | Appel non archivé                                                    | Écriture du transcript au fil de l'eau, finalisation audio robuste                                                     |
+| Données vocales sensibles                  | Exposition de données personnelles                                   | Local uniquement, rétention configurable, voyant d'enregistrement, `data/` hors git                                    |
+| Licences TTS                               | Blocage d'un usage commercial                                        | Écarter XTTS-v2 et F5-TTS si usage commercial                                                                          |
+| Support TTS de speaches                    | Service manquant                                                     | Vérification en phase 0, repli sur un conteneur dédié                                                                  |
+| Exposition Internet (ngrok)                | Accès non autorisé aux LLM, à l'archive, à Claude                    | Authentification en bordure ngrok + applicative, surface minimale, `ask_claude` restreint, tunnel désactivé par défaut |
+| WebRTC impossible via ngrok (UDP)          | Pas d'audio en distant                                               | Transport WebSocket en mode distant (ou TURN, ou Tailscale)                                                            |
+| Dépendance à ngrok                         | Transport visible à la bordure ngrok, limites d'offre, disponibilité | Données non stockées chez ngrok ; Tailscale en alternative ; offre adaptée à l'usage                                   |
 
-## 11. Feuille de route
+## 12. Feuille de route
 
 | Phase                    | Contenu                                                                                                                                                                                                | Livrable                                                    |
 | ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------- |
@@ -297,21 +394,23 @@ L'état **réflexion** de l'orbe (§ 7.2) rend ce délai lisible : l'utilisateur
 | 3. Archive et historique | Enregistrement du transcript et de l'audio, SQLite + FTS5, page historique avec relecture synchronisée, export, rétention                                                                              | Appels archivés et relisibles                               |
 | 4. Claude                | Outil `ask_claude` via le bridge, annonce vocale, badge dans l'interface ; optionnel : streaming dans le bridge                                                                                        | Escalade vers Claude                                        |
 | 5. Finitions             | Sous-titres au mot si le TTS le permet, thème accessible, recherche sémantique via Qdrant                                                                                                              | Confort et recherche avancée                                |
-| 6. Cloud                 | Conteneurisation d'antares_ai, endpoints paramétrables, HTTPS et authentification                                                                                                                      | Déploiement cloud                                           |
+| 6. Accès distant         | Agent ngrok (profil `remote`), transport WebSocket, authentification en bordure et applicative, restrictions en distant                                                                                | Interface d'appel accessible depuis Internet                |
+| 7. Cloud                 | Conteneurisation d'antares_ai, endpoints paramétrables, HTTPS et authentification                                                                                                                      | Déploiement cloud                                           |
 
-## 12. Structure de dépôt envisagée
+## 13. Structure de dépôt envisagée
 
 ```text
 antares_ai/
 ├── backend/          # Python : Pipecat, FastAPI (signalisation WebRTC, API historique)
 ├── frontend/         # React + TypeScript : écran d'appel, orbe, sous-titres, historique
 ├── data/             # SQLite + audio des appels (exclu de git)
+├── deploy/ngrok/     # politique de trafic ngrok (sans secret)
 └── docs/
     ├── adr/
     └── analyse-speech-to-speech-local.md
 ```
 
-## 13. Décisions à prendre
+## 14. Décisions à prendre
 
 1. **Cas d'usage principal** : assistant conversationnel vocal, ou pilotage de Claude Code à
    la voix (§ 6, rôle 3) ?
@@ -323,3 +422,9 @@ antares_ai/
    ai-to-boost ?
 6. **Archive** : conserver l'audio en plus du transcript ? Quelle durée de rétention ?
 7. **Usage commercial** envisagé ? Détermine les licences TTS acceptables.
+8. **Accès distant** : ngrok (accès depuis n'importe quel navigateur) ou Tailscale (plus
+   sûr, appareils personnels uniquement), voire les deux ?
+9. **Offre ngrok** : gratuite ou payante ? Méthode d'authentification (OAuth Google ou
+   GitHub) ?
+10. **Fonctions autorisées à distance** : escalade Claude, consultation et suppression de
+    l'archive ?
