@@ -1,0 +1,131 @@
+# antares_ai — moteur speech-to-speech 100 % local.
+#
+# Garantie « full local » par construction :
+#   - `s2s` n'est branché QUE sur `antares-local`, réseau Docker `internal` : aucune
+#     route vers Internet, quelle que soit la configuration applicative ;
+#   - il tourne en mode hors ligne HF (modèles préchargés par install.sh) ;
+#   - les deux seuls ponts sont à cible fixe :
+#       web    : 127.0.0.1:8765 (hôte) -> interface web + /v1/* -> s2s:8765
+#       llm-gw : s2s -> ollama:11434 (stack ai-to-boost)
+#   LiteLLM est contourné : il perd `reasoning_effort` en streaming (latence x3).
+#
+# Premier lancement : ./install.sh  —  ensuite : docker compose up -d
+# Interface d'appel : http://127.0.0.1:8765
+---
+name: antares-s2s
+
+# Profil du moteur : seul endroit à modifier pour changer de modèle ou de voix.
+# Ces valeurs alimentent aussi l'encart d'information de l'interface (/config.json).
+x-profile:
+  assistant: &assistant Sohee
+  llm: &llm gemma4:e4b
+  stt: &stt parakeet-tdt
+  tts: &tts qwen3
+  voice: &voice sohee
+  tts-quantization: &tts-quantization Q8_0
+
+x-s2s: &s2s
+  image: antares/s2s:1.0.0
+  build: .
+  volumes:
+    - s2s-cache:/root/.cache
+  environment: &s2s-env
+    HF_HUB_OFFLINE: "1"
+    TRANSFORMERS_OFFLINE: "1"
+    HF_HUB_DISABLE_TELEMETRY: "1"
+    DO_NOT_TRACK: "1"
+  command:
+    - serve
+    - --host=0.0.0.0
+    - --port=8765
+    - --stt
+    - *stt
+    - --parakeet_tdt_language=fr
+    - --llm_backend=chat-completions
+    - --model_name
+    - *llm
+    - --responses_api_base_url=http://llm-gw:11434/v1
+    - --responses_api_api_key=
+    # gemma4 raisonne par défaut (~350 tokens, +3 à 5 s) : désactivé pour la voix
+    - --responses_api_reasoning_effort=none
+    - --tts
+    - *tts
+    - --qwen3_tts_speaker
+    - *voice
+    - --qwen3_tts_language=french
+    # Q8_0 : la version BF16 ne tient pas à côté de gemma4 dans 12 Go de VRAM
+    - --qwen3_tts_ggml_quantization
+    - *tts-quantization
+    - --init_chat_role=system
+    # Le prénom doit rester aligné avec x-profile.assistant
+    - >-
+      --init_chat_prompt=Tu es Sohee, une assistante vocale bienveillante.
+      Réponds toujours en français, en phrases courtes et naturelles, sans markdown ni listes.
+    - --enable_live_transcription
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: nvidia
+            count: 1
+            capabilities: [gpu]
+
+services:
+  s2s:
+    <<: *s2s
+    container_name: antares-s2s
+    restart: unless-stopped
+    networks: [antares-local]
+    depends_on: [llm-gw]
+
+  # Préchargement des modèles (install.sh uniquement) : seul conteneur avec accès Internet.
+  warmup:
+    <<: *s2s
+    profiles: [warmup]
+    environment:
+      <<: *s2s-env
+      HF_HUB_OFFLINE: "0"
+      TRANSFORMERS_OFFLINE: "0"
+    networks: [antares-local, antares-download]
+    depends_on: [llm-gw]
+
+  web:
+    image: nginx:1.29-alpine
+    container_name: antares-web
+    restart: unless-stopped
+    depends_on: [s2s]
+    environment:
+      ANTARES_ASSISTANT: *assistant
+      ANTARES_LLM: *llm
+      ANTARES_STT: *stt
+      ANTARES_TTS: *tts
+      ANTARES_VOICE: *voice
+      ANTARES_TTS_QUANTIZATION: *tts-quantization
+    volumes:
+      - ../../frontend:/usr/share/nginx/html:ro
+      - ./nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
+    ports:
+      - "127.0.0.1:8765:8765"
+    networks: [antares-local, antares-edge]
+
+  llm-gw:
+    image: alpine/socat:1.8.0.3
+    container_name: antares-s2s-llm-gw
+    restart: unless-stopped
+    command: TCP-LISTEN:11434,fork,reuseaddr TCP-CONNECT:ollama:11434
+    networks: [antares-local, ai-assistant-net]
+
+networks:
+  antares-local:
+    name: antares-local
+    internal: true
+  antares-edge:
+    name: antares-edge
+  antares-download:
+    name: antares-download
+  ai-assistant-net:
+    external: true
+
+volumes:
+  s2s-cache:
+    name: antares-s2s-cache

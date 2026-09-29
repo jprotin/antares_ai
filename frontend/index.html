@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>Antares</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <main class="app" data-state="idle">
+      <section class="stage" aria-label="Appel">
+        <header class="stage__identity">
+          <h1 class="stage__name" id="assistant-name">Antares</h1>
+          <p class="stage__status" id="status" role="status" aria-live="polite">
+            Prête à vous écouter
+          </p>
+        </header>
+
+        <canvas class="orb" id="orb" aria-hidden="true"></canvas>
+
+        <div class="stage__controls">
+          <button class="call-button" id="call" type="button">Appeler</button>
+          <label class="stage__option">
+            <input type="checkbox" id="half-duplex" />
+            <span
+              >Couper mon micro pendant qu'elle parle (sans casque, si l'écho
+              l'interrompt)</span
+            >
+          </label>
+        </div>
+
+        <footer
+          class="stage__info"
+          id="model-info"
+          aria-label="Modèles utilisés"
+        ></footer>
+      </section>
+
+      <section class="conversation" aria-label="Conversation écrite">
+        <header class="conversation__header">
+          <h2>Conversation</h2>
+        </header>
+        <div class="conversation__lines" id="subtitles" aria-live="polite">
+          <p class="conversation__empty" id="empty">
+            La conversation s'affichera ici en direct.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <audio id="speaker" autoplay></audio>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
