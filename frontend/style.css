@@ -825,9 +825,6 @@ body {
     background 0.2s;
 }
 
-.option[hidden] {
-  display: none;
-}
 .option:hover {
   background: var(--overlay-strong);
 }
