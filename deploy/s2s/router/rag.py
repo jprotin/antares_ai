@@ -93,7 +93,8 @@ def _text(content) -> str:
     return ""
 
 
-def _question(messages: list[dict]) -> str:
+def question(messages: list[dict]) -> str:
+    """Dernière question ; une relance courte est complétée par la précédente."""
     asked = [_text(m.get("content")) for m in messages if m.get("role") == "user"]
     asked = [q.strip() for q in asked if q.strip()]
     if not asked:
@@ -106,11 +107,11 @@ def _question(messages: list[dict]) -> str:
 async def augment(messages: list[dict], selected: str | None) -> list[dict]:
     """Ajoute les extraits pertinents à la consigne ; renvoie les messages inchangés sinon."""
     last_usage.update(at=time.time(), projects=[], sources=[])
-    question = _question(messages)
-    if not question:
+    asked = question(messages)
+    if not asked:
         return messages
     chosen = [selected] if selected else []
-    targets = chosen + [p for p in cited(question, await projects()) if p not in chosen]
+    targets = chosen + [p for p in cited(asked, await projects()) if p not in chosen]
     if not targets:
         return messages
     start = time.monotonic()
@@ -119,7 +120,7 @@ async def augment(messages: list[dict], selected: str | None) -> list[dict]:
             f"{RAG_URL}/query",
             json={
                 "collections": [COMMON] + [PREFIX + p for p in targets],
-                "query": question,
+                "query": asked,
                 "limit": RAG_LIMIT,
             },
         )
@@ -151,10 +152,15 @@ async def augment(messages: list[dict], selected: str | None) -> list[dict]:
         (time.monotonic() - start) * 1000,
     )
 
+    return add_system(messages, context)
+
+
+def add_system(messages: list[dict], text: str) -> list[dict]:
+    """Ajoute `text` à la consigne système (créée si absente), sans modifier l'original."""
     augmented = [dict(m) for m in messages]
     system = next((m for m in augmented if m.get("role") == "system"), None)
     if system is not None:
-        system["content"] = f"{_text(system['content'])}\n\n{context}"
+        system["content"] = f"{_text(system['content'])}\n\n{text}"
     else:
-        augmented.insert(0, {"role": "system", "content": context})
+        augmented.insert(0, {"role": "system", "content": text})
     return augmented

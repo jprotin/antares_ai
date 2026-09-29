@@ -1,4 +1,5 @@
-// Réglages : voix (catalogue voices/voices.json), modèle LLM et projet RAG (routeur /api).
+// Réglages : voix (catalogue voices/voices.json), modèle LLM, agent et projet RAG
+// (routeur /api).
 // Les choix sont persistés côté serveur par le routeur LLM.
 
 // Bref par défaut, mais sans brider les contenus longs demandés explicitement
@@ -11,6 +12,7 @@ const BASE_INSTRUCTIONS =
 export const profile = {
   config: {},
   voices: [],
+  agents: [],
   settings: null,
 };
 
@@ -33,22 +35,27 @@ export function instructionsFor(voice) {
   return `Tu es ${voice.name}, ${role}. ${BASE_INSTRUCTIONS}`;
 }
 
-async function getJson(url, options) {
+export async function getJson(url, options) {
   const response = await fetch(url, { cache: "no-store", ...options });
   if (!response.ok) {
-    const detail = await response.json().catch(() => ({}));
-    throw new Error(detail.detail ?? `${url} : HTTP ${response.status}`);
+    const { detail } = await response.json().catch(() => ({}));
+    // Erreurs de validation : liste de champs refusés
+    const message = Array.isArray(detail)
+      ? detail.map((d) => `${d.loc?.at(-1)} : ${d.msg}`).join(" ; ")
+      : detail;
+    throw new Error(message ?? `${url} : HTTP ${response.status}`);
   }
   return response.json();
 }
 
 export async function loadProfile() {
-  const [config, catalog, settings] = await Promise.all([
+  const [config, catalog, settings, agents] = await Promise.all([
     getJson("config.json"),
     getJson("voices/voices.json"),
     getJson("api/settings"),
+    getJson("api/agents").catch(() => []),
   ]);
-  Object.assign(profile, { config, voices: catalog.voices, settings });
+  Object.assign(profile, { config, voices: catalog.voices, settings, agents });
   return profile;
 }
 
@@ -84,6 +91,13 @@ export function modelLabel(name) {
   return name ?? "?";
 }
 
+export function agentLabel(agentId) {
+  return (
+    profile.agents.find((agent) => agent.id === agentId)?.name ??
+    "aucun (agent cité par son nom)"
+  );
+}
+
 export function projectLabel(project) {
   return project || "aucun (projet cité par son nom)";
 }
@@ -111,6 +125,7 @@ export function initSettingsDialog({ onApplied }) {
   const voiceOptions = document.getElementById("voice-options");
   const modelOptions = document.getElementById("model-options");
   const projectOptions = document.getElementById("project-options");
+  const agentOptions = document.getElementById("agent-options");
   const error = document.getElementById("settings-error");
   const apply = document.getElementById("apply-settings");
   const preview = document.getElementById("preview");
@@ -160,6 +175,39 @@ export function initSettingsDialog({ onApplied }) {
     );
   }
 
+  async function renderAgents() {
+    const checked = agentOptions.querySelector("input:checked")?.value;
+    profile.agents = await getJson("api/agents");
+    const selected = checked ?? profile.settings.agent ?? "";
+    const none = {
+      id: "",
+      name: "Aucun",
+      description: "Sauf agent cité par son nom",
+    };
+    // Regroupés par domaine : l'ordre de la liste suit les domaines
+    const sorted = [...profile.agents].sort(
+      (a, b) =>
+        a.domain.localeCompare(b.domain) || a.name.localeCompare(b.name),
+    );
+    agentOptions.replaceChildren(
+      ...[none, ...sorted].map((agent) => {
+        const badge = document.createElement("span");
+        if (agent.id) {
+          badge.className = "badge badge--unknown";
+          badge.textContent = `${agent.domain} · ${agent.usage}`;
+        }
+        return optionRow({
+          name: "agent",
+          value: agent.id,
+          checked: agent.id === selected,
+          title: agent.name,
+          detail: agent.description || " ",
+          trailing: badge,
+        });
+      }),
+    );
+  }
+
   async function renderProjects() {
     projectOptions.textContent = "Chargement de la liste…";
     const projects = await getJson("api/projects");
@@ -188,10 +236,15 @@ export function initSettingsDialog({ onApplied }) {
       error.textContent = "";
       renderVoices();
       dialog.showModal();
-      const [models, projects] = await Promise.allSettled([
+      agentOptions.replaceChildren();
+      const [models, projects, agents] = await Promise.allSettled([
         renderModels(),
         renderProjects(),
+        renderAgents(),
       ]);
+      if (agents.status === "rejected") {
+        agentOptions.textContent = "Agents indisponibles";
+      }
       if (models.status === "rejected") {
         modelOptions.textContent = "";
         error.textContent = `Liste des modèles indisponible : ${models.reason.message}`;
@@ -219,6 +272,7 @@ export function initSettingsDialog({ onApplied }) {
           voice: data.get("voice"),
           model: data.get("model"),
           project: data.get("project") ?? undefined,
+          agent: data.get("agent") ?? undefined,
         }),
       });
       preview.pause();
@@ -230,4 +284,6 @@ export function initSettingsDialog({ onApplied }) {
       apply.disabled = false;
     }
   });
+
+  return { renderAgents };
 }

@@ -76,6 +76,24 @@ consultés s'affichent sous la réponse. Pour indexer un projet : `ai-to-boost-r
 <projet>` (côté ai-to-boost) ; il apparaît dans les Réglages sous une minute. Avec un
 modèle Claude, les extraits partent chez Anthropic avec la conversation.
 
+### Agents
+
+Un agent est une fiche de consignes réutilisable (Réglages → **Gérer les agents**) :
+nom, domaine et utilité (pour les regrouper), instructions (rôle, méthode, format de
+réponse), et en option un projet (documentation RAG) et un modèle.
+
+- **Agent choisi** dans les Réglages : il s'applique à tout l'appel.
+- **Sinon**, un agent cité par son nom (« demande au relecteur ADR… ») répond à cette
+  question ; une relance courte (« et ensuite ? ») reste avec lui.
+- Ses instructions s'ajoutent à la consigne ; son projet déclenche la documentation ;
+  son modèle, s'il diffère des Réglages, est chargé à sa première réponse.
+
+Les fiches sont stockées par le routeur (`/data/agents.json`, volume
+`antares-router-data`). Un catalogue de 28 agents (`router/catalogue.json`) est créé
+au premier lancement ; pour l'ajouter à une installation existante :
+`docker exec -w /app antares-llm-router python -c "import agents; agents.seed_catalogue()"`.
+L'agent utilisé s'affiche sous la réponse.
+
 ### Pourquoi des voix clonées
 
 Les locuteurs prédéfinis de Qwen3-TTS (modèle CustomVoice) changent de timbre d'une

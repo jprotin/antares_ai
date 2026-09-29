@@ -1,8 +1,10 @@
 // Écran d'appel : micro -> serveur Realtime (WebSocket) -> voix + sous-titres.
 // Protocole : sous-ensemble OpenAI Realtime implémenté par huggingface/speech-to-speech.
 
+import { initAgentsDialog } from "./agents.js";
 import { Orb } from "./orb.js";
 import {
+  agentLabel,
   currentVoice,
   initSettingsDialog,
   instructionsFor,
@@ -130,16 +132,18 @@ function annotate(line, text) {
   line.append(meta);
 }
 
-// Projets du RAG consultés pour cette réponse (recherche faite après la fin de parole)
+// Agent et projets du RAG utilisés pour cette réponse (préparés après la fin de parole)
 async function annotateSources(line, since) {
   try {
-    const response = await fetch("api/rag/last", { cache: "no-store" });
-    const usage = await response.json();
-    if (usage.at * 1000 >= since && usage.projects.length) {
-      annotate(line, `documentation : ${usage.projects.join(", ")}`);
+    const response = await fetch("api/turn/last", { cache: "no-store" });
+    const turn = await response.json();
+    if (turn.at * 1000 < since) return;
+    if (turn.agent) annotate(line, `agent : ${turn.agent}`);
+    if (turn.projects.length) {
+      annotate(line, `documentation : ${turn.projects.join(", ")}`);
     }
   } catch (error) {
-    console.warn("Sources RAG indisponibles", error);
+    console.warn("Agent et sources indisponibles", error);
   }
 }
 
@@ -475,6 +479,7 @@ function renderProfile() {
   ui.info.replaceChildren();
   for (const [label, value] of [
     ["LLM", modelLabel(settings?.model)],
+    ["Agent", agentLabel(settings?.agent)],
     ["Projet", projectLabel(settings?.project)],
     ["Voix", `${name} (${config.tts} clonée${quantization})`],
     ["Transcription", config.stt],
@@ -497,10 +502,17 @@ function sendVoiceSession() {
   );
 }
 
-initSettingsDialog({
+const settingsDialog = initSettingsDialog({
   onApplied: () => {
     renderProfile();
     sendVoiceSession();
+  },
+});
+
+initAgentsDialog({
+  onChanged: async () => {
+    await settingsDialog.renderAgents();
+    renderProfile();
   },
 });
 
