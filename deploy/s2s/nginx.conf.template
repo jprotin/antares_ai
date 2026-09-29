@@ -39,12 +39,25 @@ server {
         return 200 '{"stt":"${ANTARES_STT}","tts":"${ANTARES_TTS}","ttsQuantization":"${ANTARES_TTS_QUANTIZATION}"}';
     }
 
-    # Réglages modifiables (modèle LLM, voix) : routeur LLM
+    # Conversation écrite : tout l'historique est envoyé à chaque question, et la
+    # réponse arrive en flux (SSE) : pas de mise en tampon, délai long (Claude, réponses
+    # longues). 4 Ko (limite de /api/) bloquait la conversation dès quelques échanges.
+    location = /api/chat {
+        proxy_pass $router_upstream;
+        proxy_set_header Host $host;
+        proxy_http_version 1.1;
+        proxy_buffering off;
+        proxy_read_timeout 300s;
+        client_max_body_size 2m;
+    }
+
+    # Réglages (modèle, voix, agent, mode…) et agents : routeur LLM
     location /api/ {
         proxy_pass $router_upstream;
         proxy_set_header Host $host;
         proxy_read_timeout 60s;
-        client_max_body_size 4k;
+        # Fiche d'agent : jusqu'à 4 000 caractères d'instructions (accents : ~2 octets)
+        client_max_body_size 64k;
     }
 
     location /voices/ {

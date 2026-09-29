@@ -238,6 +238,9 @@ body {
 }
 
 .conversation__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   padding: 1rem 1.4rem;
   border-bottom: 1px solid var(--panel-border);
 }
@@ -306,6 +309,13 @@ body {
   opacity: 0.65;
 }
 
+.line--error {
+  border-color: color-mix(in srgb, var(--danger) 55%, transparent);
+}
+.line--error .line__meta {
+  color: var(--danger);
+}
+
 .line__meta {
   display: block;
   margin-top: 0.3rem;
@@ -343,7 +353,8 @@ body {
   gap: 0.6rem;
 }
 
-.composer button:disabled {
+.composer button:disabled,
+.link-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }

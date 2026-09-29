@@ -44,9 +44,40 @@ const ui = {
   composerText: document.getElementById("composer-text"),
   composerContext: document.getElementById("composer-context"),
   composerSend: document.getElementById("composer-send"),
+  newConversation: document.getElementById("new-conversation"),
 };
 
 const orb = new Orb(document.getElementById("orb"));
+
+// Conversation unique, écrite et orale : envoyée au routeur hors appel, rejouée au
+// moteur vocal au début d'un appel, complétée par les transcriptions pendant l'appel.
+const HISTORY_LIMIT = 30;
+// Budget en caractères : au-delà, Ollama tronquerait le début sans prévenir
+const HISTORY_CHARS = 24000;
+let conversation = [];
+let writing = false;
+
+function remember(role, content) {
+  if (content?.trim()) conversation.push({ role, content: content.trim() });
+}
+
+// Derniers messages dans la limite du nombre et du budget (le plus récent est gardé)
+function recentHistory() {
+  const kept = [];
+  let chars = 0;
+  for (const message of conversation.slice(-HISTORY_LIMIT).reverse()) {
+    chars += message.content.length;
+    if (kept.length && chars > HISTORY_CHARS) break;
+    kept.unshift(message);
+  }
+  return kept;
+}
+
+const HTTP_ERRORS = {
+  413: "la conversation est trop longue pour être envoyée",
+  502: "le routeur LLM ne répond pas",
+  504: "le modèle a mis trop de temps à répondre",
+};
 const theme = initTheme({
   button: document.getElementById("theme-toggle"),
   orb,
@@ -216,6 +247,7 @@ function onServerEvent(event) {
       break;
     case "conversation.item.input_audio_transcription.completed":
       writeSubtitle(event.item_id, "user", event.transcript, { final: true });
+      remember("user", event.transcript);
       break;
     case "response.created":
       call.responseDone = false;
@@ -244,6 +276,7 @@ function onServerEvent(event) {
         event.transcript,
         { final: true },
       );
+      remember("assistant", event.transcript);
       if (call.latency)
         annotate(
           call.lastAssistantLine,
@@ -374,8 +407,9 @@ async function startCall() {
           },
         }),
       );
+      replayConversation(ws);
       setState("listening");
-      setComposerEnabled(true);
+      ui.newConversation.disabled = true;
       ui.button.textContent = "Raccrocher";
       ui.button.disabled = false;
       animateOrb();
@@ -403,7 +437,7 @@ function hangUp(message) {
     ctx.close();
   }
   ui.speaker.srcObject = null;
-  setComposerEnabled(false);
+  ui.newConversation.disabled = false;
   orb.setLevel(0);
   ui.button.textContent = "Appeler";
   ui.button.disabled = false;
@@ -414,15 +448,102 @@ ui.button.addEventListener("click", () =>
   call ? hangUp("Appel terminé") : startCall(),
 );
 
-// --- Saisie écrite pendant l'appel ------------------------------------------------
+// --- Écrit : pendant l'appel (moteur vocal) ou hors appel (réponse écrite) --------
 
-function setComposerEnabled(enabled) {
-  for (const element of [
-    ui.composerText,
-    ui.composerContext,
-    ui.composerSend,
-  ]) {
-    element.disabled = !enabled;
+function messageItem(id, role, text) {
+  return {
+    type: "conversation.item.create",
+    item: {
+      id,
+      type: "message",
+      role,
+      content: [{ type: role === "user" ? "input_text" : "output_text", text }],
+    },
+  };
+}
+
+// Début d'appel : le moteur vocal reprend l'échange écrit là où il en était
+function replayConversation(ws) {
+  const stamp = Date.now();
+  recentHistory().forEach((message, index) => {
+    ws.send(
+      JSON.stringify(
+        messageItem(`msg_hist${stamp}${index}`, message.role, message.content),
+      ),
+    );
+  });
+}
+
+function setWriting(busy) {
+  writing = busy;
+  ui.composerSend.disabled = busy;
+  ui.composerContext.disabled = busy;
+}
+
+// Réponse écrite hors appel : flux SSE du routeur, affiché au fil de l'eau
+async function writtenReply() {
+  const voice = currentVoice();
+  const instructions = voice
+    ? `${instructionsFor(voice)} L'échange se fait ici à l'écrit.`
+    : "";
+  const since = Date.now();
+  const itemId = `msg_rep${since}`;
+  let answer = "";
+  setWriting(true);
+  // Orbe et statut seulement : l'écran reste « hors appel » (bouton Appeler intact)
+  orb.setState("thinking");
+  ui.status.textContent = "Je vous réponds à l'écrit…";
+  try {
+    const response = await fetch("api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: [
+          { role: "system", content: instructions },
+          ...recentHistory(),
+        ],
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(
+        HTTP_ERRORS[response.status] ?? `erreur HTTP ${response.status}`,
+      );
+    }
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let pending = "";
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      pending += decoder.decode(value, { stream: true });
+      const lines = pending.split("\n");
+      pending = lines.pop();
+      for (const line of lines) {
+        if (!line.startsWith("data: {")) continue;
+        const delta = JSON.parse(line.slice(6)).choices?.[0]?.delta?.content;
+        if (!delta) continue;
+        answer += delta;
+        writeSubtitle(itemId, "assistant", delta, { append: true });
+      }
+    }
+    const line = writeSubtitle(itemId, "assistant", answer, { final: true });
+    remember("assistant", answer);
+    annotate(line, `écrit · ${((Date.now() - since) / 1000).toFixed(1)} s`);
+    annotateSources(line, since - 2000);
+    ui.status.textContent = STATUS_TEXT.idle;
+  } catch (error) {
+    console.warn("Réponse écrite impossible", error);
+    // Visible dans la conversation, pas seulement dans la ligne d'état
+    const reason =
+      error instanceof TypeError ? "le serveur est injoignable" : error.message;
+    const line = writeSubtitle(itemId, "assistant", answer, { final: true });
+    line.classList.add("line--error");
+    annotate(line, `réponse impossible : ${reason}`);
+    if (answer) remember("assistant", answer);
+    ui.status.textContent = STATUS_TEXT.idle;
+  } finally {
+    if (!call) orb.setState("idle");
+    setWriting(false);
   }
 }
 
@@ -437,25 +558,19 @@ function requestResponse() {
 // à voix haute, sinon il sert de contexte à la suite de l'échange.
 function sendText(respond) {
   const text = ui.composerText.value.trim();
-  if (!text || call?.ws.readyState !== WebSocket.OPEN) return;
+  if (!text || writing) return;
   // Le moteur impose le préfixe msg_ aux identifiants de message
   const itemId = `msg_ecrit${Date.now()}`;
-  call.ws.send(
-    JSON.stringify({
-      type: "conversation.item.create",
-      item: {
-        id: itemId,
-        type: "message",
-        role: "user",
-        content: [{ type: "input_text", text }],
-      },
-    }),
-  );
+  const inCall = call?.ws.readyState === WebSocket.OPEN;
+  if (inCall) call.ws.send(JSON.stringify(messageItem(itemId, "user", text)));
+  remember("user", text);
   const line = writeSubtitle(itemId, "user", text, { final: true });
   annotate(line, respond ? "écrit" : "écrit · ajouté au contexte");
   ui.composerText.value = "";
   if (!respond) return;
-  if (call.responseDone) {
+  if (!inCall) {
+    writtenReply();
+  } else if (call.responseDone) {
     requestResponse();
   } else {
     call.pendingTextResponse = true;
@@ -467,6 +582,11 @@ ui.composer.addEventListener("submit", (event) => {
   sendText(true);
 });
 ui.composerContext.addEventListener("click", () => sendText(false));
+ui.newConversation.addEventListener("click", () => {
+  conversation = [];
+  ui.subtitles.replaceChildren(ui.empty);
+  ui.composerText.focus();
+});
 ui.composerText.addEventListener("keydown", (event) => {
   if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
     event.preventDefault();

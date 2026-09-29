@@ -14,6 +14,8 @@
 - /api/agents    : agents « consignes » (cf. agents.py) : liste, création, modification,
                    suppression ; /api/agents/meta : domaines et utilités proposés.
 - /api/turn/last : agent, modèle, projets et sources de la dernière réponse.
+- /api/chat      : conversation écrite hors appel (réponse texte en flux SSE, sans voix),
+                   avec le même mode, agent et documentation que la voix.
 - /healthz       : sonde de santé.
 """
 
@@ -349,6 +351,47 @@ async def prepare(messages: list[dict], settings: Settings) -> tuple[list[dict],
     if agent:
         logger.info("Agent %s (modèle %s)", agent.name, model)
     return messages, model
+
+
+class ChatRequest(BaseModel):
+    messages: list[dict]
+
+
+@app.post("/api/chat")
+async def written_chat(request: ChatRequest) -> StreamingResponse:
+    """Réponse écrite : même préparation que la voix, flux `chat.completion.chunk`."""
+    start = time.monotonic()
+    settings = load_settings()
+    messages, model = await prepare(request.messages, settings)
+    if claude.is_claude(model):
+        return StreamingResponse(
+            claude.stream_reply(
+                model,
+                messages,
+                on_done=lambda seconds: record_observed(model, seconds, None),
+            ),
+            media_type="text/event-stream",
+        )
+    upstream = await client.send(
+        client.build_request(
+            "POST",
+            "/v1/chat/completions",
+            json={
+                "model": model,
+                "messages": messages,
+                "stream": True,
+                # Comme pour la voix : pas de raisonnement (gemma4 réfléchit par défaut)
+                "reasoning_effort": "none",
+            },
+        ),
+        stream=True,
+    )
+    return StreamingResponse(
+        measure(model, start, upstream.aiter_raw()),
+        status_code=upstream.status_code,
+        media_type=upstream.headers.get("content-type"),
+        background=BackgroundTask(upstream.aclose),
+    )
 
 
 @app.api_route("/v1/{path:path}", methods=["GET", "POST"])

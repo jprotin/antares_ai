@@ -32,6 +32,7 @@ const browserGlobals = Object.fromEntries(
     "btoa",
     "FormData",
     "localStorage",
+    "TextDecoder",
   ].map((name) => [name, "readonly"]),
 );
 
