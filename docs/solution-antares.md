@@ -101,13 +101,19 @@ affiché.
 ### 3.6 Agents et modes
 
 - **Agents** : fiches de consignes réutilisables (rôle, méthode, format de réponse), avec
-  un domaine, une utilité et, en option, un projet et un modèle. Un **catalogue de 28
+  un domaine, une utilité et, en option, un projet et un modèle. Un **catalogue de 31
   agents** couvre 8 domaines (Infra & DevOps, Exploitation / SRE, Sécurité, Développement,
   Données, Gestion de projet, Rédaction, Perso). Ils se gèrent depuis Réglages → **Gérer
   les agents** (création, modification, suppression, filtre par utilité).
 - **Choix de l'agent** en haut de l'écran d'appel (liste groupée par domaine, avec
   recherche), ou **en le citant** dans la question (« demande au relecteur ADR… ») pour
   une seule question.
+- **Agents d'action** (hors local) : un agent de type Action confie une tâche au worker
+  d'ai-to-boost (Claude Code outillé), qui modifie les fichiers d'un projet sur une
+  branche à part, sans commande, sans push ni fusion. Lancement par le bouton **Lancer
+  un agent**, ou à la voix (« lance l'agent Documentaliste sur le projet X, pour… »),
+  confirmé par « oui ». Une carte suit l'action (résumé, fichiers, branche) ; en appel,
+  l'assistant annonce la fin.
 - **Modes** : la manière de répondre pour tout l'appel — Standard, Support / Helpdesk,
   Expert technique, Cool / Relax, Incident / Astreinte, Coach / Formateur,
   Brainstorming, Avocat du diable. Un mode place en tête les agents utiles (« Suggérés »).
@@ -154,10 +160,12 @@ la stack ai-to-boost.
 | **ollama**        | ai-to-boost                              | LLM locaux (gemma4:e4b par défaut, gemma4:26b, qwen3.5:9b…), API OpenAI `/v1`.                                                                                                                        |
 | **rag / qdrant**  | ai-to-boost                              | Recherche sémantique (FastEmbed nomic 768d) dans les collections `knowledge` et `proj-*`.                                                                                                             |
 | **claude-bridge** | service systemd de l'hôte (ai-to-boost)  | Option Claude : exécute `claude -p` sur l'abonnement de l'utilisateur.                                                                                                                                |
+| **claude-agent**  | service systemd de l'hôte (ai-to-boost)  | Agents d'action : `claude -p` avec outils fichiers dans un worktree, branche `agent/<id>`, sans push.                                                                                                 |
 
 **Modules du routeur** : `router.py` (API, préparation de la consigne, relais),
 `documents.py` (extraction, limites, injection des documents joints), `knowledge.py`
-(fiches de connaissance : rédaction, anti-doublon, indexation), `rag.py`
+(fiches de connaissance : rédaction, anti-doublon, indexation), `actions.py` (agents
+d'action : lancement, confirmation vocale, suivi), `rag.py`
 (projets, recherche, injection), `agents.py` + `catalogue.json` (agents), `modes.py`
 (modes), `voicecode.py` (code retiré de la voix, restauré en mémoire), `claude.py` (pont
 Claude). Le module `qwen3_sampling.py`, chargé dans l'image s2s, règle le tirage de la
@@ -198,21 +206,22 @@ en flux SSE, rendue en Markdown au fil de l'eau.
 Le moteur s2s, qui traite l'audio, n'est branché que sur `antares-local` et tourne en mode
 hors ligne Hugging Face : même mal configuré, il ne peut rien envoyer à l'extérieur.
 `check-local.sh` le prouve (Hugging Face, OpenAI et 1.1.1.1 injoignables). Le seul flux
-sortant possible est l'**option Claude**, choisie explicitement et signalée « hors local »
+sortant possible est l'**option Claude** (et les agents d'action, qui l'utilisent), choisie explicitement et signalée « hors local »
 dans l'interface ; l'audio et la transcription restent locaux dans tous les cas.
 
 ### 4.5 Données et configuration
 
-| Donnée                              | Emplacement                                                                                      |
-| ----------------------------------- | ------------------------------------------------------------------------------------------------ |
-| Modèles (STT, TTS, VAD)             | volume `antares-s2s-cache`                                                                       |
-| Réglages, agents, latences mesurées | volume `antares-router-data` (`settings.json`, `agents.json`, `observed.json`)                   |
-| Documents joints (texte extrait)    | volume `antares-router-data` (`documents/`), supprimés à « Nouvelle conversation »               |
-| Fiches de connaissance              | volume `antares-router-data` (`knowledge/`, font foi) ; index dans Qdrant (collection du projet) |
-| Voix clonées                        | `deploy/s2s/voices/` (+ `voices.json`)                                                           |
-| Profil par défaut                   | bloc `x-profile` de `deploy/s2s/compose.yaml` (modèle, moteurs, quantification, tirage TTS, RAG) |
-| Thème                               | navigateur (`localStorage`)                                                                      |
-| Conversation                        | mémoire de la page (pas encore archivée)                                                         |
+| Donnée                              | Emplacement                                                                                                    |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| Modèles (STT, TTS, VAD)             | volume `antares-s2s-cache`                                                                                     |
+| Réglages, agents, latences mesurées | volume `antares-router-data` (`settings.json`, `agents.json`, `observed.json`)                                 |
+| Documents joints (texte extrait)    | volume `antares-router-data` (`documents/`), supprimés à « Nouvelle conversation »                             |
+| Fiches de connaissance              | volume `antares-router-data` (`knowledge/`, font foi) ; index dans Qdrant (collection du projet)               |
+| Agents d'action                     | volume `antares-router-data` (`actions.json`, 50 dernières) ; travail sur les branches `agent/<id>` des dépôts |
+| Voix clonées                        | `deploy/s2s/voices/` (+ `voices.json`)                                                                         |
+| Profil par défaut                   | bloc `x-profile` de `deploy/s2s/compose.yaml` (modèle, moteurs, quantification, tirage TTS, RAG)               |
+| Thème                               | navigateur (`localStorage`)                                                                                    |
+| Conversation                        | mémoire de la page (pas encore archivée)                                                                       |
 
 ### 4.6 Ressources
 
@@ -240,6 +249,7 @@ rechargement (quelques secondes) et évince le modèle précédent.
 | Interface              | page statique sans framework, servie par nginx                                            | React / Next.js                                         | Surface minimale, aucun build, tout local.                                                                                                                                                     | —        |
 | Documents joints       | lecture intégrale dans la consigne ; contexte long à l'écrit ; refus au-delà              | RAG sur le document, troncature                         | Ollama tronque sans prévenir ; 65 536 tient sur le GPU avec le moteur vocal (48 800 tokens lus en entier, 17,6 s).                                                                             | ADR 0005 |
 | Fiches de connaissance | rédigées par le LLM, **relues** avant indexation, via une API d'écriture du service `rag` | indexation automatique, index propre à antares          | Ne pas polluer le RAG ; une seule chaîne d'embeddings ; obsolescence et validité filtrées à la recherche.                                                                                      | ADR 0006 |
+| Agents d'action        | worker ai-to-boost en mode `file`, confirmation vocale sans LLM                           | mode `build` (shell), exécution locale                  | Réutiliser un worker déjà isolé (worktree, pas de push) ; aucune commande exécutée ; un « oui » explicite avant tout lancement vocal.                                                          | ADR 0007 |
 
 ## 6. Annexes : limites connues et suite
 
@@ -256,7 +266,7 @@ rechargement (quelques secondes) et évince le modèle précédent.
 
 **Suite prévue**
 
-1. **Agents d'action** : délégation au worker ai-to-boost (Claude Code outillé).
-2. **Archive et historique** des appels.
+1. **Archive et historique** des appels.
+2. Agents d'action en mode `build` (commandes sous garde-fou), si le besoin se confirme.
 3. PDF scannés (reconnaissance de caractères), correctif de lecture sous Chrome, accès
    distant (ngrok), cible cloud.

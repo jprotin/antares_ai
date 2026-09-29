@@ -4,6 +4,10 @@ Une fiche porte un nom, un domaine et une utilité (pour les regrouper), des ins
 (rôle, méthode, format de réponse) et, en option, un projet RAG et un modèle. L'agent
 s'applique à tout l'appel s'il est choisi dans les Réglages, ou à une seule question
 s'il y est cité par son nom (« demande au relecteur ADR… »).
+
+Un agent d'**action** (`kind="action"`) ne répond pas : il confie une tâche au worker
+d'ai-to-boost, qui modifie les fichiers d'un dépôt sur une branche dédiée (cf.
+actions.py). Ses instructions deviennent le cadre de la tâche.
 """
 
 import json
@@ -11,6 +15,8 @@ import os
 import re
 import unicodedata
 from pathlib import Path
+
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
@@ -45,6 +51,9 @@ class AgentDraft(BaseModel):
     instructions: str = Field(min_length=10, max_length=4000)
     project: str = ""
     model: str = ""
+    kind: Literal["consigne", "action"] = "consigne"
+    # Agent d'action : projet du worker ai-to-boost (vide : projet actif de l'interface)
+    repo: str = Field(default="", max_length=64)
 
 
 class Agent(AgentDraft):
@@ -97,10 +106,14 @@ def find(agent_id: str) -> Agent | None:
     return next((a for a in load() if a.id == agent_id), None)
 
 
-def cited(question: str) -> Agent | None:
+def normalize(text: str) -> str:
+    return _normalize(text)
+
+
+def cited(question: str, kind: str = "consigne") -> Agent | None:
     """Agent nommé dans la question ; le nom le plus long l'emporte (« Relecteur ADR »)."""
     text = _normalize(question)
-    matches = [a for a in load() if _normalize(a.name) in text]
+    matches = [a for a in load() if a.kind == kind and _normalize(a.name) in text]
     if not matches:
         return None
     return max(matches, key=lambda a: len(a.name))
