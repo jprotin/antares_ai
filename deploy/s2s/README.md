@@ -17,6 +17,9 @@ docker compose up -d    # ensuite, hors ligne
 
 Interface d'appel : <http://127.0.0.1:8765>
 
+Navigateur recommandé : **Firefox**. Sous Chrome, la voix se dégrade au fil d'un appel
+laissé ouvert (constaté sur le poste de dev ; l'audio envoyé par le serveur reste net).
+
 ## Changer de modèle ou de voix
 
 Depuis l'interface : bouton **Réglages** (roue dentée). Le choix est appliqué dès la
@@ -54,8 +57,15 @@ phrase à l'autre. Mesuré sur 10 phrases : similarité de timbre minimale 0,81-
 Le clonage fixe le timbre mais pas le ton : avec le tirage amont (température 0.9,
 top_k 50), la voix alterne entre deux intonations. Mesuré sur 11 phrases enchaînées,
 3 passages : écart-type de hauteur 24 Hz, contre 14 Hz à température 0.3 et top_k 10.
+Ce tirage bridé fait parfois s'emballer le modèle : il n'émet pas sa fin de phrase et la
+voix déraille jusqu'au plafond du moteur (~28 s au lieu de 6). Mesuré sur 6 phrases
+réelles × 20 : 7 emballements sur 120, aucun avec une pénalité de répétition de 1.2
+(qui stabilise aussi la hauteur, 5,6 Hz). Un plafond de 1,5 trame par caractère coupe
+en plus tout emballement résiduel.
+
 Le moteur n'exposant pas ces paramètres, `qwen3_sampling.py` (copié dans l'image) les
-applique depuis `tts-temperature` et `tts-top-k` du bloc `x-profile`.
+applique depuis `tts-temperature`, `tts-top-k`, `tts-repetition-penalty` et
+`tts-max-frames-per-char` du bloc `x-profile`.
 
 ## Vérifications
 

@@ -28,6 +28,10 @@ x-profile:
   # Tirage Qwen3-TTS bridé (amont : 0.9 / 50) : ton régulier d'une phrase à l'autre
   tts-temperature: &tts-temperature "0.3"
   tts-top-k: &tts-top-k "10"
+  # Sans pénalité, le tirage bridé s'emballe (pas de fin de phrase) ~6 % du temps
+  tts-repetition-penalty: &tts-repetition-penalty "1.2"
+  # Plafond de longueur : ~2 fois le débit mesuré, coupe un emballement résiduel
+  tts-max-frames-per-char: &tts-max-frames-per-char "1.5"
 
 x-s2s: &s2s
   image: antares/s2s:1.0.0
@@ -43,6 +47,8 @@ x-s2s: &s2s
     # Lus par qwen3_sampling.py (cf. Dockerfile)
     QWEN3_TTS_TEMPERATURE: *tts-temperature
     QWEN3_TTS_TOP_K: *tts-top-k
+    QWEN3_TTS_REPETITION_PENALTY: *tts-repetition-penalty
+    QWEN3_TTS_MAX_FRAMES_PER_CHAR: *tts-max-frames-per-char
   command:
     - serve
     - --host=0.0.0.0
