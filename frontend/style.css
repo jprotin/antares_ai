@@ -166,7 +166,7 @@ body {
 
 .conversation {
   display: grid;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto 1fr auto;
   min-height: 0;
   border: 1px solid var(--panel-border);
   border-radius: var(--radius);
@@ -247,6 +247,41 @@ body {
   margin-top: 0.3rem;
   font-size: 0.72rem;
   color: var(--faint);
+}
+
+.composer {
+  display: grid;
+  gap: 0.6rem;
+  padding: 1rem 1.4rem;
+  border-top: 1px solid var(--panel-border);
+}
+
+.composer__text {
+  width: 100%;
+  resize: vertical;
+  min-height: 2.8rem;
+  max-height: 12rem;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 0.8rem;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.composer__text:disabled {
+  opacity: 0.5;
+}
+
+.composer__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+.composer button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 @keyframes appear {

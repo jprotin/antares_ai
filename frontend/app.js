@@ -35,6 +35,10 @@ const ui = {
   button: document.getElementById("call"),
   halfDuplex: document.getElementById("half-duplex"),
   speaker: document.getElementById("speaker"),
+  composer: document.getElementById("composer"),
+  composerText: document.getElementById("composer-text"),
+  composerContext: document.getElementById("composer-context"),
+  composerSend: document.getElementById("composer-send"),
 };
 
 const orb = new Orb(document.getElementById("orb"));
@@ -183,6 +187,8 @@ function maybeBackToListening() {
 function onServerEvent(event) {
   switch (event.type) {
     case "input_audio_buffer.speech_started":
+      // La réponse à la parole tiendra compte du message écrit en attente
+      call.pendingTextResponse = false;
       if (call.sources.size) {
         stopPlayback();
         annotate(call.lastAssistantLine, "interrompu");
@@ -237,6 +243,12 @@ function onServerEvent(event) {
       break;
     case "response.done":
       call.responseDone = true;
+      if (call.pendingTextResponse) {
+        // Message écrit pendant la réponse : le moteur l'a gardé, on demande la suite
+        call.pendingTextResponse = false;
+        requestResponse();
+        break;
+      }
       if (call.sources.size === 0 && call.state !== "user")
         setState("listening");
       break;
@@ -352,6 +364,7 @@ async function startCall() {
         }),
       );
       setState("listening");
+      setComposerEnabled(true);
       ui.button.textContent = "Raccrocher";
       ui.button.disabled = false;
       animateOrb();
@@ -379,6 +392,7 @@ function hangUp(message) {
     ctx.close();
   }
   ui.speaker.srcObject = null;
+  setComposerEnabled(false);
   orb.setLevel(0);
   ui.button.textContent = "Appeler";
   ui.button.disabled = false;
@@ -388,6 +402,66 @@ function hangUp(message) {
 ui.button.addEventListener("click", () =>
   call ? hangUp("Appel terminé") : startCall(),
 );
+
+// --- Saisie écrite pendant l'appel ------------------------------------------------
+
+function setComposerEnabled(enabled) {
+  for (const element of [
+    ui.composerText,
+    ui.composerContext,
+    ui.composerSend,
+  ]) {
+    element.disabled = !enabled;
+  }
+}
+
+function requestResponse() {
+  call.speechStoppedAt = performance.now();
+  call.speechStoppedEpoch = Date.now();
+  call.ws.send(JSON.stringify({ type: "response.create" }));
+  setState("thinking");
+}
+
+// Le texte rejoint la conversation du LLM comme une parole ; `respond` : l'IA y répond
+// à voix haute, sinon il sert de contexte à la suite de l'échange.
+function sendText(respond) {
+  const text = ui.composerText.value.trim();
+  if (!text || call?.ws.readyState !== WebSocket.OPEN) return;
+  // Le moteur impose le préfixe msg_ aux identifiants de message
+  const itemId = `msg_ecrit${Date.now()}`;
+  call.ws.send(
+    JSON.stringify({
+      type: "conversation.item.create",
+      item: {
+        id: itemId,
+        type: "message",
+        role: "user",
+        content: [{ type: "input_text", text }],
+      },
+    }),
+  );
+  const line = writeSubtitle(itemId, "user", text, { final: true });
+  annotate(line, respond ? "écrit" : "écrit · ajouté au contexte");
+  ui.composerText.value = "";
+  if (!respond) return;
+  if (call.responseDone) {
+    requestResponse();
+  } else {
+    call.pendingTextResponse = true;
+  }
+}
+
+ui.composer.addEventListener("submit", (event) => {
+  event.preventDefault();
+  sendText(true);
+});
+ui.composerContext.addEventListener("click", () => sendText(false));
+ui.composerText.addEventListener("keydown", (event) => {
+  if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+    event.preventDefault();
+    sendText(true);
+  }
+});
 
 function renderProfile() {
   const voice = currentVoice();

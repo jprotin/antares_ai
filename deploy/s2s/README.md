@@ -21,6 +21,18 @@ Interface d'appel : <http://127.0.0.1:8765>
 Navigateur recommandé : **Firefox**. Sous Chrome, la voix se dégrade au fil d'un appel
 laissé ouvert (constaté sur le poste de dev ; l'audio envoyé par le serveur reste net).
 
+## Écrire pendant l'appel
+
+La zone de saisie sous la conversation s'active pendant un appel. Le texte rejoint la
+conversation du LLM comme une parole :
+
+- **Entrée / Envoyer** : l'IA répond à voix haute (et en sous-titres) ;
+- **Ajouter au contexte** : aucune réponse, le texte (log, adresse, extrait…) sert à la
+  suite de l'échange, écrite ou orale.
+
+Un message tapé pendant que l'IA parle est gardé par le moteur et traité à la fin de sa
+réponse. La documentation des projets (RAG) s'applique aussi aux messages écrits.
+
 ## Changer de modèle ou de voix
 
 Depuis l'interface : bouton **Réglages** (roue dentée). Le choix est appliqué dès la
