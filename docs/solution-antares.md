@@ -118,7 +118,8 @@ affiché.
   proche du bleu de base) : accents, bulles, orbe.
 - Fenêtres fermables au clic extérieur ou avec Échap, plein écran sur mobile.
 - **Avatar** : modèles 3D temps réel au choix dans les Réglages — cyborg argenté
-  (défaut), Chappie (robot à visière aux yeux LED expressifs) — ou orbe. Chacun suit
+  (défaut), Chappie (robot à visière aux yeux LED expressifs), Bender (bière et cigare en
+  main) — ou orbe. Chacun suit
   l'état de l'appel ; en parole, la mâchoire ou l'écran-bouche suit la voix.
 - **Voix** : Terminator et Sarah Connor (voix clonées).
 

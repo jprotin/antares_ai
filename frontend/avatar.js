@@ -3,16 +3,18 @@
 
 import { Face3D, webglAvailable } from "./face3d.js";
 import { Orb } from "./orb.js";
+import { Bender } from "./avatars3d/bender.js";
 import { VisorRobot } from "./avatars3d/visor.js";
 
 const STORAGE_KEY = "antares-avatar";
 const RENDERERS = {
   face3d: Face3D,
   visor: VisorRobot,
+  bender: Bender,
   orb: Orb,
 };
 // Avatars WebGL : repli sur l'orbe (canvas 2D) sans WebGL
-const WEBGL = new Set(["face3d", "visor"]);
+const WEBGL = new Set(["face3d", "visor", "bender"]);
 const DEFAULT = "face3d";
 
 function stored() {
