@@ -117,7 +117,8 @@ affiché.
 - **Nuance de couleur** selon le domaine de l'agent actif (teinte seulement, dans une plage
   proche du bleu de base) : accents, bulles, orbe.
 - Fenêtres fermables au clic extérieur ou avec Échap, plein écran sur mobile.
-- **Avatar** : tête de cyborg (défaut) ou orbe, au choix dans les Réglages. Le cyborg
+- **Avatar** : tête de cyborg en 3D temps réel (défaut, métal chromé et reflets), en 2D,
+  ou orbe, au choix dans les Réglages. Le cyborg
   suit l'état de l'appel : yeux faiblement allumés au repos, qui pulsent en réflexion
   (avec un balayage lumineux), mâchoire qui s'ouvre au rythme de la voix.
 - **Voix** : Terminator et Sarah Connor (voix clonées).
