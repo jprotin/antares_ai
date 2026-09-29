@@ -33,6 +33,11 @@ RUN python3 -m venv /opt/venv \
 RUN python -c "import nltk; [nltk.download(r, download_dir='${NLTK_DATA}') for r in ('punkt_tab', 'averaged_perceptron_tagger_eng')]" \
     && ln -s ../taggers/averaged_perceptron_tagger_eng "${NLTK_DATA}/tokenizers/averaged_perceptron_tagger_eng"
 
+# Réglage du tirage de Qwen3-TTS (température, top_k), absent des options du moteur.
+# Chargé par un .pth : Ubuntu fournit déjà un sitecustomize.py prioritaire.
+COPY qwen3_sampling.py /opt/venv/lib/python3.12/site-packages/
+RUN echo "import qwen3_sampling" > /opt/venv/lib/python3.12/site-packages/qwen3_sampling.pth
+
 EXPOSE 8765
 
 HEALTHCHECK --interval=15s --timeout=5s --start-period=600s --retries=3 \

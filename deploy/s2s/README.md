@@ -49,6 +49,14 @@ Les locuteurs prédéfinis de Qwen3-TTS (modèle CustomVoice) changent de timbre
 phrase à l'autre. Mesuré sur 10 phrases : similarité de timbre minimale 0,81-0,85 pour
 `sohee`, contre 0,965 une fois clonée (x-vector depuis un extrait, modèle Base).
 
+### Pourquoi un tirage bridé
+
+Le clonage fixe le timbre mais pas le ton : avec le tirage amont (température 0.9,
+top_k 50), la voix alterne entre deux intonations. Mesuré sur 11 phrases enchaînées,
+3 passages : écart-type de hauteur 24 Hz, contre 14 Hz à température 0.3 et top_k 10.
+Le moteur n'exposant pas ces paramètres, `qwen3_sampling.py` (copié dans l'image) les
+applique depuis `tts-temperature` et `tts-top-k` du bloc `x-profile`.
+
 ## Vérifications
 
 | Script                            | Rôle                                                                    |

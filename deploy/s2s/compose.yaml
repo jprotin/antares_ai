@@ -25,6 +25,9 @@ x-profile:
   tts-model: &tts-model Qwen/Qwen3-TTS-12Hz-1.7B-Base
   tts-quantization: &tts-quantization Q8_0
   default-voice: &default-voice /voices/sohee.wav
+  # Tirage Qwen3-TTS bridé (amont : 0.9 / 50) : ton régulier d'une phrase à l'autre
+  tts-temperature: &tts-temperature "0.3"
+  tts-top-k: &tts-top-k "10"
 
 x-s2s: &s2s
   image: antares/s2s:1.0.0
@@ -37,6 +40,9 @@ x-s2s: &s2s
     TRANSFORMERS_OFFLINE: "1"
     HF_HUB_DISABLE_TELEMETRY: "1"
     DO_NOT_TRACK: "1"
+    # Lus par qwen3_sampling.py (cf. Dockerfile)
+    QWEN3_TTS_TEMPERATURE: *tts-temperature
+    QWEN3_TTS_TOP_K: *tts-top-k
   command:
     - serve
     - --host=0.0.0.0
