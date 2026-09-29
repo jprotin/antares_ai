@@ -150,9 +150,13 @@ L'agent utilisé s'affiche sous la réponse.
   par petits décalages de teinte autour du bleu de base.
 - **Thème** : bouton à côté de la roue dentée — système, sombre ou clair (mémorisé
   dans le navigateur).
-- **Avatar** (Réglages) : **Cyborg** par défaut — tête d'endosquelette dessinée en
-  canvas (`frontend/face.js`), yeux rouges qui pulsent en réflexion, mâchoire qui s'ouvre
-  au rythme de la voix — ou **Orbe**. Mémorisé dans le navigateur.
+- **Avatar** (Réglages), mémorisé dans le navigateur :
+  - **Cyborg 3D** (défaut) : tête d'endosquelette modélisée en 3D temps réel
+    (`frontend/face3d.js`, three.js/WebGL) — plaques extrudées courbées, métal à reflets
+    d'environnement, yeux émissifs avec halo, mâchoire sur charnière suivie par les
+    vérins ; rendu limité à 30 images/s (GPU partagé). Repli sur le 2D sans WebGL ;
+  - **Cyborg 2D** : même tête dessinée en canvas 2D (`frontend/face.js`), plus légère ;
+  - **Orbe**.
 - **Voix** : Terminator (voix clonée `ryan`) et Sarah Connor (voix clonée `sohee`) ; les
   noms affichés et donnés au LLM viennent de `voices/voices.json`.
 
