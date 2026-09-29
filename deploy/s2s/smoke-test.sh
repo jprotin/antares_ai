@@ -13,6 +13,7 @@ docker run --rm \
   -v "${SCRIPT_DIR}/smoke_test.py:/smoke_test.py:ro" \
   -v "${SCRIPT_DIR}/out:/out" \
   -e S2S_URL="${S2S_URL:-ws://s2s:8765/v1/realtime}" \
+  -e QUESTION -e S2S_VOICE -e S2S_INSTRUCTIONS \
   -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" \
   --entrypoint python \
   antares/s2s:1.0.0 /smoke_test.py

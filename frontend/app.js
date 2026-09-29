@@ -2,12 +2,20 @@
 // Protocole : sous-ensemble OpenAI Realtime implémenté par huggingface/speech-to-speech.
 
 import { Orb } from "./orb.js";
+import {
+  currentVoice,
+  initSettingsDialog,
+  instructionsFor,
+  loadProfile,
+  profile,
+  voicePath,
+} from "./settings.js";
 
 const SAMPLE_RATE = 24000;
 const REALTIME_URL = `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/v1/realtime`;
 
 const STATUS_TEXT = {
-  idle: "Prête à vous écouter",
+  idle: "Disponible pour un appel",
   connecting: "Connexion…",
   listening: "Je vous écoute",
   user: "Vous parlez…",
@@ -28,7 +36,6 @@ const ui = {
 };
 
 const orb = new Orb(document.getElementById("orb"));
-let assistantName = "Antares";
 let call = null;
 
 function setState(state, detail) {
@@ -58,6 +65,17 @@ function floatFromBase64Pcm(b64) {
   return samples;
 }
 
+// Voix et consigne de la session : le serveur les fusionne dans sa configuration,
+// y compris en cours d'appel (effet dès la phrase suivante).
+function voiceSession() {
+  const voice = currentVoice();
+  if (!voice) return {};
+  return {
+    instructions: instructionsFor(voice),
+    audio: { output: { voice: voicePath(voice) } },
+  };
+}
+
 // --- Sous-titres ---------------------------------------------------------------
 
 function subtitleLine(itemId, role) {
@@ -69,7 +87,8 @@ function subtitleLine(itemId, role) {
     line.dataset.item = itemId;
     const who = document.createElement("span");
     who.className = "line__who";
-    who.textContent = role === "user" ? "Vous" : assistantName;
+    who.textContent =
+      role === "user" ? "Vous" : (currentVoice()?.name ?? "Antares");
     const text = document.createElement("span");
     text.className = "line__text";
     line.append(who, text);
@@ -287,11 +306,13 @@ async function startCall() {
     };
 
     ws.onopen = () => {
+      const { instructions, audio } = voiceSession();
       ws.send(
         JSON.stringify({
           type: "session.update",
           session: {
             type: "realtime",
+            instructions,
             audio: {
               input: {
                 format: { type: "audio/pcm", rate: SAMPLE_RATE },
@@ -300,7 +321,10 @@ async function startCall() {
                   interrupt_response: true,
                 },
               },
-              output: { format: { type: "audio/pcm", rate: SAMPLE_RATE } },
+              output: {
+                format: { type: "audio/pcm", rate: SAMPLE_RATE },
+                ...audio?.output,
+              },
             },
           },
         }),
@@ -343,31 +367,49 @@ ui.button.addEventListener("click", () =>
   call ? hangUp("Appel terminé") : startCall(),
 );
 
-async function loadProfile() {
-  try {
-    const response = await fetch("config.json", { cache: "no-store" });
-    const profile = await response.json();
-    assistantName = profile.assistant || assistantName;
-    const quantization = profile.ttsQuantization
-      ? ` (${profile.ttsQuantization})`
-      : "";
-    ui.info.innerHTML = "";
-    for (const [label, value] of [
-      ["LLM", profile.llm],
-      ["Voix", `${profile.tts} · ${profile.voice}${quantization}`],
-      ["Transcription", profile.stt],
-    ]) {
-      const row = document.createElement("div");
-      const strong = document.createElement("strong");
-      strong.textContent = `${label} `;
-      row.append(strong, value);
-      ui.info.append(row);
-    }
-  } catch (error) {
-    console.warn("Profil du moteur indisponible", error);
+function renderProfile() {
+  const voice = currentVoice();
+  const { config, settings } = profile;
+  const name = voice?.name ?? "Antares";
+  ui.name.textContent = name;
+  document.title = `${name} · Antares`;
+  const quantization = config.ttsQuantization
+    ? `, ${config.ttsQuantization}`
+    : "";
+  ui.info.replaceChildren();
+  for (const [label, value] of [
+    ["LLM", settings?.model ?? "?"],
+    ["Voix", `${name} (${config.tts} clonée${quantization})`],
+    ["Transcription", config.stt],
+  ]) {
+    const row = document.createElement("div");
+    const strong = document.createElement("strong");
+    strong.textContent = `${label} `;
+    row.append(strong, value);
+    ui.info.append(row);
   }
-  ui.name.textContent = assistantName;
-  document.title = `${assistantName} · Antares`;
 }
 
-loadProfile();
+function sendVoiceSession() {
+  if (call?.ws.readyState !== WebSocket.OPEN) return;
+  call.ws.send(
+    JSON.stringify({
+      type: "session.update",
+      session: { type: "realtime", ...voiceSession() },
+    }),
+  );
+}
+
+initSettingsDialog({
+  onApplied: () => {
+    renderProfile();
+    sendVoiceSession();
+  },
+});
+
+loadProfile()
+  .then(renderProfile)
+  .catch((error) => {
+    console.warn("Profil du moteur indisponible", error);
+    setState("idle", "Réglages indisponibles");
+  });

@@ -27,11 +27,24 @@ server {
         proxy_send_timeout 1h;
     }
 
-    # Valeurs injectées depuis x-profile (compose.yaml) au démarrage du conteneur
+    # Valeurs fixes injectées depuis x-profile (compose.yaml) au démarrage du conteneur
     location = /config.json {
         default_type application/json;
         add_header Cache-Control no-store;
-        return 200 '{"assistant":"${ANTARES_ASSISTANT}","llm":"${ANTARES_LLM}","stt":"${ANTARES_STT}","tts":"${ANTARES_TTS}","voice":"${ANTARES_VOICE}","ttsQuantization":"${ANTARES_TTS_QUANTIZATION}"}';
+        return 200 '{"stt":"${ANTARES_STT}","tts":"${ANTARES_TTS}","ttsQuantization":"${ANTARES_TTS_QUANTIZATION}"}';
+    }
+
+    # Réglages modifiables (modèle LLM, voix) : routeur LLM
+    location /api/ {
+        proxy_pass http://llm-router:11434;
+        proxy_set_header Host $host;
+        proxy_read_timeout 60s;
+        client_max_body_size 4k;
+    }
+
+    location /voices/ {
+        alias /srv/voices/;
+        add_header Cache-Control no-store;
     }
 
     location / {

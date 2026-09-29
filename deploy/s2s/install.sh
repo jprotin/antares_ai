@@ -71,7 +71,7 @@ main() {
   docker compose build
   warmup_models
   log "Démarrage hors ligne"
-  docker compose up -d
+  docker compose up -d --remove-orphans
   wait_healthy antares-s2s
   "${SCRIPT_DIR}/check-local.sh"
   log "Prêt : ouvrir http://127.0.0.1:8765"

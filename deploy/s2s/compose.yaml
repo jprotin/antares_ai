@@ -5,8 +5,8 @@
 #     route vers Internet, quelle que soit la configuration applicative ;
 #   - il tourne en mode hors ligne HF (modèles préchargés par install.sh) ;
 #   - les deux seuls ponts sont à cible fixe :
-#       web    : 127.0.0.1:8765 (hôte) -> interface web + /v1/* -> s2s:8765
-#       llm-gw : s2s -> ollama:11434 (stack ai-to-boost)
+#       web        : 127.0.0.1:8765 (hôte) -> interface + /v1/* (s2s) + /api/* (router)
+#       llm-router : s2s -> ollama:11434 (stack ai-to-boost), modèle choisi dans l'interface
 #   LiteLLM est contourné : il perd `reasoning_effort` en streaming (latence x3).
 #
 # Premier lancement : ./install.sh  —  ensuite : docker compose up -d
@@ -14,21 +14,22 @@
 ---
 name: antares-s2s
 
-# Profil du moteur : seul endroit à modifier pour changer de modèle ou de voix.
-# Ces valeurs alimentent aussi l'encart d'information de l'interface (/config.json).
+# Profil par défaut. Le modèle et la voix se changent ensuite dans l'interface
+# (Réglages) ; les voix disponibles sont décrites dans voices/voices.json.
 x-profile:
-  assistant: &assistant Sohee
   llm: &llm gemma4:e4b
   stt: &stt parakeet-tdt
   tts: &tts qwen3
-  voice: &voice sohee
+  tts-model: &tts-model Qwen/Qwen3-TTS-12Hz-1.7B-Base
   tts-quantization: &tts-quantization Q8_0
+  default-voice: &default-voice /voices/sohee.wav
 
 x-s2s: &s2s
   image: antares/s2s:1.0.0
   build: .
   volumes:
     - s2s-cache:/root/.cache
+    - ./voices:/voices:ro
   environment: &s2s-env
     HF_HUB_OFFLINE: "1"
     TRANSFORMERS_OFFLINE: "1"
@@ -42,24 +43,30 @@ x-s2s: &s2s
     - *stt
     - --parakeet_tdt_language=fr
     - --llm_backend=chat-completions
+    # Valeur de démarrage : le routeur la remplace par le modèle choisi dans l'interface
     - --model_name
     - *llm
-    - --responses_api_base_url=http://llm-gw:11434/v1
+    - --responses_api_base_url=http://llm-router:11434/v1
     - --responses_api_api_key=
-    # gemma4 raisonne par défaut (~350 tokens, +3 à 5 s) : désactivé pour la voix
+    # Les modèles gemma4 raisonnent par défaut (~350 tokens, +3 à 5 s) : désactivé pour la voix
     - --responses_api_reasoning_effort=none
     - --tts
     - *tts
-    - --qwen3_tts_speaker
-    - *voice
+    # Voix clonées (x-vector) : timbre stable d'une phrase à l'autre, contrairement
+    # aux locuteurs prédéfinis du modèle CustomVoice (mesuré : cf. README)
+    - --qwen3_tts_model_name
+    - *tts-model
+    - --qwen3_tts_ref_audio
+    - *default-voice
+    - --qwen3_tts_xvec_only=True
     - --qwen3_tts_language=french
-    # Q8_0 : la version BF16 ne tient pas à côté de gemma4 dans 12 Go de VRAM
+    # Q8_0 : la version BF16 ne tient pas à côté du LLM dans 12 Go de VRAM
     - --qwen3_tts_ggml_quantization
     - *tts-quantization
     - --init_chat_role=system
-    # Le prénom doit rester aligné avec x-profile.assistant
+    # Consigne par défaut ; l'interface l'adapte au prénom de la voix choisie
     - >-
-      --init_chat_prompt=Tu es Sohee, une assistante vocale bienveillante.
+      --init_chat_prompt=Tu es une assistante vocale bienveillante.
       Réponds toujours en français, en phrases courtes et naturelles, sans markdown ni listes.
     - --enable_live_transcription
   deploy:
@@ -76,7 +83,7 @@ services:
     container_name: antares-s2s
     restart: unless-stopped
     networks: [antares-local]
-    depends_on: [llm-gw]
+    depends_on: [llm-router]
 
   # Préchargement des modèles (install.sh uniquement) : seul conteneur avec accès Internet.
   warmup:
@@ -87,32 +94,47 @@ services:
       HF_HUB_OFFLINE: "0"
       TRANSFORMERS_OFFLINE: "0"
     networks: [antares-local, antares-download]
-    depends_on: [llm-gw]
+    depends_on: [llm-router]
 
   web:
     image: nginx:1.29-alpine
     container_name: antares-web
     restart: unless-stopped
-    depends_on: [s2s]
+    depends_on: [s2s, llm-router]
     environment:
-      ANTARES_ASSISTANT: *assistant
-      ANTARES_LLM: *llm
       ANTARES_STT: *stt
       ANTARES_TTS: *tts
-      ANTARES_VOICE: *voice
       ANTARES_TTS_QUANTIZATION: *tts-quantization
     volumes:
       - ../../frontend:/usr/share/nginx/html:ro
+      - ./voices:/srv/voices:ro
       - ./nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
     ports:
       - "127.0.0.1:8765:8765"
     networks: [antares-local, antares-edge]
 
-  llm-gw:
-    image: alpine/socat:1.8.0.3
-    container_name: antares-s2s-llm-gw
+  # Code maison à cible fixe (Ollama) : même image que s2s, sans GPU.
+  llm-router:
+    image: antares/s2s:1.0.0
+    container_name: antares-llm-router
     restart: unless-stopped
-    command: TCP-LISTEN:11434,fork,reuseaddr TCP-CONNECT:ollama:11434
+    entrypoint: [python, /app/router.py]
+    environment:
+      OLLAMA_URL: http://ollama:11434
+      DEFAULT_MODEL: *llm
+    volumes:
+      - ./router:/app:ro
+      - ./voices:/voices:ro
+      - router-data:/data
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:11434/healthz', timeout=4)"
+      interval: 15s
+      timeout: 5s
+      start_period: 20s
     networks: [antares-local, ai-assistant-net]
 
 networks:
@@ -129,3 +151,5 @@ networks:
 volumes:
   s2s-cache:
     name: antares-s2s-cache
+  router-data:
+    name: antares-router-data

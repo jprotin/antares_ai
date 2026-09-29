@@ -41,7 +41,7 @@ expect_reachable() {
 expect_blocked https://huggingface.co
 expect_blocked https://api.openai.com/v1
 expect_blocked http://1.1.1.1
-expect_reachable http://llm-gw:11434/api/version
+expect_reachable http://llm-router:11434/healthz
 
 if curl -fsS --max-time 5 http://127.0.0.1:8765/v1/pool >/dev/null; then
   echo "OK     service local : http://127.0.0.1:8765"

@@ -14,6 +14,7 @@ import os
 import sys
 import time
 import wave
+from typing import Any
 
 import numpy as np
 import soxr
@@ -21,7 +22,12 @@ import websockets
 from pocket_tts import TTSModel
 
 URL = os.environ.get("S2S_URL", "ws://s2s:8765/v1/realtime")
-QUESTION = "Bonjour, peux-tu me donner une idée de recette rapide pour ce soir ?"
+QUESTION = os.environ.get(
+    "QUESTION", "Bonjour, peux-tu me donner une idée de recette rapide pour ce soir ?"
+)
+# Optionnels, comme le fait l'interface : voix clonée (chemin dans le conteneur) et consigne
+VOICE = os.environ.get("S2S_VOICE")
+INSTRUCTIONS = os.environ.get("S2S_INSTRUCTIONS")
 RATE = 24000
 CHUNK_S = 0.02
 TRAILING_SILENCE_S = 2.0
@@ -63,26 +69,24 @@ async def send_audio(ws, pcm: bytes) -> float:
 async def main() -> int:
     pcm = synthesize_question()
     async with websockets.connect(URL, max_size=None) as ws:
-        await ws.send(
-            json.dumps(
-                {
-                    "type": "session.update",
-                    "session": {
-                        "type": "realtime",
-                        "audio": {
-                            "input": {
-                                "format": {"type": "audio/pcm", "rate": RATE},
-                                "turn_detection": {
-                                    "type": "server_vad",
-                                    "interrupt_response": True,
-                                },
-                            },
-                            "output": {"format": {"type": "audio/pcm", "rate": RATE}},
-                        },
+        session: dict[str, Any] = {
+            "type": "realtime",
+            "audio": {
+                "input": {
+                    "format": {"type": "audio/pcm", "rate": RATE},
+                    "turn_detection": {
+                        "type": "server_vad",
+                        "interrupt_response": True,
                     },
-                }
-            )
-        )
+                },
+                "output": {"format": {"type": "audio/pcm", "rate": RATE}},
+            },
+        }
+        if VOICE:
+            session["audio"]["output"]["voice"] = VOICE
+        if INSTRUCTIONS:
+            session["instructions"] = INSTRUCTIONS
+        await ws.send(json.dumps({"type": "session.update", "session": session}))
         sender = asyncio.create_task(send_audio(ws, pcm))
         user_text, reply_text, reply_audio = "", "", bytearray()
         first_audio_at = None
