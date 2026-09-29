@@ -28,6 +28,18 @@ phrase suivante, même en cours d'appel, et persisté par le routeur LLM.
   catalogue (`id`, `name`, `gender`, `file`, `source`). Le prénom et le genre servent à
   la consigne donnée au LLM (« Tu es Ryan, un assistant vocal… »).
 
+### Claude Code comme modèle (hors local)
+
+Si le `claude-bridge` d'ai-to-boost tourne sur l'hôte (port 8088), `install.sh` recopie
+son token dans `.env` et les modèles **Claude Opus** et **Claude Sonnet** apparaissent
+dans les Réglages. Le routeur envoie l'historique de la conversation (texte seul) au
+bridge, qui exécute `claude -p` sur l'abonnement, sans outils ni accès web.
+
+- **Hors local** : la conversation écrite part chez Anthropic (l'audio et la
+  transcription restent locaux). Le badge « hors local » le rappelle.
+- **Latence** : ~7 s par réponse (démarrage de Claude Code à chaque appel). Une phrase
+  d'attente est dite en ~1 s pour ne pas laisser de silence.
+
 Le profil par défaut (modèle de démarrage, moteurs STT/TTS) est dans le bloc
 `x-profile` de `compose.yaml` ; le modifier impose de relancer `./install.sh`.
 

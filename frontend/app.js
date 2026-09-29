@@ -7,6 +7,7 @@ import {
   initSettingsDialog,
   instructionsFor,
   loadProfile,
+  modelLabel,
   profile,
   voicePath,
 } from "./settings.js";
@@ -378,7 +379,7 @@ function renderProfile() {
     : "";
   ui.info.replaceChildren();
   for (const [label, value] of [
-    ["LLM", settings?.model ?? "?"],
+    ["LLM", modelLabel(settings?.model)],
     ["Voix", `${name} (${config.tts} clonée${quantization})`],
     ["Transcription", config.stt],
   ]) {

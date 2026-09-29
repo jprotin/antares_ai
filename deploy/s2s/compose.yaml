@@ -7,6 +7,8 @@
 #   - les deux seuls ponts sont à cible fixe :
 #       web        : 127.0.0.1:8765 (hôte) -> interface + /v1/* (s2s) + /api/* (router)
 #       llm-router : s2s -> ollama:11434 (stack ai-to-boost), modèle choisi dans l'interface
+#                    ou -> claude-bridge de l'hôte si un modèle Claude est choisi
+#                    (seul cas où du texte quitte la machine, vers Anthropic)
 #   LiteLLM est contourné : il perd `reasoning_effort` en streaming (latence x3).
 #
 # Premier lancement : ./install.sh  —  ensuite : docker compose up -d
@@ -63,11 +65,16 @@ x-s2s: &s2s
     # Q8_0 : la version BF16 ne tient pas à côté du LLM dans 12 Go de VRAM
     - --qwen3_tts_ggml_quantization
     - *tts-quantization
+    # Synthèse dès la 1re phrase (défaut amont : 3 phrases regroupées, +2 à 3 s sur
+    # les réponses longues, et phrase d'attente de Claude retenue jusqu'à la réponse)
+    - --stream_batch_sentences=1
     - --init_chat_role=system
     # Consigne par défaut ; l'interface l'adapte au prénom de la voix choisie
     - >-
       --init_chat_prompt=Tu es une assistante vocale bienveillante.
-      Réponds toujours en français, en phrases courtes et naturelles, sans markdown ni listes.
+      Réponds toujours en français, de façon naturelle et sans markdown ni listes.
+      En conversation, reste bref. Si l'on te demande un contenu long (poème, histoire,
+      explication détaillée), donne-le en entier, sans t'arrêter pour demander s'il faut continuer.
     - --enable_live_transcription
   deploy:
     resources:
@@ -122,6 +129,13 @@ services:
     environment:
       OLLAMA_URL: http://ollama:11434
       DEFAULT_MODEL: *llm
+      # Claude Code via le claude-bridge d'ai-to-boost (service de l'hôte, port 8088).
+      # Token recopié par install.sh ; vide = modèles Claude masqués.
+      CLAUDE_BRIDGE_URL: http://host.docker.internal:8088
+      CLAUDE_BRIDGE_TOKEN: ${CLAUDE_BRIDGE_TOKEN:-}
+      CLAUDE_MODELS: opus,sonnet
+    extra_hosts:
+      - host.docker.internal:host-gateway
     volumes:
       - ./router:/app:ro
       - ./voices:/voices:ro

@@ -495,3 +495,8 @@ body {
   opacity: 0.6;
   cursor: wait;
 }
+
+.badge--cloud {
+  background: #c77dff22;
+  color: #d9a8ff;
+}

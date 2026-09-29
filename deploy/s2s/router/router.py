@@ -5,6 +5,8 @@
 - /api/models    : modèles de chat installés dans Ollama, avec la vitesse mesurée sur les
                    conversations relayées (la part VRAM rapportée par Ollama est fausse
                    pour les modèles à experts comme gemma4:26b).
+                   S'y ajoutent les modèles Claude (`claude:*`) servis par le claude-bridge
+                   d'ai-to-boost (cf. claude.py) : texte envoyé chez Anthropic.
 - /api/settings  : réglages actifs {model, voice}, persistés dans SETTINGS_PATH.
 - /healthz       : sonde de santé.
 """
@@ -23,6 +25,8 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from starlette.background import BackgroundTask
+
+import claude
 
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://ollama:11434")
 DEFAULT_MODEL = os.environ["DEFAULT_MODEL"]
@@ -77,14 +81,21 @@ def load_observed() -> dict:
     return json.loads(OBSERVED_PATH.read_text()) if OBSERVED_PATH.exists() else {}
 
 
-def record_observed(model: str, ttft: float, speed: float) -> None:
-    """Moyenne glissante : suit les changements (modèle voisin chargé, VRAM libérée…)."""
+def record_observed(model: str, ttft: float, speed: float | None) -> None:
+    """Moyenne glissante : suit les changements (modèle voisin chargé, VRAM libérée…).
+
+    `speed` vaut None pour Claude : le bridge renvoie la réponse d'un bloc.
+    """
     observed = load_observed()
     previous = observed.get(model)
     if previous:
         ttft = previous["ttft"] + SMOOTHING * (ttft - previous["ttft"])
-        speed = previous["speed"] + SMOOTHING * (speed - previous["speed"])
-    observed[model] = {"ttft": round(ttft, 2), "speed": round(speed, 1)}
+        if speed is not None and previous.get("speed") is not None:
+            speed = previous["speed"] + SMOOTHING * (speed - previous["speed"])
+    observed[model] = {
+        "ttft": round(ttft, 2),
+        "speed": round(speed, 1) if speed is not None else None,
+    }
     OBSERVED_PATH.parent.mkdir(parents=True, exist_ok=True)
     OBSERVED_PATH.write_text(json.dumps(observed, indent=2))
 
@@ -127,13 +138,20 @@ async def chat_models() -> list[dict]:
         models.append(
             {
                 "name": tag["name"],
+                "label": tag["name"],
+                "provider": "ollama",
                 "sizeGb": round(tag["size"] / 1e9, 1),
                 "parameterSize": tag.get("details", {}).get("parameter_size"),
                 "loaded": tag["name"] in loaded,
                 "observed": observed.get(tag["name"]),
             }
         )
-    return sorted(models, key=lambda m: m["sizeGb"])
+    models.sort(key=lambda m: m["sizeGb"])
+    for model in await claude.available_models():
+        models.append(
+            {**model, "loaded": True, "observed": observed.get(model["name"])}
+        )
+    return models
 
 
 async def preload(model: str) -> None:
@@ -176,7 +194,8 @@ async def update_settings(update: SettingsUpdate) -> Settings:
         if update.model not in {m["name"] for m in await chat_models()}:
             raise HTTPException(422, f"Modèle inconnu : {update.model}")
         settings.model = update.model
-        asyncio.create_task(preload(update.model))
+        if not claude.is_claude(update.model):
+            asyncio.create_task(preload(update.model))
     if update.voice is not None:
         if update.voice not in {v["id"] for v in voice_catalog()["voices"]}:
             raise HTTPException(422, f"Voix inconnue : {update.voice}")
@@ -191,6 +210,17 @@ async def relay(path: str, request: Request) -> StreamingResponse:
     start = time.monotonic()
     body = await request.body()
     model = load_settings().model
+    if claude.is_claude(model):
+        if path != "chat/completions" or request.method != "POST":
+            raise HTTPException(501, f"/v1/{path} non disponible avec {model}")
+        return StreamingResponse(
+            claude.stream_reply(
+                model,
+                json.loads(body)["messages"],
+                on_done=lambda seconds: record_observed(model, seconds, None),
+            ),
+            media_type="text/event-stream",
+        )
     if body and request.headers.get("content-type", "").startswith("application/json"):
         payload = json.loads(body)
         if "model" in payload:

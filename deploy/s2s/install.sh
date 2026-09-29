@@ -11,6 +11,8 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly SCRIPT_DIR
 readonly LLM_MODEL=gemma4:e4b
+readonly AI_TO_BOOST_ENV="${AI_TO_BOOST_ENV:-/datadisk/ai-projects/ai-to-boost/.env}"
+readonly ENV_FILE="${SCRIPT_DIR}/.env"
 readonly READY_TIMEOUT_S=1800
 
 cd "${SCRIPT_DIR}"
@@ -33,6 +35,22 @@ check_prerequisites() {
     die "conteneur ollama arrêté : démarrer la stack ai-to-boost d'abord"
   docker exec ollama ollama show "${LLM_MODEL}" >/dev/null 2>&1 ||
     die "modèle ${LLM_MODEL} absent d'Ollama : docker exec ollama ollama pull ${LLM_MODEL}"
+}
+
+# Token du claude-bridge (modèles Claude dans l'interface). Optionnel : sans lui,
+# seuls les modèles Ollama sont proposés.
+ensure_bridge_token() {
+  local token
+  token="$(grep -E '^BRIDGE_TOKEN=' "${AI_TO_BOOST_ENV}" 2>/dev/null | cut -d= -f2- || true)"
+  if [[ -z "${token}" ]]; then
+    log "claude-bridge non configuré : modèles Claude désactivés"
+    return
+  fi
+  log "Token du claude-bridge recopié dans .env (modèles Claude activés)"
+  (
+    umask 077
+    printf 'CLAUDE_BRIDGE_TOKEN=%s\n' "${token}" >"${ENV_FILE}"
+  )
 }
 
 wait_healthy() {
@@ -67,6 +85,7 @@ warmup_models() {
 
 main() {
   check_prerequisites
+  ensure_bridge_token
   log "Construction de l'image"
   docker compose build
   warmup_models

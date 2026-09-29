@@ -1,8 +1,12 @@
 // Réglages : voix (catalogue voices/voices.json) et modèle LLM (routeur /api).
 // Les choix sont persistés côté serveur par le routeur LLM.
 
+// Bref par défaut, mais sans brider les contenus longs demandés explicitement
+// (gemma4 coupait un poème après une strophe avec « phrases courtes »).
 const BASE_INSTRUCTIONS =
-  "Réponds toujours en français, en phrases courtes et naturelles, sans markdown ni listes.";
+  "Réponds toujours en français, de façon naturelle et sans markdown ni listes. " +
+  "En conversation, reste bref. Si l'on te demande un contenu long (poème, histoire, " +
+  "explication détaillée), donne-le en entier, sans t'arrêter pour demander s'il faut continuer.";
 
 export const profile = {
   config: {},
@@ -52,11 +56,32 @@ export async function loadProfile() {
 // suffisent pour suivre la parole : au-delà de 15, la réponse ne prend pas de retard.
 function modelBadge(model) {
   const observed = model.observed;
+  if (model.provider === "claude") {
+    const delay = observed
+      ? ` · ~${Math.round(observed.ttft)} s par réponse`
+      : "";
+    return ["badge--cloud", `hors local${delay}`];
+  }
   if (!observed) {
     return ["badge--unknown", "pas encore utilisé"];
   }
   const speed = `${Math.round(observed.speed)} tok/s · 1er mot ${observed.ttft.toFixed(1).replace(".", ",")} s`;
   return [observed.speed >= 15 ? "badge--gpu" : "badge--slow", speed];
+}
+
+function modelDetail(model) {
+  if (model.provider === "claude") {
+    return "Claude Code (abonnement) · la conversation écrite est envoyée à Anthropic";
+  }
+  return `${model.parameterSize ?? "?"} paramètres · ${model.sizeGb} Go`;
+}
+
+export function modelLabel(name) {
+  if (name?.startsWith("claude:")) {
+    const model = name.slice("claude:".length);
+    return `Claude ${model.charAt(0).toUpperCase()}${model.slice(1)} (hors local)`;
+  }
+  return name ?? "?";
 }
 
 function optionRow({ name, value, checked, title, detail, trailing }) {
@@ -122,8 +147,8 @@ export function initSettingsDialog({ onApplied }) {
           name: "model",
           value: model.name,
           checked: model.name === profile.settings.model,
-          title: model.name,
-          detail: `${model.parameterSize ?? "?"} paramètres · ${model.sizeGb} Go`,
+          title: model.label ?? model.name,
+          detail: modelDetail(model),
           trailing: badge,
         });
       }),
