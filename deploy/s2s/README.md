@@ -158,6 +158,10 @@ L'agent utilisé s'affiche sous la réponse.
   - **Chappie** : robot à visière, yeux en matrice de LED qui changent d'expression
     (clignement, curiosité, réflexion, sourire), écran-bouche en égaliseur qui suit la
     voix, antennes à ressort ;
+  - **Bender** : robot en volumes simples, gris bleuté clair (lisible en thème clair
+    comme sombre), canette de bière rouge générique dans une main, cigare fumant dans
+    l'autre ; grille de dents qui s'ouvre au rythme de la voix, pupilles carrées qui
+    regardent, gorgées et bouffées de cigare au repos ;
   - **Orbe**.
 - **Voix** : Terminator (voix clonée `ryan`) et Sarah Connor (voix clonée `sohee`) ; les
   noms affichés et donnés au LLM viennent de `voices/voices.json`.
