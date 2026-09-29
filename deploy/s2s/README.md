@@ -43,6 +43,25 @@ L'écrit et l'oral forment une seule conversation : au début d'un appel, les 30
 messages sont rejoués au moteur vocal ; ce qui se dit en appel reste dans le fil après
 avoir raccroché. **Nouvelle conversation** (hors appel) repart de zéro.
 
+## Documents joints
+
+Trombone de la zone de saisie, ou glisser-déposer sur la conversation : PDF (texte
+extrait par `pdftotext`), Word (.docx), texte et code (.txt, .md, .csv, .log, .json,
+.yaml, .py, .sql…), images (.png, .jpg, .webp, lues par le modèle). Les documents joints
+accompagnent chaque question, à l'écrit comme à l'oral, jusqu'à **Nouvelle
+conversation** (ils sont alors supprimés).
+
+| Cas                                 | Comportement                                                                                                               |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| jusqu'à ~20 000 tokens au total     | lus à l'écrit et à l'oral (contexte par défaut d'Ollama, 32 768)                                                           |
+| de 20 000 à 56 000 tokens           | à l'écrit : **contexte long** (65 536, tient sur le GPU) ; à l'oral : écartés, l'IA propose de poser la question à l'écrit |
+| au-delà, PDF scanné, format inconnu | **refus explicite** à l'envoi (jamais de troncature silencieuse)                                                           |
+| image avec un modèle Claude         | écartée (le bridge ne transmet que du texte), signalée sous la réponse                                                     |
+
+Mesuré (gemma4:e4b, moteur vocal chargé) : 48 800 tokens lus en entier en 17,6 s
+(repères début / milieu / fin retrouvés). Fichiers : 15 Mo au maximum, images 5 Mo.
+Stockage : `/data/documents` (volume `antares-router-data`).
+
 ## Code demandé à l'oral
 
 Quand on demande du code à la voix (script, commande, requête SQL, configuration…), le

@@ -16,6 +16,8 @@
 - /api/turn/last : agent, modèle, projets et sources de la dernière réponse.
 - /api/chat      : conversation écrite hors appel (réponse texte en flux SSE, sans voix),
                    avec le même mode, agent et documentation que la voix.
+- /api/documents : documents joints à la conversation (cf. documents.py) : envoi (corps
+                   brut + en-tête X-Filename), liste, retrait.
 - /healthz       : sonde de santé.
 """
 
@@ -29,13 +31,16 @@ from pathlib import Path
 
 import httpx
 import uvicorn
-from fastapi import FastAPI, HTTPException, Request
+from urllib.parse import unquote
+
+from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from starlette.background import BackgroundTask
 
 import agents
 import claude
+import documents
 import modes
 import rag
 import voicecode
@@ -67,6 +72,8 @@ class Settings(BaseModel):
     agent: str = ""
     # Manière de répondre (ton, structure) ; cf. modes.py
     mode: str = modes.DEFAULT
+    # Documents joints à la conversation en cours (identifiants, cf. documents.py)
+    documents: list[str] = []
 
 
 class SettingsUpdate(BaseModel):
@@ -325,6 +332,9 @@ last_turn: dict = {
     "sources": [],
     # Blocs de code retirés de la voix, affichés sous la réponse (cf. voicecode)
     "code": [],
+    # Documents joints lus ou écartés (trop longs pour la voix, image avec Claude)
+    "documents": [],
+    "skipped": [],
 }
 
 
@@ -334,18 +344,34 @@ def keep_code(blocks: list[dict]) -> None:
 
 async def prepare(
     messages: list[dict], settings: Settings, spoken: bool = True
-) -> tuple[list[dict], str]:
-    """Applique le mode, l'agent (choisi ou cité), puis la documentation.
+) -> tuple[list[dict], str, dict]:
+    """Assemble la consigne : documents joints, mode, agent (choisi ou cité), RAG.
 
-    Renvoie aussi le modèle à utiliser (celui de l'agent s'il en a un).
+    Les documents passent en premier (préfixe stable d'une question à l'autre, cache
+    d'Ollama), la documentation RAG en dernier (elle change à chaque question).
+    Renvoie les messages, le modèle (celui de l'agent s'il en a un) et l'usage des
+    documents.
     """
-    mode = modes.find(settings.mode)
-    if mode and mode.instructions:
-        messages = rag.add_system(messages, mode.instructions)
     agent = agents.cited(rag.question(messages))
     if agent is None and settings.agent:
         agent = agents.find(settings.agent)
     model = (agent.model if agent and agent.model else "") or settings.model
+
+    attached = [d for d in map(documents.load, settings.documents) if d]
+    refused = []
+    if claude.is_claude(model):
+        # Le bridge Claude ne transmet que du texte
+        refused = [
+            f"{d['name']} (image, non lisible par Claude)"
+            for d in attached
+            if d["kind"] == "image"
+        ]
+        attached = [d for d in attached if d["kind"] != "image"]
+    messages, usage = documents.inject(messages, attached, spoken)
+
+    mode = modes.find(settings.mode)
+    if mode and mode.instructions:
+        messages = rag.add_system(messages, mode.instructions)
     if agent:
         messages = rag.add_system(messages, agents.instructions(agent))
     project = (agent.project if agent and agent.project else "") or settings.project
@@ -357,10 +383,110 @@ async def prepare(
         projects=rag.last_usage["projects"],
         sources=rag.last_usage["sources"],
         code=[],
+        documents=usage["used"],
+        skipped=usage["skipped"] + refused,
     )
     if agent:
         logger.info("Agent %s (modèle %s)", agent.name, model)
-    return messages, model
+    return messages, model, usage
+
+
+# --- Documents joints ----------------------------------------------------------------
+
+
+@app.post("/api/documents", status_code=201)
+async def upload_document(request: Request) -> dict:
+    """Corps brut du fichier ; nom dans l'en-tête X-Filename (encodé URL)."""
+    name = unquote(request.headers.get("x-filename", "")).strip() or "document"
+    name = name.replace("/", "_").replace("\\", "_")[:120]
+    try:
+        extracted = documents.extract(name, await request.body())
+    except documents.DocumentError as exc:
+        raise HTTPException(422, f"{name} : {exc}") from exc
+    doc = documents.save(name, extracted)
+    settings = load_settings()
+    settings.documents = [*settings.documents, doc["id"]]
+    save_settings(settings)
+    logger.info(
+        "Document joint : %s (%s, ~%d tokens)", name, doc["kind"], doc["tokens"]
+    )
+    return documents.summary(doc)
+
+
+@app.get("/api/documents")
+async def list_documents() -> list[dict]:
+    return [
+        documents.summary(d)
+        for d in map(documents.load, load_settings().documents)
+        if d
+    ]
+
+
+@app.delete("/api/documents/{doc_id}", status_code=204)
+async def remove_document(doc_id: str) -> Response:
+    settings = load_settings()
+    settings.documents = [d for d in settings.documents if d != doc_id]
+    save_settings(settings)
+    documents.delete(doc_id)
+    return Response(status_code=204)
+
+
+@app.delete("/api/documents", status_code=204)
+async def clear_documents() -> Response:
+    """Nouvelle conversation : les documents joints sont retirés et supprimés."""
+    settings = load_settings()
+    for doc_id in settings.documents:
+        documents.delete(doc_id)
+    settings.documents = []
+    save_settings(settings)
+    return Response(status_code=204)
+
+
+def to_native(messages: list[dict]) -> list[dict]:
+    """Messages OpenAI -> API native d'Ollama (images à part, en base64)."""
+    native = []
+    for message in messages:
+        content = message.get("content")
+        if isinstance(content, list):
+            text = " ".join(
+                p.get("text", "") for p in content if p.get("type") == "text"
+            )
+            images = [
+                p["image_url"]["url"].split(",", 1)[1]
+                for p in content
+                if p.get("type") == "image_url"
+            ]
+            native.append({"role": message["role"], "content": text, "images": images})
+        else:
+            native.append({"role": message["role"], "content": content or ""})
+    return native
+
+
+async def native_stream(model: str, response: httpx.Response) -> AsyncIterator[bytes]:
+    """Flux NDJSON natif d'Ollama -> flux SSE `chat.completion.chunk` (même format)."""
+    async for line in response.aiter_lines():
+        if not line.strip():
+            continue
+        data = json.loads(line)
+        if data.get("error"):
+            logger.error("Ollama (contexte long) : %s", data["error"])
+            break
+        content = data.get("message", {}).get("content")
+        finish = "stop" if data.get("done") else None
+        if content or finish:
+            payload = {
+                "object": "chat.completion.chunk",
+                "model": model,
+                "choices": [
+                    {
+                        "index": 0,
+                        "delta": {"content": content or ""},
+                        "finish_reason": finish,
+                    }
+                ],
+            }
+            yield f"data: {json.dumps(payload, ensure_ascii=False)}\n\n".encode()
+    yield b"data: [DONE]\n\n"
 
 
 class ChatRequest(BaseModel):
@@ -372,7 +498,7 @@ async def written_chat(request: ChatRequest) -> StreamingResponse:
     """Réponse écrite : même préparation que la voix, flux `chat.completion.chunk`."""
     start = time.monotonic()
     settings = load_settings()
-    messages, model = await prepare(request.messages, settings, spoken=False)
+    messages, model, usage = await prepare(request.messages, settings, spoken=False)
     if claude.is_claude(model):
         return StreamingResponse(
             claude.stream_reply(
@@ -382,6 +508,30 @@ async def written_chat(request: ChatRequest) -> StreamingResponse:
                 spoken=False,
             ),
             media_type="text/event-stream",
+        )
+    if usage["tokens"] > documents.LONG_CONTEXT_FROM:
+        # Contexte long : l'API /v1 ne transmet pas num_ctx, seule l'API native le fait
+        upstream = await client.send(
+            client.build_request(
+                "POST",
+                "/api/chat",
+                json={
+                    "model": model,
+                    "messages": to_native(messages),
+                    "stream": True,
+                    "think": False,
+                    "keep_alive": "30m",
+                    "options": {"num_ctx": documents.LONG_CONTEXT},
+                },
+            ),
+            stream=True,
+        )
+        logger.info("Contexte long : ~%d tokens de documents", usage["tokens"])
+        return StreamingResponse(
+            measure(model, start, native_stream(model, upstream)),
+            status_code=upstream.status_code,
+            media_type="text/event-stream",
+            background=BackgroundTask(upstream.aclose),
         )
     upstream = await client.send(
         client.build_request(
@@ -420,7 +570,7 @@ async def relay(path: str, request: Request) -> StreamingResponse:
     if chat and "messages" in payload:
         # Voix : l'historique du moteur ne contient que le texte prononcé
         messages = voicecode.restore(payload["messages"])
-        payload["messages"], model = await prepare(messages, settings)
+        payload["messages"], model, _ = await prepare(messages, settings)
     if claude.is_claude(model):
         if not chat:
             raise HTTPException(501, f"/v1/{path} non disponible avec {model}")

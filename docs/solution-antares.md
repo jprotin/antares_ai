@@ -79,7 +79,17 @@ Quand on demande du code à la voix (script, commande, requête SQL, configurati
 au lieu de le lire. Une relance (« modifie ce script pour… ») porte bien sur le code
 affiché.
 
-### 3.4 Agents et modes
+### 3.4 Documents joints
+
+- Trombone ou glisser-déposer : **PDF, Word, texte et code, images**. Chaque document
+  apparaît en étiquette (type, taille estimée, « écrit seulement » s'il est trop long
+  pour l'oral) et accompagne toutes les questions jusqu'à « Nouvelle conversation ».
+- L'assistant s'appuie sur leur contenu et cite le document utilisé ; les images sont
+  examinées par le modèle.
+- Un document trop long, un PDF scanné ou un format inconnu est **refusé avec la raison**,
+  plutôt que tronqué sans prévenir.
+
+### 3.5 Agents et modes
 
 - **Agents** : fiches de consignes réutilisables (rôle, méthode, format de réponse), avec
   un domaine, une utilité et, en option, un projet et un modèle. Un **catalogue de 28
@@ -93,7 +103,7 @@ affiché.
   Expert technique, Cool / Relax, Incident / Astreinte, Coach / Formateur,
   Brainstorming, Avocat du diable. Un mode place en tête les agents utiles (« Suggérés »).
 
-### 3.5 Documentation des projets (RAG)
+### 3.6 Documentation des projets (RAG)
 
 - La documentation indexée par ai-to-boost (collections `knowledge` et `proj-<projet>`)
   est consultée si un **projet est choisi** dans les Réglages, ou si la question **cite un
@@ -101,7 +111,7 @@ affiché.
 - Les extraits pertinents sont ajoutés à la consigne ; les projets consultés s'affichent
   sous la réponse (et, à l'écrit, dans le bloc Références).
 
-### 3.6 Apparence
+### 3.7 Apparence
 
 - **Thème** clair, sombre ou celui du système.
 - **Nuance de couleur** selon le domaine de l'agent actif (teinte seulement, dans une plage
@@ -131,7 +141,8 @@ la stack ai-to-boost.
 | **rag / qdrant**  | ai-to-boost                              | Recherche sémantique (FastEmbed nomic 768d) dans les collections `knowledge` et `proj-*`.                                                                                                             |
 | **claude-bridge** | service systemd de l'hôte (ai-to-boost)  | Option Claude : exécute `claude -p` sur l'abonnement de l'utilisateur.                                                                                                                                |
 
-**Modules du routeur** : `router.py` (API, préparation de la consigne, relais), `rag.py`
+**Modules du routeur** : `router.py` (API, préparation de la consigne, relais),
+`documents.py` (extraction, limites, injection des documents joints), `rag.py`
 (projets, recherche, injection), `agents.py` + `catalogue.json` (agents), `modes.py`
 (modes), `voicecode.py` (code retiré de la voix, restauré en mémoire), `claude.py` (pont
 Claude). Le module `qwen3_sampling.py`, chargé dans l'image s2s, règle le tirage de la
@@ -147,8 +158,8 @@ synthèse vocale.
 2. La fin de parole est détectée (~45 ms), le texte transcrit (~25 ms) et affiché.
 3. s2s appelle le LLM au format OpenAI ; c'est le **routeur** qui répond. Il :
    - remet dans l'historique le code des réponses précédentes (retiré de la voix) ;
-   - assemble la consigne : consigne vocale de l'interface, **mode**, **agent** (choisi ou
-     cité), **documentation** (projet choisi ou cité, via `rag`) ;
+   - assemble la consigne : consigne vocale de l'interface, **documents joints**, **mode**,
+     **agent** (choisi ou cité), **documentation** (projet choisi ou cité, via `rag`) ;
    - relaie vers Ollama (ou Claude) et filtre le flux : les blocs de code sont retirés du
      texte prononcé et gardés pour l'écran.
 4. s2s synthétise la réponse **phrase par phrase** ; le premier son arrive ~1 s après la
@@ -181,6 +192,7 @@ dans l'interface ; l'audio et la transcription restent locaux dans tous les cas.
 | ----------------------------------- | ------------------------------------------------------------------------------------------------ |
 | Modèles (STT, TTS, VAD)             | volume `antares-s2s-cache`                                                                       |
 | Réglages, agents, latences mesurées | volume `antares-router-data` (`settings.json`, `agents.json`, `observed.json`)                   |
+| Documents joints (texte extrait)    | volume `antares-router-data` (`documents/`), supprimés à « Nouvelle conversation »               |
 | Voix clonées                        | `deploy/s2s/voices/` (+ `voices.json`)                                                           |
 | Profil par défaut                   | bloc `x-profile` de `deploy/s2s/compose.yaml` (modèle, moteurs, quantification, tirage TTS, RAG) |
 | Thème                               | navigateur (`localStorage`)                                                                      |
@@ -210,6 +222,7 @@ rechargement (quelques secondes) et évince le modèle précédent.
 | Rendu                 | marked + DOMPurify + highlight.js **servis localement**                             | CDN                                                     | CSP `script-src 'self'`, fonctionnement hors ligne, HTML nettoyé (injections neutralisées).                                                                                                    | —        |
 | Code à l'oral         | blocs retirés du flux vocal par le routeur, restaurés dans l'historique             | laisser le LLM lire le code                             | Règle placée en tête de consigne : SQL 0/3 → 12/12 ; sans restauration, le modèle cesse d'écrire des blocs (0/3 contre 3/3).                                                                   | —        |
 | Interface             | page statique sans framework, servie par nginx                                      | React / Next.js                                         | Surface minimale, aucun build, tout local.                                                                                                                                                     | —        |
+| Documents joints      | lecture intégrale dans la consigne ; contexte long à l'écrit ; refus au-delà        | RAG sur le document, troncature                         | Ollama tronque sans prévenir ; 65 536 tient sur le GPU avec le moteur vocal (48 800 tokens lus en entier, 17,6 s).                                                                             | ADR 0005 |
 
 ## 6. Annexes : limites connues et suite
 
@@ -226,10 +239,9 @@ rechargement (quelques secondes) et évince le modèle précédent.
 
 **Suite prévue**
 
-1. **Envoi de documents** pour analyse (PDF, Word, texte, images), avec refus explicite
-   plutôt que troncature silencieuse.
-2. **Enrichissement du RAG** par des fiches de connaissance relues avant indexation
+1. **Enrichissement du RAG** par des fiches de connaissance relues avant indexation
    (anti-doublon, validité, obsolescence), via une API d'indexation dans ai-to-boost.
-3. **Agents d'action** : délégation au worker ai-to-boost (Claude Code outillé).
-4. **Archive et historique** des appels.
-5. Correctif de lecture sous Chrome, accès distant (ngrok), cible cloud.
+2. **Agents d'action** : délégation au worker ai-to-boost (Claude Code outillé).
+3. **Archive et historique** des appels.
+4. PDF scannés (reconnaissance de caractères), correctif de lecture sous Chrome, accès
+   distant (ngrok), cible cloud.
