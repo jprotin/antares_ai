@@ -1365,3 +1365,58 @@ body {
     animation: none;
   }
 }
+
+/* --- Agents d'action ------------------------------------------------------------ */
+
+.action-card {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--panel-border);
+  border-left: 3px solid var(--accent);
+  border-radius: 12px;
+  background: var(--panel);
+}
+
+.action-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.action-card__head .option__title {
+  margin-right: auto;
+}
+
+.action-card__task {
+  margin: 0;
+  color: var(--muted);
+}
+
+.action-card__summary {
+  margin: 0;
+}
+
+.action-card__files {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.action-card__files li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.action-card__files code {
+  overflow-wrap: anywhere;
+}
+
+.agent-form label[hidden] {
+  display: none;
+}
