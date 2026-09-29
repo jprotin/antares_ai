@@ -83,6 +83,14 @@
       <section class="conversation" aria-label="Conversation écrite">
         <header class="conversation__header">
           <h2>Conversation</h2>
+          <button
+            type="button"
+            class="link-button"
+            id="new-conversation"
+            title="Efface la conversation (écrite et orale) pour repartir de zéro"
+          >
+            Nouvelle conversation
+          </button>
         </header>
         <div class="conversation__lines" id="subtitles" aria-live="polite">
           <p class="conversation__empty" id="empty">
@@ -94,9 +102,8 @@
             class="composer__text"
             id="composer-text"
             rows="2"
-            placeholder="Écrire pendant l'appel (Entrée : envoyer, Maj+Entrée : nouvelle ligne)"
+            placeholder="Écrire un message (Entrée : envoyer, Maj+Entrée : nouvelle ligne)"
             aria-label="Message écrit"
-            disabled
           ></textarea>
           <div class="composer__actions">
             <button
@@ -104,16 +111,10 @@
               class="button-ghost"
               id="composer-context"
               title="Ajoute le texte à la conversation sans demander de réponse"
-              disabled
             >
               Ajouter au contexte
             </button>
-            <button
-              type="submit"
-              class="button-primary"
-              id="composer-send"
-              disabled
-            >
+            <button type="submit" class="button-primary" id="composer-send">
               Envoyer
             </button>
           </div>
