@@ -1,7 +1,7 @@
 // Panneau Agents : fiches « consignes » regroupées par domaine, filtrables par utilité.
 // Les fiches sont stockées par le routeur LLM (/api/agents).
 
-import { getJson, modelLabel } from "./settings.js";
+import { closeOnBackdrop, getJson, modelLabel } from "./settings.js";
 
 const EXAMPLE_INSTRUCTIONS =
   "Ex. : Tu es un expert Kubernetes. Demande d'abord le symptôme et la sortie de " +
@@ -192,6 +192,7 @@ export function initAgentsDialog({ onChanged }) {
     .getElementById("agents-close")
     .addEventListener("click", () => dialog.close());
   filter.addEventListener("change", renderList);
+  closeOnBackdrop(dialog);
 
   document.getElementById("open-agents").addEventListener("click", async () => {
     form.hidden = true;

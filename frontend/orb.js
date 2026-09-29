@@ -1,5 +1,7 @@
 // Orbe animé (canvas 2D) : nappes lumineuses déformées, halo et particules en orbite.
 // L'état pilote couleurs et vitesse ; le niveau audio (0..1) pilote l'amplitude.
+// La teinte suit le domaine de l'agent (décalage léger) et le thème clair assombrit
+// les couleurs pour qu'elles restent lisibles sur fond clair.
 
 const PALETTES = {
   idle: [
@@ -74,6 +76,44 @@ const PARTICLE_COUNT = 70;
 const POINTS = 96;
 
 const lerp = (a, b, t) => a + (b - a) * t;
+
+// Décale la teinte (degrés) d'une couleur RVB ; `light` : tons plus clairs et plus
+// saturés, lisibles sur fond clair (les teintes sombres du thème sombre y paraissent grises)
+function shade([r, g, b], hueShift, light) {
+  const [rn, gn, bn] = [r / 255, g / 255, b / 255];
+  const max = Math.max(rn, gn, bn);
+  const min = Math.min(rn, gn, bn);
+  let l = (max + min) / 2;
+  const d = max - min;
+  let h = 0;
+  let sat = d === 0 ? 0 : d / (1 - Math.abs(2 * l - 1));
+  if (d) {
+    if (max === rn) h = ((gn - bn) / d) % 6;
+    else if (max === gn) h = (bn - rn) / d + 2;
+    else h = (rn - gn) / d + 4;
+  }
+  h = (h * 60 + hueShift + 360) % 360;
+  if (light) {
+    l = 0.5 + l * 0.3;
+    sat = Math.min(1, sat * 1.35);
+  }
+  const c = (1 - Math.abs(2 * l - 1)) * sat;
+  const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+  const m = l - c / 2;
+  const [r1, g1, b1] =
+    h < 60
+      ? [c, x, 0]
+      : h < 120
+        ? [x, c, 0]
+        : h < 180
+          ? [0, c, x]
+          : h < 240
+            ? [0, x, c]
+            : h < 300
+              ? [x, 0, c]
+              : [c, 0, x];
+  return [(r1 + m) * 255, (g1 + m) * 255, (b1 + m) * 255];
+}
 const rgba = ([r, g, b], a) => `rgba(${r | 0}, ${g | 0}, ${b | 0}, ${a})`;
 
 export class Orb {
@@ -84,6 +124,9 @@ export class Orb {
     this.target = { level: 0 };
     this.level = 0;
     this.time = 0;
+    this.hueShift = 0;
+    this.light = false;
+    this.palettes = PALETTES;
     this.colors = PALETTES.idle.map((c) => [...c]);
     this.motion = { ...MOTION.idle };
     this.reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -104,6 +147,26 @@ export class Orb {
     this.state = PALETTES[state] ? state : "idle";
   }
 
+  // Décalage de teinte (degrés) par rapport à la palette de base
+  setHue(shift) {
+    this.hueShift = shift;
+    this.recolor();
+  }
+
+  setTheme(theme) {
+    this.light = theme === "light";
+    this.recolor();
+  }
+
+  recolor() {
+    this.palettes = Object.fromEntries(
+      Object.entries(PALETTES).map(([state, colors]) => [
+        state,
+        colors.map((c) => shade(c, this.hueShift, this.light)),
+      ]),
+    );
+  }
+
   setLevel(level) {
     this.target.level = Math.max(0, Math.min(1, level));
   }
@@ -120,7 +183,7 @@ export class Orb {
     this.last = now;
     const slow = this.reducedMotion ? 0.25 : 1;
 
-    const palette = PALETTES[this.state];
+    const palette = this.palettes[this.state];
     const motion = MOTION[this.state];
     const ease = 1 - Math.exp(-dt * 3);
     this.colors.forEach((color, i) =>
