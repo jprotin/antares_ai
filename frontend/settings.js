@@ -1,4 +1,4 @@
-// Réglages : voix (catalogue voices/voices.json) et modèle LLM (routeur /api).
+// Réglages : voix (catalogue voices/voices.json), modèle LLM et projet RAG (routeur /api).
 // Les choix sont persistés côté serveur par le routeur LLM.
 
 // Bref par défaut, mais sans brider les contenus longs demandés explicitement
@@ -84,6 +84,10 @@ export function modelLabel(name) {
   return name ?? "?";
 }
 
+export function projectLabel(project) {
+  return project || "aucun (projet cité par son nom)";
+}
+
 function optionRow({ name, value, checked, title, detail, trailing }) {
   const label = document.createElement("label");
   label.className = "option";
@@ -106,6 +110,7 @@ export function initSettingsDialog({ onApplied }) {
   const form = document.getElementById("settings-form");
   const voiceOptions = document.getElementById("voice-options");
   const modelOptions = document.getElementById("model-options");
+  const projectOptions = document.getElementById("project-options");
   const error = document.getElementById("settings-error");
   const apply = document.getElementById("apply-settings");
   const preview = document.getElementById("preview");
@@ -155,17 +160,44 @@ export function initSettingsDialog({ onApplied }) {
     );
   }
 
+  async function renderProjects() {
+    projectOptions.textContent = "Chargement de la liste…";
+    const projects = await getJson("api/projects");
+    const none = {
+      id: "",
+      title: "Aucun",
+      detail: "Sauf projet cité par son nom",
+    };
+    projectOptions.replaceChildren(
+      ...[none, ...projects].map((project) =>
+        optionRow({
+          name: "project",
+          value: project.id,
+          checked: project.id === (profile.settings.project ?? ""),
+          title: project.title ?? project.id,
+          detail: project.detail ?? `${project.chunks} extraits indexés`,
+          trailing: document.createElement("span"),
+        }),
+      ),
+    );
+  }
+
   document
     .getElementById("open-settings")
     .addEventListener("click", async () => {
       error.textContent = "";
       renderVoices();
       dialog.showModal();
-      try {
-        await renderModels();
-      } catch (err) {
+      const [models, projects] = await Promise.allSettled([
+        renderModels(),
+        renderProjects(),
+      ]);
+      if (models.status === "rejected") {
         modelOptions.textContent = "";
-        error.textContent = `Liste des modèles indisponible : ${err.message}`;
+        error.textContent = `Liste des modèles indisponible : ${models.reason.message}`;
+      }
+      if (projects.status === "rejected") {
+        projectOptions.textContent = "RAG indisponible";
       }
     });
 
@@ -186,6 +218,7 @@ export function initSettingsDialog({ onApplied }) {
         body: JSON.stringify({
           voice: data.get("voice"),
           model: data.get("model"),
+          project: data.get("project") ?? undefined,
         }),
       });
       preview.pause();

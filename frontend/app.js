@@ -9,6 +9,7 @@ import {
   loadProfile,
   modelLabel,
   profile,
+  projectLabel,
   voicePath,
 } from "./settings.js";
 
@@ -113,11 +114,29 @@ function writeSubtitle(
 }
 
 function annotate(line, text) {
-  if (!line || line.querySelector(".line__meta")) return;
+  if (!line) return;
+  const existing = line.querySelector(".line__meta");
+  if (existing) {
+    existing.textContent += ` · ${text}`;
+    return;
+  }
   const meta = document.createElement("span");
   meta.className = "line__meta";
   meta.textContent = text;
   line.append(meta);
+}
+
+// Projets du RAG consultés pour cette réponse (recherche faite après la fin de parole)
+async function annotateSources(line, since) {
+  try {
+    const response = await fetch("api/rag/last", { cache: "no-store" });
+    const usage = await response.json();
+    if (usage.at * 1000 >= since && usage.projects.length) {
+      annotate(line, `documentation : ${usage.projects.join(", ")}`);
+    }
+  } catch (error) {
+    console.warn("Sources RAG indisponibles", error);
+  }
 }
 
 // --- Lecture de la réponse -----------------------------------------------------
@@ -172,6 +191,7 @@ function onServerEvent(event) {
       break;
     case "input_audio_buffer.speech_stopped":
       call.speechStoppedAt = performance.now();
+      call.speechStoppedEpoch = Date.now();
       setState("thinking");
       break;
     case "conversation.item.input_audio_transcription.delta":
@@ -213,6 +233,7 @@ function onServerEvent(event) {
           `réponse en ${call.latency.toFixed(1)} s`,
         );
       call.latency = null;
+      annotateSources(call.lastAssistantLine, call.speechStoppedEpoch - 2000);
       break;
     case "response.done":
       call.responseDone = true;
@@ -380,6 +401,7 @@ function renderProfile() {
   ui.info.replaceChildren();
   for (const [label, value] of [
     ["LLM", modelLabel(settings?.model)],
+    ["Projet", projectLabel(settings?.project)],
     ["Voix", `${name} (${config.tts} clonée${quantization})`],
     ["Transcription", config.stt],
   ]) {

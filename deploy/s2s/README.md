@@ -7,6 +7,7 @@ Appel vocal avec un LLM local, 100 % hors ligne, basé sur
 
 - Docker + plugin compose, runtime NVIDIA (`nvidia-container-toolkit`)
 - Stack `ai-to-boost` démarrée (conteneur `ollama`, réseau `ai-assistant-net`) avec `gemma4:e4b`
+- Optionnel : services `rag` et `qdrant` d'ai-to-boost, pour la documentation des projets
 
 ## Installation et usage
 
@@ -46,6 +47,23 @@ bridge, qui exécute `claude -p` sur l'abonnement, sans outils ni accès web.
 Le profil par défaut (modèle de démarrage, moteurs STT/TTS) est dans le bloc
 `x-profile` de `compose.yaml` ; le modifier impose de relancer `./install.sh`.
 
+### Documentation des projets (RAG)
+
+Le routeur ajoute à la consigne du LLM des extraits de la documentation indexée par
+ai-to-boost (service `rag`, collections Qdrant `knowledge` et `proj-<slug>`) :
+
+- **Projet choisi** dans les Réglages : sa documentation accompagne chaque question.
+- **Sinon**, un projet cité par son nom dans la question (« sur idp galaxy… ») est
+  consulté pour cette question seulement.
+- Sans projet choisi ni cité, rien n'est ajouté : les scores de similarité ne
+  distinguent pas une question projet d'une question banale (mesuré : 0,645 pour une
+  question d'architecture, 0,611 pour une recette).
+
+La recherche prend ~50 à 100 ms et retarde le premier mot d'environ 0,1 s. Les projets
+consultés s'affichent sous la réponse. Pour indexer un projet : `ai-to-boost-rag-sync.sh
+<projet>` (côté ai-to-boost) ; il apparaît dans les Réglages sous une minute. Avec un
+modèle Claude, les extraits partent chez Anthropic avec la conversation.
+
 ### Pourquoi des voix clonées
 
 Les locuteurs prédéfinis de Qwen3-TTS (modèle CustomVoice) changent de timbre d'une
@@ -83,7 +101,9 @@ Navigateur ──> web (nginx, 127.0.0.1:8765) ──> s2s (réseau antares-loca
                  │ page, /voices, /config.json      VAD Silero, STT Parakeet, TTS Qwen3
                  │                                  │
                  └── /api (réglages) ──────────> llm-router ──> ollama (ai-to-boost)
-                                                  réécrit `model` selon les réglages
+                                                  │ réécrit `model` selon les réglages
+                                                  └──> rag + qdrant (ai-to-boost)
+                                                       extraits des projets
 ```
 
 Le LLM est appelé directement sur Ollama (via `llm-router`) : LiteLLM perd

@@ -8,7 +8,8 @@
 #       web        : 127.0.0.1:8765 (hôte) -> interface + /v1/* (s2s) + /api/* (router)
 #       llm-router : s2s -> ollama:11434 (stack ai-to-boost), modèle choisi dans l'interface
 #                    ou -> claude-bridge de l'hôte si un modèle Claude est choisi
-#                    (seul cas où du texte quitte la machine, vers Anthropic)
+#                    (seul cas où du texte quitte la machine, vers Anthropic) ;
+#                    documentation des projets lue dans le RAG d'ai-to-boost (rag, qdrant)
 #   LiteLLM est contourné : il perd `reasoning_effort` en streaming (latence x3).
 #
 # Premier lancement : ./install.sh  —  ensuite : docker compose up -d
@@ -25,6 +26,8 @@ x-profile:
   tts-model: &tts-model Qwen/Qwen3-TTS-12Hz-1.7B-Base
   tts-quantization: &tts-quantization Q8_0
   default-voice: &default-voice /voices/sohee.wav
+  # RAG des projets (service `rag` d'ai-to-boost) : extraits ajoutés par question
+  rag-limit: &rag-limit "4"
   # Tirage Qwen3-TTS bridé (amont : 0.9 / 50) : ton régulier d'une phrase à l'autre
   tts-temperature: &tts-temperature "0.3"
   tts-top-k: &tts-top-k "10"
@@ -146,6 +149,10 @@ services:
       CLAUDE_BRIDGE_URL: http://host.docker.internal:8088
       CLAUDE_BRIDGE_TOKEN: ${CLAUDE_BRIDGE_TOKEN:-}
       CLAUDE_MODELS: opus,sonnet
+      # RAG d'ai-to-boost (réseau ai-assistant-net) : projets = collections proj-* de Qdrant
+      RAG_URL: http://rag:8100
+      QDRANT_URL: http://qdrant:6333
+      RAG_LIMIT: *rag-limit
     extra_hosts:
       - host.docker.internal:host-gateway
     volumes:
