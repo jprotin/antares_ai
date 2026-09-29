@@ -130,6 +130,8 @@ services:
     volumes:
       - ../../frontend:/usr/share/nginx/html:ro
       - ./voices:/srv/voices:ro
+      # Avatars photo locaux (non versionnés, cf. avatars/README.md)
+      - ./avatars:/srv/avatars:ro
       - ./nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
     ports:
       - "127.0.0.1:8765:8765"

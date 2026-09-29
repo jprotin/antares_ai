@@ -115,3 +115,7 @@ obj/
 *.so
 *.dylib
 *.exe
+
+# Avatars photo : images locales, potentiellement soumises à des droits
+deploy/s2s/avatars/*
+!deploy/s2s/avatars/README.md

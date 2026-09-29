@@ -151,10 +151,14 @@ L'agent utilisé s'affiche sous la réponse.
 - **Thème** : bouton à côté de la roue dentée — système, sombre ou clair (mémorisé
   dans le navigateur).
 - **Avatar** (Réglages), mémorisé dans le navigateur :
-  - **Cyborg 3D** (défaut) : tête d'endosquelette modélisée en 3D temps réel
-    (`frontend/face3d.js`, three.js/WebGL) — plaques extrudées courbées, métal à reflets
-    d'environnement, yeux émissifs avec halo, mâchoire sur charnière suivie par les
-    vérins ; rendu limité à 30 images/s (GPU partagé). Repli sur le 2D sans WebGL ;
+  - **Photo** (défaut si configurée) : une image locale animée en calques
+    (`frontend/photoface.js`) — mâchoire découpée qui descend au rythme de la voix,
+    halos des yeux, légère respiration. Image et calibrage dans `deploy/s2s/avatars/`
+    (**non versionné** : droits éventuels sur l'image ; cf. `avatars/README.md`) ;
+  - **Cyborg 3D** : tête d'endosquelette modélisée en 3D temps réel
+    (`frontend/face3d.js`, three.js/WebGL) — plaques extrudées courbées, métal argenté à
+    reflets d'environnement, yeux émissifs avec halo, mâchoire sur charnière suivie par
+    les vérins ; rendu limité à 30 images/s (GPU partagé). Repli sur le 2D sans WebGL ;
   - **Cyborg 2D** : même tête dessinée en canvas 2D (`frontend/face.js`), plus légère ;
   - **Orbe**.
 - **Voix** : Terminator (voix clonée `ryan`) et Sarah Connor (voix clonée `sohee`) ; les

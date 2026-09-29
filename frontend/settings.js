@@ -2,6 +2,8 @@
 // L'agent et le mode se choisissent sur l'écran d'appel (cf. app.js).
 // Les choix sont persistés côté serveur par le routeur LLM.
 
+import { loadPhotoConfig } from "./photoface.js";
+
 // Bref par défaut, mais sans brider les contenus longs demandés explicitement
 // (gemma4 coupait un poème après une strophe avec « phrases courtes »).
 // La règle du code vient en premier : placée après « sans markdown », le modèle
@@ -234,6 +236,8 @@ export function initSettingsDialog({ avatar, onApplied }) {
     .addEventListener("click", async () => {
       error.textContent = "";
       renderVoices();
+      const photo = await loadPhotoConfig();
+      document.getElementById("avatar-photo-option").hidden = !photo;
       for (const input of form.querySelectorAll('input[name="avatar"]')) {
         input.checked = input.value === avatar.kind;
       }
