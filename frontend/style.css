@@ -535,3 +535,122 @@ body {
   background: #c77dff22;
   color: #d9a8ff;
 }
+
+/* --- Agents --------------------------------------------------------------------- */
+
+.settings {
+  overflow-y: auto;
+}
+
+.agents {
+  width: min(44rem, calc(100vw - 32px));
+}
+
+.agents__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.agents select,
+.agent-form input,
+.agent-form textarea {
+  width: 100%;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 0.6rem;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+
+.agents__header select {
+  width: auto;
+}
+
+.agents__list {
+  display: grid;
+  gap: 1rem;
+}
+
+.agents__group h3 {
+  margin: 0 0 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.agents__empty {
+  color: var(--faint);
+}
+
+.agent-card {
+  display: grid;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 0.8rem;
+  background: #ffffff05;
+}
+
+.agent-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.agent-card .option__detail {
+  margin: 0;
+}
+
+.agent-card__actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.agent-form {
+  display: grid;
+  gap: 0.8rem;
+  padding: 1rem;
+  border: 1px solid var(--accent);
+  border-radius: 0.8rem;
+}
+
+.agent-form h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.agent-form label {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.agent-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.8rem;
+}
+
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--accent-strong);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+@media (max-width: 600px) {
+  .agent-form__row {
+    grid-template-columns: 1fr;
+  }
+}

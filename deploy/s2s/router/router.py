@@ -7,9 +7,11 @@
                    pour les modèles à experts comme gemma4:26b).
                    S'y ajoutent les modèles Claude (`claude:*`) servis par le claude-bridge
                    d'ai-to-boost (cf. claude.py) : texte envoyé chez Anthropic.
-- /api/settings  : réglages actifs {model, voice, project}, persistés dans SETTINGS_PATH.
+- /api/settings  : réglages actifs {model, voice, project, agent}, persistés dans SETTINGS_PATH.
 - /api/projects  : projets indexés dans le RAG d'ai-to-boost (cf. rag.py).
-- /api/rag/last  : projets et sources utilisés pour la dernière réponse.
+- /api/agents    : agents « consignes » (cf. agents.py) : liste, création, modification,
+                   suppression ; /api/agents/meta : domaines et utilités proposés.
+- /api/turn/last : agent, modèle, projets et sources de la dernière réponse.
 - /healthz       : sonde de santé.
 """
 
@@ -28,6 +30,7 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from starlette.background import BackgroundTask
 
+import agents
 import claude
 import rag
 
@@ -54,12 +57,15 @@ class Settings(BaseModel):
     voice: str
     # Projet dont la documentation est ajoutée à chaque question ("" : aucun)
     project: str = ""
+    # Agent appliqué à tout l'appel ("" : aucun, sauf agent cité dans la question)
+    agent: str = ""
 
 
 class SettingsUpdate(BaseModel):
     model: str | None = None
     voice: str | None = None
     project: str | None = None
+    agent: str | None = None
 
 
 def voice_catalog() -> dict:
@@ -212,12 +218,17 @@ async def update_settings(update: SettingsUpdate) -> Settings:
         }:
             raise HTTPException(422, f"Projet inconnu : {update.project}")
         settings.project = update.project
+    if update.agent is not None:
+        if update.agent and agents.find(update.agent) is None:
+            raise HTTPException(422, f"Agent inconnu : {update.agent}")
+        settings.agent = update.agent
     save_settings(settings)
     logger.info(
-        "Réglages : modèle=%s voix=%s projet=%s",
+        "Réglages : modèle=%s voix=%s projet=%s agent=%s",
         settings.model,
         settings.voice,
         settings.project or "aucun",
+        settings.agent or "aucun",
     )
     return settings
 
@@ -227,9 +238,95 @@ async def list_projects() -> list[dict]:
     return await rag.projects()
 
 
-@app.get("/api/rag/last")
-async def last_rag() -> dict:
-    return rag.last_usage
+@app.get("/api/turn/last")
+async def turn_last() -> dict:
+    return last_turn
+
+
+async def check_agent(draft: agents.AgentDraft) -> None:
+    if draft.project and draft.project not in {p["id"] for p in await rag.projects()}:
+        raise HTTPException(422, f"Projet inconnu : {draft.project}")
+    if draft.model and draft.model not in {m["name"] for m in await chat_models()}:
+        raise HTTPException(422, f"Modèle inconnu : {draft.model}")
+
+
+@app.get("/api/agents")
+async def list_agents() -> list[agents.Agent]:
+    return agents.load()
+
+
+@app.get("/api/agents/meta")
+async def agents_meta() -> dict:
+    return {"domains": agents.DOMAINS, "usages": agents.USAGES}
+
+
+@app.post("/api/agents", status_code=201)
+async def create_agent(draft: agents.AgentDraft) -> agents.Agent:
+    await check_agent(draft)
+    known = agents.load()
+    agent_id = agents.slug(draft.name)
+    if not agent_id or any(a.id == agent_id for a in known):
+        raise HTTPException(409, f"Un agent porte déjà ce nom : {draft.name}")
+    agent = agents.Agent(id=agent_id, **draft.model_dump())
+    agents.save([*known, agent])
+    logger.info("Agent créé : %s", agent.name)
+    return agent
+
+
+@app.put("/api/agents/{agent_id}")
+async def update_agent(agent_id: str, draft: agents.AgentDraft) -> agents.Agent:
+    await check_agent(draft)
+    known = agents.load()
+    if not any(a.id == agent_id for a in known):
+        raise HTTPException(404, f"Agent inconnu : {agent_id}")
+    # L'identifiant reste stable même si le nom change (réglage `agent` conservé)
+    agent = agents.Agent(id=agent_id, **draft.model_dump())
+    agents.save([agent if a.id == agent_id else a for a in known])
+    return agent
+
+
+@app.delete("/api/agents/{agent_id}", status_code=204)
+async def delete_agent(agent_id: str) -> None:
+    known = agents.load()
+    if not any(a.id == agent_id for a in known):
+        raise HTTPException(404, f"Agent inconnu : {agent_id}")
+    agents.save([a for a in known if a.id != agent_id])
+    settings = load_settings()
+    if settings.agent == agent_id:
+        settings.agent = ""
+        save_settings(settings)
+
+
+# Agent, modèle et documentation de la dernière réponse, affichés sous celle-ci
+last_turn: dict = {
+    "at": 0.0,
+    "agent": None,
+    "model": None,
+    "projects": [],
+    "sources": [],
+}
+
+
+async def prepare(messages: list[dict], settings: Settings) -> tuple[list[dict], str]:
+    """Applique l'agent (choisi ou cité), puis la documentation ; renvoie le modèle à utiliser."""
+    agent = agents.cited(rag.question(messages))
+    if agent is None and settings.agent:
+        agent = agents.find(settings.agent)
+    model = (agent.model if agent and agent.model else "") or settings.model
+    if agent:
+        messages = rag.add_system(messages, agents.instructions(agent))
+    project = (agent.project if agent and agent.project else "") or settings.project
+    messages = await rag.augment(messages, project)
+    last_turn.update(
+        at=time.time(),
+        agent=agent.name if agent else None,
+        model=model,
+        projects=rag.last_usage["projects"],
+        sources=rag.last_usage["sources"],
+    )
+    if agent:
+        logger.info("Agent %s (modèle %s)", agent.name, model)
+    return messages, model
 
 
 @app.api_route("/v1/{path:path}", methods=["GET", "POST"])
@@ -239,25 +336,26 @@ async def relay(path: str, request: Request) -> StreamingResponse:
     settings = load_settings()
     model = settings.model
     chat = path == "chat/completions" and request.method == "POST"
+    payload: dict = {}
+    if chat or (
+        body and request.headers.get("content-type", "").startswith("application/json")
+    ):
+        payload = json.loads(body)
+    if chat and "messages" in payload:
+        payload["messages"], model = await prepare(payload["messages"], settings)
     if claude.is_claude(model):
         if not chat:
             raise HTTPException(501, f"/v1/{path} non disponible avec {model}")
         return StreamingResponse(
             claude.stream_reply(
                 model,
-                await rag.augment(json.loads(body)["messages"], settings.project),
+                payload["messages"],
                 on_done=lambda seconds: record_observed(model, seconds, None),
             ),
             media_type="text/event-stream",
         )
-    if body and request.headers.get("content-type", "").startswith("application/json"):
-        payload = json.loads(body)
-        if "model" in payload:
-            payload["model"] = model
-        if chat and "messages" in payload:
-            payload["messages"] = await rag.augment(
-                payload["messages"], settings.project
-            )
+    if "model" in payload:
+        payload["model"] = model
         body = json.dumps(payload).encode()
     upstream = await client.send(
         client.build_request(

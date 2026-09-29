@@ -113,6 +113,19 @@
         </fieldset>
 
         <fieldset class="settings__group">
+          <legend>Agent</legend>
+          <div class="settings__options" id="agent-options"></div>
+          <p class="settings__hint">
+            L'agent choisi s'applique à tout l'appel. Sans agent choisi, un
+            agent cité par son nom (« demande au relecteur ADR… ») répond à
+            cette question.
+            <button type="button" class="link-button" id="open-agents">
+              Gérer les agents
+            </button>
+          </p>
+        </fieldset>
+
+        <fieldset class="settings__group">
           <legend>Projet</legend>
           <div class="settings__options" id="project-options"></div>
           <p class="settings__hint">
@@ -133,6 +146,95 @@
           </button>
         </footer>
       </form>
+    </dialog>
+
+    <dialog class="settings agents" id="agents" aria-labelledby="agents-title">
+      <div class="settings__form">
+        <header class="settings__header agents__header">
+          <div>
+            <h2 id="agents-title">Agents</h2>
+            <p>Consignes réutilisables, regroupées par domaine.</p>
+          </div>
+          <select id="agents-filter" aria-label="Filtrer par utilité"></select>
+        </header>
+
+        <div class="agents__list" id="agents-list"></div>
+
+        <form class="agent-form" id="agent-form" hidden>
+          <h3 id="agent-form-title">Nouvel agent</h3>
+          <label
+            >Nom
+            <input id="agent-name" required minlength="2" maxlength="60" />
+          </label>
+          <div class="agent-form__row">
+            <label
+              >Domaine
+              <input
+                id="agent-domain"
+                list="agent-domains"
+                required
+                maxlength="40"
+              />
+            </label>
+            <label
+              >Utilité
+              <input
+                id="agent-usage"
+                list="agent-usages"
+                required
+                maxlength="40"
+              />
+            </label>
+          </div>
+          <label
+            >Description courte
+            <input id="agent-description" maxlength="200" />
+          </label>
+          <label
+            >Instructions (rôle, méthode, format de réponse)
+            <textarea
+              id="agent-instructions"
+              rows="6"
+              required
+              minlength="10"
+              maxlength="4000"
+            ></textarea>
+          </label>
+          <div class="agent-form__row">
+            <label
+              >Projet (documentation)
+              <select id="agent-project"></select>
+            </label>
+            <label
+              >Modèle
+              <select id="agent-model"></select>
+            </label>
+          </div>
+          <p class="settings__hint">
+            Un modèle différent de celui des Réglages est chargé en mémoire à la
+            première réponse de l'agent : quelques secondes de plus.
+          </p>
+          <datalist id="agent-domains"></datalist>
+          <datalist id="agent-usages"></datalist>
+          <footer class="settings__actions">
+            <button type="button" class="button-ghost" id="agent-cancel">
+              Annuler
+            </button>
+            <button type="submit" class="button-primary">Enregistrer</button>
+          </footer>
+        </form>
+
+        <p class="settings__error" id="agents-error" role="alert"></p>
+
+        <footer class="settings__actions">
+          <button type="button" class="button-ghost" id="agent-new">
+            Nouvel agent
+          </button>
+          <button type="button" class="button-primary" id="agents-close">
+            Fermer
+          </button>
+        </footer>
+      </div>
     </dialog>
 
     <audio id="preview" preload="none"></audio>
