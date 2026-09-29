@@ -1,14 +1,18 @@
-// Avatar de l'assistant sur l'écran d'appel : photo animée (si une photo locale est
-// configurée, cf. deploy/s2s/avatars), cyborg 3D, cyborg 2D ou orbe. Même interface pour
-// tous ; le choix est mémorisé dans le navigateur.
+// Avatar de l'assistant sur l'écran d'appel : avatars 3D (cyborg, Chappie…) ou orbe.
+// Même interface pour tous ; le choix est mémorisé dans le navigateur.
 
-import { Face } from "./face.js";
 import { Face3D, webglAvailable } from "./face3d.js";
 import { Orb } from "./orb.js";
-import { PhotoFace, loadPhotoConfig } from "./photoface.js";
+import { VisorRobot } from "./avatars3d/visor.js";
 
 const STORAGE_KEY = "antares-avatar";
-const RENDERERS = { photo: PhotoFace, face3d: Face3D, face: Face, orb: Orb };
+const RENDERERS = {
+  face3d: Face3D,
+  visor: VisorRobot,
+  orb: Orb,
+};
+// Avatars WebGL : repli sur l'orbe (canvas 2D) sans WebGL
+const WEBGL = new Set(["face3d", "visor"]);
 const DEFAULT = "face3d";
 
 function stored() {
@@ -29,20 +33,14 @@ export class Avatar {
     this.canvas = canvas;
     this.settings = { state: "idle", level: 0, hue: 0, theme: "dark" };
     this.use(storedAvatar(), false);
-    // Sans choix enregistré, la photo locale devient l'avatar par défaut si elle existe ;
-    // choisie mais absente (fichier retiré), repli sur l'avatar par défaut
-    loadPhotoConfig().then((config) => {
-      if (config && !stored()) this.use("photo", false);
-      if (!config && this.kind === "photo") this.use(DEFAULT, false);
-    });
   }
 
   // `remember` : choix explicite de l'utilisateur, mémorisé dans le navigateur
   use(kind, remember = true) {
     this.current?.stop();
     let chosen = kind in RENDERERS ? kind : DEFAULT;
-    // Sans WebGL (navigateur, pilote), repli sur le cyborg 2D
-    if (chosen === "face3d" && !webglAvailable()) chosen = "face";
+    // Sans WebGL (navigateur, pilote), repli sur l'orbe
+    if (WEBGL.has(chosen) && !webglAvailable()) chosen = "orb";
     // Un canvas ne change pas de contexte (2D <-> WebGL) : on le remplace
     const fresh = this.canvas.cloneNode(false);
     this.canvas.replaceWith(fresh);

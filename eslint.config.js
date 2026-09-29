@@ -34,7 +34,6 @@ const browserGlobals = Object.fromEntries(
     "localStorage",
     "TextDecoder",
     "setTimeout",
-    "Image",
   ].map((name) => [name, "readonly"]),
 );
 
