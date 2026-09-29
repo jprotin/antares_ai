@@ -51,6 +51,14 @@ server {
         client_max_body_size 2m;
     }
 
+    # Documents joints (PDF, Word, texte, images) : 15 Mo au plus, cf. documents.py
+    location = /api/documents {
+        proxy_pass $router_upstream;
+        proxy_set_header Host $host;
+        proxy_read_timeout 180s;
+        client_max_body_size 15m;
+    }
+
     # Réglages (modèle, voix, agent, mode…) et agents : routeur LLM
     location /api/ {
         proxy_pass $router_upstream;

@@ -98,6 +98,8 @@
           </p>
         </div>
         <form class="composer" id="composer">
+          <ul class="attachments" id="attachments" hidden></ul>
+          <input type="file" id="attach-input" multiple hidden />
           <textarea
             class="composer__text"
             id="composer-text"
@@ -106,6 +108,19 @@
             aria-label="Message écrit"
           ></textarea>
           <div class="composer__actions">
+            <button
+              type="button"
+              class="button-ghost attach-button"
+              id="attach-button"
+              title="Joindre des documents (PDF, Word, texte, images) — ou glissez-les ici"
+              aria-label="Joindre des documents"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M16.5 6.5v10a4.5 4.5 0 0 1-9 0V5a3 3 0 0 1 6 0v10.5a1.5 1.5 0 0 1-3 0V6.5H9v9a3 3 0 0 0 6 0V5a4.5 4.5 0 0 0-9 0v11.5a6 6 0 0 0 12 0v-10h-1.5Z"
+                />
+              </svg>
+            </button>
             <button
               type="button"
               class="button-ghost"

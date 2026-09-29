@@ -11,6 +11,7 @@ ENV DEBIAN_FRONTEND=noninteractive \
     NLTK_DATA=/opt/nltk_data
 
 # espeak-ng : phonémiseur requis par Kokoro pour le français.
+# poppler-utils : pdftotext, extraction du texte des PDF joints (routeur, documents.py).
 # Versions apt non figées : on suit les correctifs de sécurité de l'image de base Ubuntu 24.04.
 # hadolint ignore=DL3008
 RUN apt-get update \
@@ -19,6 +20,7 @@ RUN apt-get update \
         espeak-ng \
         libportaudio2 \
         libsndfile1 \
+        poppler-utils \
         python3 \
         python3-venv \
     && rm -rf /var/lib/apt/lists/*

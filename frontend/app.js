@@ -2,6 +2,7 @@
 // Protocole : sous-ensemble OpenAI Realtime implémenté par huggingface/speech-to-speech.
 
 import { initAgentsDialog } from "./agents.js";
+import { initAttachments } from "./attachments.js";
 import { Orb } from "./orb.js";
 import { createPicker } from "./picker.js";
 import { enableCodeCopy, renderInto, renderMarkdown } from "./render.js";
@@ -199,6 +200,9 @@ async function annotateSources(line, since) {
       annotate(line, `documentation : ${turn.projects.join(", ")}`);
     }
     if (turn.code?.length) showSpokenCode(line, turn.code);
+    if (turn.skipped?.length) {
+      annotate(line, `non lu : ${turn.skipped.join(", ")}`);
+    }
     if (turn.sources.length && line.classList.contains("line--rich")) {
       const refs = document.createElement("div");
       refs.className = "line__refs";
@@ -620,9 +624,34 @@ ui.composer.addEventListener("submit", (event) => {
 });
 ui.composerContext.addEventListener("click", () => sendText(false));
 enableCodeCopy(ui.subtitles);
+// Ligne d'information dans la conversation (document joint, refus…)
+function systemLine(text, error = false) {
+  ui.empty?.remove();
+  const line = document.createElement("p");
+  line.className = `line line--system${error ? " line--error" : ""}`;
+  line.textContent = text;
+  ui.subtitles.append(line);
+  ui.subtitles.scrollTop = ui.subtitles.scrollHeight;
+}
+
+const attachments = initAttachments({
+  list: document.getElementById("attachments"),
+  button: document.getElementById("attach-button"),
+  input: document.getElementById("attach-input"),
+  dropZone: document.querySelector(".conversation"),
+  notify: (text, doc) =>
+    doc
+      ? systemLine(
+          `${text}${doc.voice ? "" : " — trop long pour l'oral, utilisé à l'écrit"}`,
+        )
+      : systemLine(text, true),
+});
+attachments.load();
+
 ui.newConversation.addEventListener("click", () => {
   conversation = [];
   ui.subtitles.replaceChildren(ui.empty);
+  attachments.clear();
   ui.composerText.focus();
 });
 ui.composerText.addEventListener("keydown", (event) => {
