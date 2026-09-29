@@ -258,13 +258,13 @@ body {
 .conversation__header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 1rem;
   padding: 1rem 1.4rem;
   border-bottom: 1px solid var(--panel-border);
 }
 
 .conversation__header h2 {
-  margin: 0;
+  margin: 0 auto 0 0;
   font-size: 0.85rem;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -596,6 +596,21 @@ body {
   color: var(--warn-text);
   font-size: 0.7rem;
 }
+.attachment__rag {
+  padding: 0.05rem 0.45rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--accent-strong);
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.attachment__rag:hover {
+  background: var(--overlay-strong);
+}
+
 .attachment__remove {
   width: 1.4rem;
   height: 1.4rem;

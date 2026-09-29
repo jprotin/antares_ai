@@ -3,6 +3,7 @@
 
 import { initAgentsDialog } from "./agents.js";
 import { initAttachments } from "./attachments.js";
+import { initKnowledge } from "./knowledge.js";
 import { Avatar } from "./avatar.js";
 import { createPicker } from "./picker.js";
 import { enableCodeCopy, renderInto, renderMarkdown } from "./render.js";
@@ -646,6 +647,12 @@ const attachments = initAttachments({
           `${text}${doc.voice ? "" : " — trop long pour l'oral, utilisé à l'écrit"}`,
         )
       : systemLine(text, true),
+  onPropose: (documentId) => knowledgeUI.fromDocument(documentId),
+});
+
+const knowledgeUI = initKnowledge({
+  notify: (text, error = false) => systemLine(text, error),
+  historyFor: () => recentHistory(),
 });
 attachments.load();
 

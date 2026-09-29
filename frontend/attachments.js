@@ -26,7 +26,14 @@ function size(tokens) {
     : `~${tokens} tokens`;
 }
 
-export function initAttachments({ list, button, input, dropZone, notify }) {
+export function initAttachments({
+  list,
+  button,
+  input,
+  dropZone,
+  notify,
+  onPropose,
+}) {
   input.accept = ACCEPT;
 
   function chip(doc) {
@@ -42,6 +49,13 @@ export function initAttachments({ list, button, input, dropZone, notify }) {
       badge.title =
         "Trop long pour la conversation orale : utilisé pour les réponses écrites";
       item.append(badge);
+    }
+    if (doc.kind !== "image" && onPropose) {
+      const propose = element("button", "attachment__rag", "RAG");
+      propose.type = "button";
+      propose.title = `Proposer une fiche de connaissance à partir de ${doc.name}`;
+      propose.addEventListener("click", () => onPropose(doc.id));
+      item.append(propose);
     }
     const remove = element("button", "attachment__remove", "×");
     remove.type = "button";
