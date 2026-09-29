@@ -68,6 +68,11 @@ server {
         client_max_body_size 64k;
     }
 
+    location /avatars/ {
+        alias /srv/avatars/;
+        add_header Cache-Control no-store;
+    }
+
     location /voices/ {
         alias /srv/voices/;
         add_header Cache-Control no-store;

@@ -1,31 +1,44 @@
-// Avatar de l'assistant sur l'écran d'appel : cyborg 3D (défaut), cyborg 2D ou orbe.
-// Même interface pour les trois ; le choix est mémorisé dans le navigateur.
+// Avatar de l'assistant sur l'écran d'appel : photo animée (si une photo locale est
+// configurée, cf. deploy/s2s/avatars), cyborg 3D, cyborg 2D ou orbe. Même interface pour
+// tous ; le choix est mémorisé dans le navigateur.
 
 import { Face } from "./face.js";
 import { Face3D, webglAvailable } from "./face3d.js";
 import { Orb } from "./orb.js";
+import { PhotoFace, loadPhotoConfig } from "./photoface.js";
 
 const STORAGE_KEY = "antares-avatar";
-const RENDERERS = { face3d: Face3D, face: Face, orb: Orb };
+const RENDERERS = { photo: PhotoFace, face3d: Face3D, face: Face, orb: Orb };
 const DEFAULT = "face3d";
 
-export function storedAvatar() {
+function stored() {
   try {
     const kind = localStorage.getItem(STORAGE_KEY);
-    return kind in RENDERERS ? kind : DEFAULT;
+    return kind in RENDERERS ? kind : null;
   } catch {
-    return DEFAULT;
+    return null;
   }
+}
+
+export function storedAvatar() {
+  return stored() ?? DEFAULT;
 }
 
 export class Avatar {
   constructor(canvas) {
     this.canvas = canvas;
     this.settings = { state: "idle", level: 0, hue: 0, theme: "dark" };
-    this.use(storedAvatar());
+    this.use(storedAvatar(), false);
+    // Sans choix enregistré, la photo locale devient l'avatar par défaut si elle existe ;
+    // choisie mais absente (fichier retiré), repli sur l'avatar par défaut
+    loadPhotoConfig().then((config) => {
+      if (config && !stored()) this.use("photo", false);
+      if (!config && this.kind === "photo") this.use(DEFAULT, false);
+    });
   }
 
-  use(kind) {
+  // `remember` : choix explicite de l'utilisateur, mémorisé dans le navigateur
+  use(kind, remember = true) {
     this.current?.stop();
     let chosen = kind in RENDERERS ? kind : DEFAULT;
     // Sans WebGL (navigateur, pilote), repli sur le cyborg 2D
@@ -41,8 +54,9 @@ export class Avatar {
     this.current.setLevel(level);
     this.current.setHue(hue);
     this.current.setTheme(theme);
+    if (!remember) return;
     try {
-      localStorage.setItem(STORAGE_KEY, kind in RENDERERS ? kind : DEFAULT);
+      localStorage.setItem(STORAGE_KEY, chosen);
     } catch {
       // Stockage indisponible : le choix vaut pour la session
     }
