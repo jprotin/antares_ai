@@ -59,6 +59,35 @@
             La conversation s'affichera ici en direct.
           </p>
         </div>
+        <form class="composer" id="composer">
+          <textarea
+            class="composer__text"
+            id="composer-text"
+            rows="2"
+            placeholder="Écrire pendant l'appel (Entrée : envoyer, Maj+Entrée : nouvelle ligne)"
+            aria-label="Message écrit"
+            disabled
+          ></textarea>
+          <div class="composer__actions">
+            <button
+              type="button"
+              class="button-ghost"
+              id="composer-context"
+              title="Ajoute le texte à la conversation sans demander de réponse"
+              disabled
+            >
+              Ajouter au contexte
+            </button>
+            <button
+              type="submit"
+              class="button-primary"
+              id="composer-send"
+              disabled
+            >
+              Envoyer
+            </button>
+          </div>
+        </form>
       </section>
     </main>
 
