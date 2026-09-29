@@ -3,14 +3,14 @@
   "voices": [
     {
       "id": "sohee",
-      "name": "Sohee",
+      "name": "Sarah Connor",
       "gender": "F",
       "file": "sohee.wav",
       "source": "Qwen3-TTS CustomVoice, locutrice sohee"
     },
     {
       "id": "ryan",
-      "name": "Ryan",
+      "name": "Terminator",
       "gender": "M",
       "file": "ryan.wav",
       "source": "Qwen3-TTS CustomVoice, locuteur ryan"
