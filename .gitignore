@@ -98,6 +98,8 @@ pip-log.txt
 
 # ===== PHP =====
 vendor/
+# Bibliothèques front copiées volontairement (cf. frontend/vendor/README.md)
+!frontend/vendor/
 composer.phar
 .phpunit.result.cache
 .php-cs-fixer.cache

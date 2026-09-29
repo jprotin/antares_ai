@@ -4,10 +4,19 @@
 
 // Bref par défaut, mais sans brider les contenus longs demandés explicitement
 // (gemma4 coupait un poème après une strophe avec « phrases courtes »).
+// La règle du code vient en premier : placée après « sans markdown », le modèle
+// l'ignorait pour les requêtes courtes (SQL : 0/3 ; en premier : 12/12, cf. voicecode.py).
 const BASE_INSTRUCTIONS =
-  "Réponds toujours en français, de façon naturelle et sans markdown ni listes. " +
-  "En conversation, reste bref. Si l'on te demande un contenu long (poème, histoire, " +
-  "explication détaillée), donne-le en entier, sans t'arrêter pour demander s'il faut continuer.";
+  "Règle prioritaire : dès que ta réponse contient du code, même une seule ligne " +
+  "(script, commande, requête SQL, fichier de configuration, Dockerfile), écris ce code " +
+  "entre trois accents graves avec le langage (```sql, puis le code, puis ```). Ce bloc " +
+  "s'affiche à l'écran et n'est jamais lu. Autour, en phrases parlées, annonce que tu " +
+  "l'affiches à l'écran puis explique ce qu'il fait étape par étape, sans lire le code " +
+  "ni parler de Markdown. " +
+  "Pour tout le reste, réponds toujours en français, de façon naturelle et sans markdown " +
+  "ni listes. En conversation, reste bref. Si l'on te demande un contenu long (poème, " +
+  "histoire, explication détaillée), donne-le en entier, sans t'arrêter pour demander " +
+  "s'il faut continuer.";
 
 export const profile = {
   config: {},
@@ -26,6 +35,22 @@ export function currentVoice() {
 
 export function voicePath(voice) {
   return `/voices/${voice.file}`;
+}
+
+// À l'écrit, la mise en forme est rendue (render.js) : Markdown encouragé
+const WRITTEN_INSTRUCTIONS =
+  "Réponds toujours en français. L'échange se fait à l'écrit : structure tes réponses " +
+  "en Markdown quand c'est utile (titres courts, listes, tableaux, citations avec >, " +
+  "blocs de code avec le langage indiqué et une indentation soignée). Reste concis pour " +
+  "une question simple. Ne cite un lien Internet que pour une page de documentation " +
+  "officielle dont tu es certain de l'adresse ; n'invente jamais d'URL.";
+
+export function writtenInstructionsFor(voice) {
+  const role =
+    voice.gender === "M"
+      ? "un assistant bienveillant"
+      : "une assistante bienveillante";
+  return `Tu es ${voice.name}, ${role}. ${WRITTEN_INSTRUCTIONS}`;
 }
 
 export function instructionsFor(voice) {

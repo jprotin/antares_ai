@@ -29,6 +29,13 @@ RULES = (
     "lire les extraits ni citer les noms de fichiers. Si la réponse n'y figure pas, "
     "dis-le simplement plutôt que d'inventer."
 )
+# À l'écrit, les sources sont utiles au lecteur
+WRITTEN_RULES = (
+    "Documentation des projets de l'utilisateur (extraits indexés, source entre "
+    "crochets). Appuie-toi dessus pour répondre et cite la source entre crochets, par "
+    "exemple [projet · fichier], après l'information concernée. Si la réponse n'y "
+    "figure pas, dis-le simplement plutôt que d'inventer."
+)
 
 logger = logging.getLogger("router.rag")
 http = httpx.AsyncClient(timeout=httpx.Timeout(3))
@@ -104,7 +111,9 @@ def question(messages: list[dict]) -> str:
     return asked[-1]
 
 
-async def augment(messages: list[dict], selected: str | None) -> list[dict]:
+async def augment(
+    messages: list[dict], selected: str | None, spoken: bool = True
+) -> list[dict]:
     """Ajoute les extraits pertinents à la consigne ; renvoie les messages inchangés sinon."""
     last_usage.update(at=time.time(), projects=[], sources=[])
     asked = question(messages)
@@ -138,7 +147,8 @@ async def augment(messages: list[dict], selected: str | None) -> list[dict]:
         excerpts.append(
             f"[{label} · {hit['source']}]\n{hit['text'][:EXCERPT_CHARS].strip()}"
         )
-    context = RULES + "\n\n" + "\n\n".join(excerpts)
+    rules = RULES if spoken else WRITTEN_RULES
+    context = rules + "\n\n" + "\n\n".join(excerpts)
     last_usage.update(
         projects=targets,
         sources=sorted(

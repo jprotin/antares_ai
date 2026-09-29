@@ -38,6 +38,7 @@ import agents
 import claude
 import modes
 import rag
+import voicecode
 
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://ollama:11434")
 DEFAULT_MODEL = os.environ["DEFAULT_MODEL"]
@@ -322,10 +323,18 @@ last_turn: dict = {
     "model": None,
     "projects": [],
     "sources": [],
+    # Blocs de code retirés de la voix, affichés sous la réponse (cf. voicecode)
+    "code": [],
 }
 
 
-async def prepare(messages: list[dict], settings: Settings) -> tuple[list[dict], str]:
+def keep_code(blocks: list[dict]) -> None:
+    last_turn["code"] = blocks
+
+
+async def prepare(
+    messages: list[dict], settings: Settings, spoken: bool = True
+) -> tuple[list[dict], str]:
     """Applique le mode, l'agent (choisi ou cité), puis la documentation.
 
     Renvoie aussi le modèle à utiliser (celui de l'agent s'il en a un).
@@ -340,13 +349,14 @@ async def prepare(messages: list[dict], settings: Settings) -> tuple[list[dict],
     if agent:
         messages = rag.add_system(messages, agents.instructions(agent))
     project = (agent.project if agent and agent.project else "") or settings.project
-    messages = await rag.augment(messages, project)
+    messages = await rag.augment(messages, project, spoken)
     last_turn.update(
         at=time.time(),
         agent=agent.name if agent else None,
         model=model,
         projects=rag.last_usage["projects"],
         sources=rag.last_usage["sources"],
+        code=[],
     )
     if agent:
         logger.info("Agent %s (modèle %s)", agent.name, model)
@@ -362,13 +372,14 @@ async def written_chat(request: ChatRequest) -> StreamingResponse:
     """Réponse écrite : même préparation que la voix, flux `chat.completion.chunk`."""
     start = time.monotonic()
     settings = load_settings()
-    messages, model = await prepare(request.messages, settings)
+    messages, model = await prepare(request.messages, settings, spoken=False)
     if claude.is_claude(model):
         return StreamingResponse(
             claude.stream_reply(
                 model,
                 messages,
                 on_done=lambda seconds: record_observed(model, seconds, None),
+                spoken=False,
             ),
             media_type="text/event-stream",
         )
@@ -407,7 +418,9 @@ async def relay(path: str, request: Request) -> StreamingResponse:
     ):
         payload = json.loads(body)
     if chat and "messages" in payload:
-        payload["messages"], model = await prepare(payload["messages"], settings)
+        # Voix : l'historique du moteur ne contient que le texte prononcé
+        messages = voicecode.restore(payload["messages"])
+        payload["messages"], model = await prepare(messages, settings)
     if claude.is_claude(model):
         if not chat:
             raise HTTPException(501, f"/v1/{path} non disponible avec {model}")
@@ -416,6 +429,7 @@ async def relay(path: str, request: Request) -> StreamingResponse:
                 model,
                 payload["messages"],
                 on_done=lambda seconds: record_observed(model, seconds, None),
+                on_blocks=keep_code,
             ),
             media_type="text/event-stream",
         )
@@ -433,8 +447,11 @@ async def relay(path: str, request: Request) -> StreamingResponse:
         ),
         stream=True,
     )
+    chunks = upstream.aiter_raw()
+    if chat:
+        chunks = voicecode.filter_sse(chunks, keep_code)
     return StreamingResponse(
-        measure(model, start, upstream.aiter_raw()),
+        measure(model, start, chunks),
         status_code=upstream.status_code,
         media_type=upstream.headers.get("content-type"),
         background=BackgroundTask(upstream.aclose),

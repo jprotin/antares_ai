@@ -4,6 +4,7 @@
 import { initAgentsDialog } from "./agents.js";
 import { Orb } from "./orb.js";
 import { createPicker } from "./picker.js";
+import { enableCodeCopy, renderInto, renderMarkdown } from "./render.js";
 import {
   currentVoice,
   getJson,
@@ -14,6 +15,7 @@ import {
   profile,
   projectLabel,
   saveSetting,
+  writtenInstructionsFor,
   voicePath,
 } from "./settings.js";
 import { hueFor, initTheme } from "./theme.js";
@@ -170,6 +172,22 @@ function annotate(line, text) {
   line.append(meta);
 }
 
+// Code demandé à l'oral : retiré de la voix par le routeur, affiché sous la réponse
+// et gardé dans la conversation pour qu'on puisse y revenir.
+function showSpokenCode(line, blocks) {
+  const fenced = blocks
+    .map((block) => `\`\`\`${block.lang}\n${block.code}\n\`\`\``)
+    .join("\n\n");
+  const container = document.createElement("div");
+  container.className = "line__code line--rich";
+  container.innerHTML = renderMarkdown(fenced);
+  line.querySelector(".line__text").after(container);
+  ui.subtitles.scrollTop = ui.subtitles.scrollHeight;
+  // Mémoire écrite ; côté voix, le routeur remet lui-même le code dans l'historique
+  const last = conversation.at(-1);
+  if (last?.role === "assistant") last.content += `\n\n${fenced}`;
+}
+
 // Agent et projets du RAG utilisés pour cette réponse (préparés après la fin de parole)
 async function annotateSources(line, since) {
   try {
@@ -179,6 +197,21 @@ async function annotateSources(line, since) {
     if (turn.agent) annotate(line, `agent : ${turn.agent}`);
     if (turn.projects.length) {
       annotate(line, `documentation : ${turn.projects.join(", ")}`);
+    }
+    if (turn.code?.length) showSpokenCode(line, turn.code);
+    if (turn.sources.length && line.classList.contains("line--rich")) {
+      const refs = document.createElement("div");
+      refs.className = "line__refs";
+      const title = document.createElement("strong");
+      title.textContent = "Références";
+      const list = document.createElement("ul");
+      for (const source of turn.sources) {
+        const item = document.createElement("li");
+        item.textContent = source.replace("/", " · ");
+        list.append(item);
+      }
+      refs.append(title, list);
+      line.querySelector(".line__text").after(refs);
     }
   } catch (error) {
     console.warn("Agent et sources indisponibles", error);
@@ -483,9 +516,7 @@ function setWriting(busy) {
 // Réponse écrite hors appel : flux SSE du routeur, affiché au fil de l'eau
 async function writtenReply() {
   const voice = currentVoice();
-  const instructions = voice
-    ? `${instructionsFor(voice)} L'échange se fait ici à l'écrit.`
-    : "";
+  const instructions = voice ? writtenInstructionsFor(voice) : "";
   const since = Date.now();
   const itemId = `msg_rep${since}`;
   let answer = "";
@@ -523,10 +554,16 @@ async function writtenReply() {
         const delta = JSON.parse(line.slice(6)).choices?.[0]?.delta?.content;
         if (!delta) continue;
         answer += delta;
-        writeSubtitle(itemId, "assistant", delta, { append: true });
+        const partial = subtitleLine(itemId, "assistant");
+        partial.classList.add("line--rich");
+        renderInto(partial.querySelector(".line__text"), answer);
+        ui.subtitles.scrollTop = ui.subtitles.scrollHeight;
       }
     }
-    const line = writeSubtitle(itemId, "assistant", answer, { final: true });
+    const line = subtitleLine(itemId, "assistant");
+    line.classList.add("line--rich");
+    line.classList.remove("line--partial");
+    line.querySelector(".line__text").innerHTML = renderMarkdown(answer);
     remember("assistant", answer);
     annotate(line, `écrit · ${((Date.now() - since) / 1000).toFixed(1)} s`);
     annotateSources(line, since - 2000);
@@ -582,6 +619,7 @@ ui.composer.addEventListener("submit", (event) => {
   sendText(true);
 });
 ui.composerContext.addEventListener("click", () => sendText(false));
+enableCodeCopy(ui.subtitles);
 ui.newConversation.addEventListener("click", () => {
   conversation = [];
   ui.subtitles.replaceChildren(ui.empty);

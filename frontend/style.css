@@ -18,6 +18,15 @@
 :root,
 :root[data-theme="dark"] {
   color-scheme: dark;
+  --code-bg: hsl(var(--hue) 40% 6%);
+  --code-text: hsl(var(--hue) 30% 88%);
+  --tok-keyword: #c792ea;
+  --tok-string: #a5d6a7;
+  --tok-number: #f7b267;
+  --tok-comment: #6b7a99;
+  --tok-title: #82aaff;
+  --tok-attr: #ffcb8b;
+  --tok-builtin: #7fdbca;
   --bg: hsl(var(--hue) 38% 4%);
   --bg-glow: hsl(var(--hue) 45% 12%);
   --panel: hsl(var(--hue) 42% 9%);
@@ -42,6 +51,15 @@
 /* Thème clair */
 :root[data-theme="light"] {
   color-scheme: light;
+  --code-bg: hsl(var(--hue) 30% 96%);
+  --code-text: hsl(var(--hue) 30% 18%);
+  --tok-keyword: #a626a4;
+  --tok-string: #3f8a2e;
+  --tok-number: #b06a00;
+  --tok-comment: #8a93a3;
+  --tok-title: #2c5fd6;
+  --tok-attr: #b35a00;
+  --tok-builtin: #0f7c8c;
   --bg: hsl(var(--hue) 30% 96%);
   --bg-glow: hsl(var(--hue) 80% 90%);
   --panel: hsl(var(--hue) 40% 99%);
@@ -307,6 +325,205 @@ body {
 }
 .line--partial .line__text {
   opacity: 0.65;
+}
+
+/* --- Réponses écrites mises en forme (render.js) ------------------------------ */
+
+.line--rich {
+  max-width: 92%;
+}
+
+.line--rich .line__text {
+  display: block;
+}
+
+.line--rich .line__text > :first-child {
+  margin-top: 0;
+}
+.line--rich .line__text > :last-child {
+  margin-bottom: 0;
+}
+
+.line--rich :is(h1, h2, h3, h4) {
+  margin: 1rem 0 0.4rem;
+  font-size: 1.02rem;
+  line-height: 1.3;
+}
+.line--rich h1 {
+  font-size: 1.15rem;
+}
+
+.line--rich :is(p, ul, ol, blockquote, table) {
+  margin: 0.5rem 0;
+}
+
+.line--rich :is(ul, ol) {
+  padding-left: 1.3rem;
+}
+
+.line--rich li + li {
+  margin-top: 0.2rem;
+}
+
+.line--rich blockquote {
+  padding: 0.35rem 0.9rem;
+  border-left: 3px solid var(--accent);
+  border-radius: 0 0.5rem 0.5rem 0;
+  background: var(--overlay);
+  color: var(--muted);
+}
+
+.line--rich a {
+  color: var(--accent-strong);
+  text-underline-offset: 2px;
+}
+.line--rich a.link--external::after {
+  content: " ↗";
+  font-size: 0.8em;
+}
+
+.line--rich table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+.line--rich :is(th, td) {
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--panel-border);
+  text-align: left;
+}
+.line--rich th {
+  background: var(--overlay-strong);
+}
+
+.line--rich :not(pre) > code {
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.35rem;
+  background: var(--overlay-strong);
+  font-size: 0.88em;
+}
+
+.line--rich code,
+.code pre {
+  font-family: ui-monospace, "JetBrains Mono", "Fira Code", Menlo, monospace;
+}
+
+.code {
+  margin: 0.6rem 0;
+  overflow: hidden;
+  border: 1px solid var(--panel-border);
+  border-radius: 0.7rem;
+  background: var(--code-bg);
+}
+
+.code__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.3rem 0.4rem 0.3rem 0.8rem;
+  border-bottom: 1px solid var(--panel-border);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.code__copy {
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--panel-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.7rem;
+  text-transform: none;
+  letter-spacing: 0;
+  cursor: pointer;
+}
+.code__copy:hover {
+  color: var(--text);
+}
+
+.code pre {
+  margin: 0;
+  padding: 0.8rem 1rem;
+  overflow-x: auto;
+  color: var(--code-text);
+  font-size: 0.85rem;
+  line-height: 1.55;
+  tab-size: 4;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-meta .hljs-keyword,
+.hljs-doctag {
+  color: var(--tok-keyword);
+}
+.hljs-string,
+.hljs-regexp,
+.hljs-addition {
+  color: var(--tok-string);
+}
+.hljs-number,
+.hljs-literal,
+.hljs-symbol {
+  color: var(--tok-number);
+}
+.hljs-comment,
+.hljs-quote,
+.hljs-meta {
+  color: var(--tok-comment);
+  font-style: italic;
+}
+.hljs-title,
+.hljs-title.function_,
+.hljs-section,
+.hljs-name {
+  color: var(--tok-title);
+}
+.hljs-attr,
+.hljs-attribute,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-property {
+  color: var(--tok-attr);
+}
+.hljs-built_in,
+.hljs-type,
+.hljs-title.class_,
+.hljs-params {
+  color: var(--tok-builtin);
+}
+.hljs-deletion {
+  color: var(--danger);
+}
+.hljs-emphasis {
+  font-style: italic;
+}
+.hljs-strong {
+  font-weight: 700;
+}
+
+.line__code {
+  display: block;
+  max-width: 100%;
+  margin-top: 0.6rem;
+}
+
+.line__refs {
+  margin-top: 0.7rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--panel-border);
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.line__refs ul {
+  margin: 0.2rem 0 0;
+  padding-left: 1.1rem;
 }
 
 .line--error {

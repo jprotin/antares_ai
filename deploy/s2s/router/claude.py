@@ -21,6 +21,8 @@ from collections.abc import AsyncIterator
 
 import httpx
 
+import voicecode
+
 BRIDGE_URL = os.environ.get("CLAUDE_BRIDGE_URL", "http://host.docker.internal:8088")
 BRIDGE_TOKEN = os.environ.get("CLAUDE_BRIDGE_TOKEN", "")
 MODELS = [m for m in os.environ.get("CLAUDE_MODELS", "opus,sonnet").split(",") if m]
@@ -29,7 +31,13 @@ BRIDGE_TIMEOUT_S = 120
 
 VOICE_RULES = (
     "Tu participes à une conversation vocale : ta réponse sera lue à voix haute. "
-    "Écris un texte parlé, sans markdown, sans listes, sans titres ni emojis."
+    "Règle prioritaire : dès que ta réponse contient du code, même une seule ligne "
+    "(script, commande, requête SQL, fichier de configuration), écris ce code entre "
+    "trois accents graves avec le langage (```sql, puis le code, puis ```) ; ce bloc "
+    "s'affiche à l'écran et n'est jamais lu. Autour, en phrases parlées, annonce que tu "
+    "l'affiches puis explique ce qu'il fait étape par étape, sans lire le code. "
+    "Pour tout le reste, écris un texte parlé, sans markdown, sans listes, sans titres "
+    "ni emojis."
 )
 
 logger = logging.getLogger("router.claude")
@@ -69,7 +77,7 @@ def _text(content: object) -> str:
     return ""
 
 
-def build_prompt(messages: list[dict]) -> str:
+def build_prompt(messages: list[dict], spoken: bool = True) -> str:
     system = "\n".join(
         _text(m["content"]) for m in messages if m.get("role") == "system"
     )
@@ -79,8 +87,9 @@ def build_prompt(messages: list[dict]) -> str:
         for m in messages
         if m.get("role") in names and _text(m.get("content")).strip()
     )
+    rules = VOICE_RULES if spoken else ""
     return (
-        f"{system}\n\n{VOICE_RULES}\n\n"
+        f"{system}\n\n{rules}\n\n"
         f"Conversation jusqu'ici :\n{history}\n\n"
         "Réponds maintenant au dernier message de l'utilisateur, directement, "
         "sans préfixe « Assistant : »."
@@ -99,27 +108,45 @@ def _chunk(model: str, content: str | None = None, finish: str | None = None) ->
     return f"data: {json.dumps(payload, ensure_ascii=False)}\n\n".encode()
 
 
-async def ask(model: str, messages: list[dict]) -> str:
+async def ask(model: str, messages: list[dict], spoken: bool = True) -> str:
     response = await bridge.post(
         "/run",
         headers={"Authorization": f"Bearer {BRIDGE_TOKEN}"},
-        json={"model": model.removeprefix(PREFIX), "prompt": build_prompt(messages)},
+        json={
+            "model": model.removeprefix(PREFIX),
+            "prompt": build_prompt(messages, spoken),
+        },
     )
     response.raise_for_status()
     return response.json()["result"].strip()
 
 
 async def stream_reply(
-    model: str, messages: list[dict], on_done
+    model: str, messages: list[dict], on_done, spoken: bool = True, on_blocks=None
 ) -> AsyncIterator[bytes]:
-    """Réponse de Claude découpée en phrases, pour que la synthèse démarre au plus tôt."""
+    """Réponse de Claude découpée en phrases, pour que la synthèse démarre au plus tôt.
+
+    À l'écrit (`spoken=False`), la réponse part d'un bloc : le découpage écraserait les
+    retours à la ligne du Markdown.
+    """
     start = time.monotonic()
     try:
-        answer = await ask(model, messages)
+        answer = await ask(model, messages, spoken)
     except (httpx.HTTPError, KeyError, ValueError) as exc:
         logger.error("Échec de l'appel Claude : %s", exc)
         answer = "Désolée, je n'arrive pas à joindre Claude pour le moment."
     on_done(time.monotonic() - start)
+    if not spoken:
+        yield _chunk(model, answer)
+        yield _chunk(model, finish="stop")
+        yield b"data: [DONE]\n\n"
+        return
+    # Voix : les blocs de code sont affichés, pas lus (cf. voicecode)
+    fences = voicecode.FenceFilter()
+    full, answer = answer, fences.feed(answer) + fences.flush()
+    voicecode.remember(answer, full)
+    if on_blocks:
+        on_blocks(fences.blocks)
     for sentence in re.split(r"(?<=[.!?…])\s+", answer):
         if sentence:
             yield _chunk(model, sentence + " ")
