@@ -1,0 +1,19 @@
+{
+  "default": "sohee",
+  "voices": [
+    {
+      "id": "sohee",
+      "name": "Sohee",
+      "gender": "F",
+      "file": "sohee.wav",
+      "source": "Qwen3-TTS CustomVoice, locutrice sohee"
+    },
+    {
+      "id": "ryan",
+      "name": "Ryan",
+      "gender": "M",
+      "file": "ryan.wav",
+      "source": "Qwen3-TTS CustomVoice, locuteur ryan"
+    }
+  ]
+}
