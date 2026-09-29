@@ -7,7 +7,9 @@
                    pour les modèles à experts comme gemma4:26b).
                    S'y ajoutent les modèles Claude (`claude:*`) servis par le claude-bridge
                    d'ai-to-boost (cf. claude.py) : texte envoyé chez Anthropic.
-- /api/settings  : réglages actifs {model, voice}, persistés dans SETTINGS_PATH.
+- /api/settings  : réglages actifs {model, voice, project}, persistés dans SETTINGS_PATH.
+- /api/projects  : projets indexés dans le RAG d'ai-to-boost (cf. rag.py).
+- /api/rag/last  : projets et sources utilisés pour la dernière réponse.
 - /healthz       : sonde de santé.
 """
 
@@ -27,6 +29,7 @@ from pydantic import BaseModel
 from starlette.background import BackgroundTask
 
 import claude
+import rag
 
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://ollama:11434")
 DEFAULT_MODEL = os.environ["DEFAULT_MODEL"]
@@ -49,11 +52,14 @@ client = httpx.AsyncClient(base_url=OLLAMA_URL, timeout=httpx.Timeout(10, read=N
 class Settings(BaseModel):
     model: str
     voice: str
+    # Projet dont la documentation est ajoutée à chaque question ("" : aucun)
+    project: str = ""
 
 
 class SettingsUpdate(BaseModel):
     model: str | None = None
     voice: str | None = None
+    project: str | None = None
 
 
 def voice_catalog() -> dict:
@@ -200,23 +206,46 @@ async def update_settings(update: SettingsUpdate) -> Settings:
         if update.voice not in {v["id"] for v in voice_catalog()["voices"]}:
             raise HTTPException(422, f"Voix inconnue : {update.voice}")
         settings.voice = update.voice
+    if update.project is not None:
+        if update.project and update.project not in {
+            p["id"] for p in await rag.projects()
+        }:
+            raise HTTPException(422, f"Projet inconnu : {update.project}")
+        settings.project = update.project
     save_settings(settings)
-    logger.info("Réglages : modèle=%s voix=%s", settings.model, settings.voice)
+    logger.info(
+        "Réglages : modèle=%s voix=%s projet=%s",
+        settings.model,
+        settings.voice,
+        settings.project or "aucun",
+    )
     return settings
+
+
+@app.get("/api/projects")
+async def list_projects() -> list[dict]:
+    return await rag.projects()
+
+
+@app.get("/api/rag/last")
+async def last_rag() -> dict:
+    return rag.last_usage
 
 
 @app.api_route("/v1/{path:path}", methods=["GET", "POST"])
 async def relay(path: str, request: Request) -> StreamingResponse:
     start = time.monotonic()
     body = await request.body()
-    model = load_settings().model
+    settings = load_settings()
+    model = settings.model
+    chat = path == "chat/completions" and request.method == "POST"
     if claude.is_claude(model):
-        if path != "chat/completions" or request.method != "POST":
+        if not chat:
             raise HTTPException(501, f"/v1/{path} non disponible avec {model}")
         return StreamingResponse(
             claude.stream_reply(
                 model,
-                json.loads(body)["messages"],
+                await rag.augment(json.loads(body)["messages"], settings.project),
                 on_done=lambda seconds: record_observed(model, seconds, None),
             ),
             media_type="text/event-stream",
@@ -225,6 +254,10 @@ async def relay(path: str, request: Request) -> StreamingResponse:
         payload = json.loads(body)
         if "model" in payload:
             payload["model"] = model
+        if chat and "messages" in payload:
+            payload["messages"] = await rag.augment(
+                payload["messages"], settings.project
+            )
         body = json.dumps(payload).encode()
     upstream = await client.send(
         client.build_request(
