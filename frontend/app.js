@@ -3,7 +3,7 @@
 
 import { initAgentsDialog } from "./agents.js";
 import { initAttachments } from "./attachments.js";
-import { Orb } from "./orb.js";
+import { Avatar } from "./avatar.js";
 import { createPicker } from "./picker.js";
 import { enableCodeCopy, renderInto, renderMarkdown } from "./render.js";
 import {
@@ -50,7 +50,8 @@ const ui = {
   newConversation: document.getElementById("new-conversation"),
 };
 
-const orb = new Orb(document.getElementById("orb"));
+// Avatar (cyborg ou orbe) : la variable garde son nom, l'interface est la même
+const orb = new Avatar(document.getElementById("orb"));
 
 // Conversation unique, écrite et orale : envoyée au routeur hors appel, rejouée au
 // moteur vocal au début d'un appel, complétée par les transcriptions pendant l'appel.
@@ -779,6 +780,7 @@ function renderPickers() {
 }
 
 initSettingsDialog({
+  avatar: orb,
   onApplied: () => {
     renderProfile();
     sendVoiceSession();

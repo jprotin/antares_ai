@@ -150,6 +150,11 @@ L'agent utilisé s'affiche sous la réponse.
   par petits décalages de teinte autour du bleu de base.
 - **Thème** : bouton à côté de la roue dentée — système, sombre ou clair (mémorisé
   dans le navigateur).
+- **Avatar** (Réglages) : **Cyborg** par défaut — tête d'endosquelette dessinée en
+  canvas (`frontend/face.js`), yeux rouges qui pulsent en réflexion, mâchoire qui s'ouvre
+  au rythme de la voix — ou **Orbe**. Mémorisé dans le navigateur.
+- **Voix** : Terminator (voix clonée `ryan`) et Sarah Connor (voix clonée `sohee`) ; les
+  noms affichés et donnés au LLM viennent de `voices/voices.json`.
 
 Les fenêtres se ferment d'un clic à l'extérieur ou avec Échap, et passent en plein
 écran sur mobile.

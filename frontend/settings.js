@@ -152,7 +152,7 @@ function optionRow({ name, value, checked, title, detail, trailing }) {
   return label;
 }
 
-export function initSettingsDialog({ onApplied }) {
+export function initSettingsDialog({ avatar, onApplied }) {
   const dialog = document.getElementById("settings");
   const form = document.getElementById("settings-form");
   const voiceOptions = document.getElementById("voice-options");
@@ -234,6 +234,9 @@ export function initSettingsDialog({ onApplied }) {
     .addEventListener("click", async () => {
       error.textContent = "";
       renderVoices();
+      for (const input of form.querySelectorAll('input[name="avatar"]')) {
+        input.checked = input.value === avatar.kind;
+      }
       dialog.showModal();
       const [models, projects] = await Promise.allSettled([
         renderModels(),
@@ -270,6 +273,8 @@ export function initSettingsDialog({ onApplied }) {
           project: data.get("project") ?? undefined,
         }),
       });
+      const kind = data.get("avatar");
+      if (kind && kind !== avatar.kind) avatar.use(kind);
       preview.pause();
       dialog.close();
       onApplied(profile);

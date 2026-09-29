@@ -137,7 +137,9 @@ export class Orb {
       size: 0.6 + Math.random() * 1.6,
       phase: Math.random() * Math.PI * 2,
     }));
-    new ResizeObserver(() => this.resize()).observe(canvas);
+    this.stopped = false;
+    this.observer = new ResizeObserver(() => this.resize());
+    this.observer.observe(canvas);
     this.resize();
     this.last = performance.now();
     requestAnimationFrame((now) => this.frame(now));
@@ -167,6 +169,11 @@ export class Orb {
     );
   }
 
+  stop() {
+    this.stopped = true;
+    this.observer.disconnect();
+  }
+
   setLevel(level) {
     this.target.level = Math.max(0, Math.min(1, level));
   }
@@ -179,6 +186,7 @@ export class Orb {
   }
 
   frame(now) {
+    if (this.stopped) return;
     const dt = Math.min(0.05, (now - this.last) / 1000);
     this.last = now;
     const slow = this.reducedMotion ? 0.25 : 1;
