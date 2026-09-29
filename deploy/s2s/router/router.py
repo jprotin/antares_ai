@@ -7,7 +7,9 @@
                    pour les modèles à experts comme gemma4:26b).
                    S'y ajoutent les modèles Claude (`claude:*`) servis par le claude-bridge
                    d'ai-to-boost (cf. claude.py) : texte envoyé chez Anthropic.
-- /api/settings  : réglages actifs {model, voice, project, agent}, persistés dans SETTINGS_PATH.
+- /api/settings  : réglages actifs {model, voice, project, agent, mode}, persistés dans
+                   SETTINGS_PATH.
+- /api/modes     : modes de conversation (cf. modes.py).
 - /api/projects  : projets indexés dans le RAG d'ai-to-boost (cf. rag.py).
 - /api/agents    : agents « consignes » (cf. agents.py) : liste, création, modification,
                    suppression ; /api/agents/meta : domaines et utilités proposés.
@@ -32,6 +34,7 @@ from starlette.background import BackgroundTask
 
 import agents
 import claude
+import modes
 import rag
 
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://ollama:11434")
@@ -59,6 +62,8 @@ class Settings(BaseModel):
     project: str = ""
     # Agent appliqué à tout l'appel ("" : aucun, sauf agent cité dans la question)
     agent: str = ""
+    # Manière de répondre (ton, structure) ; cf. modes.py
+    mode: str = modes.DEFAULT
 
 
 class SettingsUpdate(BaseModel):
@@ -66,6 +71,7 @@ class SettingsUpdate(BaseModel):
     voice: str | None = None
     project: str | None = None
     agent: str | None = None
+    mode: str | None = None
 
 
 def voice_catalog() -> dict:
@@ -222,13 +228,18 @@ async def update_settings(update: SettingsUpdate) -> Settings:
         if update.agent and agents.find(update.agent) is None:
             raise HTTPException(422, f"Agent inconnu : {update.agent}")
         settings.agent = update.agent
+    if update.mode is not None:
+        if modes.find(update.mode) is None:
+            raise HTTPException(422, f"Mode inconnu : {update.mode}")
+        settings.mode = update.mode
     save_settings(settings)
     logger.info(
-        "Réglages : modèle=%s voix=%s projet=%s agent=%s",
+        "Réglages : modèle=%s voix=%s projet=%s agent=%s mode=%s",
         settings.model,
         settings.voice,
         settings.project or "aucun",
         settings.agent or "aucun",
+        settings.mode,
     )
     return settings
 
@@ -248,6 +259,11 @@ async def check_agent(draft: agents.AgentDraft) -> None:
         raise HTTPException(422, f"Projet inconnu : {draft.project}")
     if draft.model and draft.model not in {m["name"] for m in await chat_models()}:
         raise HTTPException(422, f"Modèle inconnu : {draft.model}")
+
+
+@app.get("/api/modes")
+async def list_modes() -> list[modes.Mode]:
+    return modes.MODES
 
 
 @app.get("/api/agents")
@@ -308,7 +324,13 @@ last_turn: dict = {
 
 
 async def prepare(messages: list[dict], settings: Settings) -> tuple[list[dict], str]:
-    """Applique l'agent (choisi ou cité), puis la documentation ; renvoie le modèle à utiliser."""
+    """Applique le mode, l'agent (choisi ou cité), puis la documentation.
+
+    Renvoie aussi le modèle à utiliser (celui de l'agent s'il en a un).
+    """
+    mode = modes.find(settings.mode)
+    if mode and mode.instructions:
+        messages = rag.add_system(messages, mode.instructions)
     agent = agents.cited(rag.question(messages))
     if agent is None and settings.agent:
         agent = agents.find(settings.agent)

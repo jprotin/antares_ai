@@ -3,17 +3,20 @@
 
 import { initAgentsDialog } from "./agents.js";
 import { Orb } from "./orb.js";
+import { createPicker } from "./picker.js";
 import {
-  agentLabel,
   currentVoice,
+  getJson,
   initSettingsDialog,
   instructionsFor,
   loadProfile,
   modelLabel,
   profile,
   projectLabel,
+  saveSetting,
   voicePath,
 } from "./settings.js";
+import { hueFor, initTheme } from "./theme.js";
 
 const SAMPLE_RATE = 24000;
 const REALTIME_URL = `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/v1/realtime`;
@@ -44,6 +47,10 @@ const ui = {
 };
 
 const orb = new Orb(document.getElementById("orb"));
+const theme = initTheme({
+  button: document.getElementById("theme-toggle"),
+  orb,
+});
 let call = null;
 
 function setState(state, detail) {
@@ -479,7 +486,6 @@ function renderProfile() {
   ui.info.replaceChildren();
   for (const [label, value] of [
     ["LLM", modelLabel(settings?.model)],
-    ["Agent", agentLabel(settings?.agent)],
     ["Projet", projectLabel(settings?.project)],
     ["Voix", `${name} (${config.tts} clonée${quantization})`],
     ["Transcription", config.stt],
@@ -502,7 +508,90 @@ function sendVoiceSession() {
   );
 }
 
-const settingsDialog = initSettingsDialog({
+// --- Agent et mode (haut de l'écran d'appel) ------------------------------------
+
+const MAX_SUGGESTED = 5;
+
+async function choose(update) {
+  try {
+    await saveSetting(update);
+    renderPickers();
+  } catch (error) {
+    setState(call ? call.state : "idle", `Réglage refusé : ${error.message}`);
+  }
+}
+
+const agentPicker = createPicker({
+  root: document.getElementById("agent-picker"),
+  label: "Agent",
+  searchable: true,
+  onSelect: (agent) => choose({ agent }),
+});
+
+const modePicker = createPicker({
+  root: document.getElementById("mode-picker"),
+  label: "Mode",
+  onSelect: (mode) => choose({ mode }),
+});
+
+function renderPickers() {
+  const { agents, modes, settings } = profile;
+  const mode = modes.find((m) => m.id === settings?.mode) ?? modes[0];
+  const item = (agent) => ({
+    value: agent.id,
+    label: agent.name,
+    detail: agent.description || agent.usage,
+    hue: hueFor(agent.domain),
+  });
+  // En tête : les agents dont l'utilité correspond au mode
+  const suggested = agents
+    .filter((agent) => mode?.usages.includes(agent.usage))
+    .slice(0, MAX_SUGGESTED);
+  const domains = [...new Set(agents.map((agent) => agent.domain))].sort(
+    (a, b) => a.localeCompare(b),
+  );
+  agentPicker.update(
+    [
+      {
+        items: [
+          {
+            value: "",
+            label: "Aucun",
+            detail: "Sauf agent cité par son nom",
+            hue: hueFor(null),
+          },
+        ],
+      },
+      ...(suggested.length
+        ? [{ label: `Suggérés · ${mode.name}`, items: suggested.map(item) }]
+        : []),
+      ...domains.map((domain) => ({
+        label: domain,
+        items: agents
+          .filter((agent) => agent.domain === domain)
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .map(item),
+      })),
+    ],
+    settings?.agent ?? "",
+  );
+  modePicker.update(
+    [
+      {
+        items: modes.map((m) => ({
+          value: m.id,
+          label: m.name,
+          detail: m.description,
+        })),
+      },
+    ],
+    mode?.id ?? "",
+  );
+  const active = agents.find((agent) => agent.id === settings?.agent);
+  theme.setDomain(active?.domain);
+}
+
+initSettingsDialog({
   onApplied: () => {
     renderProfile();
     sendVoiceSession();
@@ -511,13 +600,16 @@ const settingsDialog = initSettingsDialog({
 
 initAgentsDialog({
   onChanged: async () => {
-    await settingsDialog.renderAgents();
-    renderProfile();
+    profile.agents = await getJson("api/agents");
+    renderPickers();
   },
 });
 
 loadProfile()
-  .then(renderProfile)
+  .then(() => {
+    renderProfile();
+    renderPickers();
+  })
   .catch((error) => {
     console.warn("Profil du moteur indisponible", error);
     setState("idle", "Réglages indisponibles");

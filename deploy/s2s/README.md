@@ -82,7 +82,8 @@ Un agent est une fiche de consignes réutilisable (Réglages → **Gérer les ag
 nom, domaine et utilité (pour les regrouper), instructions (rôle, méthode, format de
 réponse), et en option un projet (documentation RAG) et un modèle.
 
-- **Agent choisi** dans les Réglages : il s'applique à tout l'appel.
+- **Agent choisi** en haut de l'écran d'appel (liste par domaine, avec recherche) : il
+  s'applique à tout l'appel.
 - **Sinon**, un agent cité par son nom (« demande au relecteur ADR… ») répond à cette
   question ; une relance courte (« et ensuite ? ») reste avec lui.
 - Ses instructions s'ajoutent à la consigne ; son projet déclenche la documentation ;
@@ -93,6 +94,20 @@ Les fiches sont stockées par le routeur (`/data/agents.json`, volume
 au premier lancement ; pour l'ajouter à une installation existante :
 `docker exec -w /app antares-llm-router python -c "import agents; agents.seed_catalogue()"`.
 L'agent utilisé s'affiche sous la réponse.
+
+### Modes et apparence
+
+- **Mode** (à côté de l'agent) : la manière de répondre, pour tout l'appel — Standard,
+  Support / Helpdesk, Expert technique, Cool / Relax, Incident / Astreinte, Coach /
+  Formateur, Brainstorming, Avocat du diable. Il se combine avec l'agent (consigne :
+  mode, puis agent, puis documentation) et place en tête les agents utiles à ce mode.
+- **Nuance** : la couleur de l'interface et de l'orbe suit le domaine de l'agent actif,
+  par petits décalages de teinte autour du bleu de base.
+- **Thème** : bouton à côté de la roue dentée — système, sombre ou clair (mémorisé
+  dans le navigateur).
+
+Les fenêtres se ferment d'un clic à l'extérieur ou avec Échap, et passent en plein
+écran sur mobile.
 
 ### Pourquoi des voix clonées
 

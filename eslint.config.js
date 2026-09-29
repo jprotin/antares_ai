@@ -31,6 +31,7 @@ const browserGlobals = Object.fromEntries(
     "atob",
     "btoa",
     "FormData",
+    "localStorage",
   ].map((name) => [name, "readonly"]),
 );
 

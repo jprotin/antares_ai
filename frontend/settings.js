@@ -1,5 +1,5 @@
-// Réglages : voix (catalogue voices/voices.json), modèle LLM, agent et projet RAG
-// (routeur /api).
+// Réglages : voix (catalogue voices/voices.json), modèle LLM et projet RAG (routeur /api).
+// L'agent et le mode se choisissent sur l'écran d'appel (cf. app.js).
 // Les choix sont persistés côté serveur par le routeur LLM.
 
 // Bref par défaut, mais sans brider les contenus longs demandés explicitement
@@ -13,6 +13,7 @@ export const profile = {
   config: {},
   voices: [],
   agents: [],
+  modes: [],
   settings: null,
 };
 
@@ -49,13 +50,20 @@ export async function getJson(url, options) {
 }
 
 export async function loadProfile() {
-  const [config, catalog, settings, agents] = await Promise.all([
+  const [config, catalog, settings, agents, modes] = await Promise.all([
     getJson("config.json"),
     getJson("voices/voices.json"),
     getJson("api/settings"),
     getJson("api/agents").catch(() => []),
+    getJson("api/modes").catch(() => []),
   ]);
-  Object.assign(profile, { config, voices: catalog.voices, settings, agents });
+  Object.assign(profile, {
+    config,
+    voices: catalog.voices,
+    settings,
+    agents,
+    modes,
+  });
   return profile;
 }
 
@@ -125,7 +133,6 @@ export function initSettingsDialog({ onApplied }) {
   const voiceOptions = document.getElementById("voice-options");
   const modelOptions = document.getElementById("model-options");
   const projectOptions = document.getElementById("project-options");
-  const agentOptions = document.getElementById("agent-options");
   const error = document.getElementById("settings-error");
   const apply = document.getElementById("apply-settings");
   const preview = document.getElementById("preview");
@@ -175,39 +182,6 @@ export function initSettingsDialog({ onApplied }) {
     );
   }
 
-  async function renderAgents() {
-    const checked = agentOptions.querySelector("input:checked")?.value;
-    profile.agents = await getJson("api/agents");
-    const selected = checked ?? profile.settings.agent ?? "";
-    const none = {
-      id: "",
-      name: "Aucun",
-      description: "Sauf agent cité par son nom",
-    };
-    // Regroupés par domaine : l'ordre de la liste suit les domaines
-    const sorted = [...profile.agents].sort(
-      (a, b) =>
-        a.domain.localeCompare(b.domain) || a.name.localeCompare(b.name),
-    );
-    agentOptions.replaceChildren(
-      ...[none, ...sorted].map((agent) => {
-        const badge = document.createElement("span");
-        if (agent.id) {
-          badge.className = "badge badge--unknown";
-          badge.textContent = `${agent.domain} · ${agent.usage}`;
-        }
-        return optionRow({
-          name: "agent",
-          value: agent.id,
-          checked: agent.id === selected,
-          title: agent.name,
-          detail: agent.description || " ",
-          trailing: badge,
-        });
-      }),
-    );
-  }
-
   async function renderProjects() {
     projectOptions.textContent = "Chargement de la liste…";
     const projects = await getJson("api/projects");
@@ -236,15 +210,10 @@ export function initSettingsDialog({ onApplied }) {
       error.textContent = "";
       renderVoices();
       dialog.showModal();
-      agentOptions.replaceChildren();
-      const [models, projects, agents] = await Promise.allSettled([
+      const [models, projects] = await Promise.allSettled([
         renderModels(),
         renderProjects(),
-        renderAgents(),
       ]);
-      if (agents.status === "rejected") {
-        agentOptions.textContent = "Agents indisponibles";
-      }
       if (models.status === "rejected") {
         modelOptions.textContent = "";
         error.textContent = `Liste des modèles indisponible : ${models.reason.message}`;
@@ -254,10 +223,12 @@ export function initSettingsDialog({ onApplied }) {
       }
     });
 
-  document.getElementById("cancel-settings").addEventListener("click", () => {
+  function close() {
     preview.pause();
     dialog.close();
-  });
+  }
+  document.getElementById("cancel-settings").addEventListener("click", close);
+  closeOnBackdrop(dialog, close);
 
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -272,7 +243,6 @@ export function initSettingsDialog({ onApplied }) {
           voice: data.get("voice"),
           model: data.get("model"),
           project: data.get("project") ?? undefined,
-          agent: data.get("agent") ?? undefined,
         }),
       });
       preview.pause();
@@ -284,6 +254,27 @@ export function initSettingsDialog({ onApplied }) {
       apply.disabled = false;
     }
   });
+}
 
-  return { renderAgents };
+// Enregistre un réglage (agent, mode…) choisi hors de la fenêtre Réglages
+export async function saveSetting(update) {
+  profile.settings = await getJson("api/settings", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(update),
+  });
+  return profile.settings;
+}
+
+// Fenêtres : fermeture au clic sur le fond (hors du contenu)
+// (le clic doit commencer et finir sur le fond : une sélection de texte qui déborde
+// de la fenêtre ne la ferme pas).
+export function closeOnBackdrop(dialog, onClose = () => dialog.close()) {
+  let downOnBackdrop = false;
+  dialog.addEventListener("pointerdown", (event) => {
+    downOnBackdrop = event.target === dialog;
+  });
+  dialog.addEventListener("click", (event) => {
+    if (downOnBackdrop && event.target === dialog) onClose();
+  });
 }
