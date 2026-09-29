@@ -86,6 +86,14 @@
           <button
             type="button"
             class="link-button"
+            id="propose-knowledge"
+            title="Le modèle rédige une fiche de connaissance que vous relisez avant indexation dans le RAG"
+          >
+            Proposer au RAG
+          </button>
+          <button
+            type="button"
+            class="link-button"
             id="new-conversation"
             title="Efface la conversation (écrite et orale) pour repartir de zéro"
           >
@@ -220,6 +228,17 @@
         </fieldset>
 
         <fieldset class="settings__group">
+          <legend>Connaissances</legend>
+          <p class="settings__hint">
+            Fiches rédigées depuis vos conversations et documents, relues puis
+            indexées dans le RAG de vos projets.
+          </p>
+          <button type="button" class="button-ghost" id="open-knowledge">
+            Voir les fiches
+          </button>
+        </fieldset>
+
+        <fieldset class="settings__group">
           <legend>Projet</legend>
           <div class="settings__options" id="project-options"></div>
           <p class="settings__hint">
@@ -325,6 +344,71 @@
             Nouvel agent
           </button>
           <button type="button" class="button-primary" id="agents-close">
+            Fermer
+          </button>
+        </footer>
+      </div>
+    </dialog>
+
+    <dialog
+      class="settings agents"
+      id="knowledge-edit"
+      aria-labelledby="knowledge-edit-title"
+    >
+      <div class="settings__form">
+        <header class="settings__header dialog__header">
+          <h2 id="knowledge-edit-title">Fiche de connaissance</h2>
+          <p id="knowledge-status" role="status"></p>
+        </header>
+        <form class="agent-form" id="knowledge-form" hidden>
+          <label
+            >Titre
+            <input id="knowledge-title" required maxlength="160" />
+          </label>
+          <div class="agent-form__row">
+            <label
+              >Projet
+              <select id="knowledge-project"></select>
+            </label>
+            <label
+              >Valable jusqu'au (optionnel)
+              <input id="knowledge-until" type="date" />
+            </label>
+          </div>
+          <label
+            >Contenu (Markdown, faits et décisions durables)
+            <textarea id="knowledge-body" rows="9" required></textarea>
+          </label>
+          <label
+            >Mots-clés (séparés par des virgules)
+            <input id="knowledge-tags" />
+          </label>
+          <div class="settings__options" id="knowledge-similar"></div>
+          <footer class="settings__actions dialog__footer">
+            <button type="button" class="button-ghost" id="knowledge-cancel">
+              Annuler
+            </button>
+            <button type="submit" class="button-primary" id="knowledge-save">
+              Indexer
+            </button>
+          </footer>
+        </form>
+      </div>
+    </dialog>
+
+    <dialog
+      class="settings agents"
+      id="knowledge-panel"
+      aria-labelledby="knowledge-panel-title"
+    >
+      <div class="settings__form">
+        <header class="settings__header dialog__header">
+          <h2 id="knowledge-panel-title">Connaissances</h2>
+          <p>Fiches indexées dans le RAG, par projet.</p>
+        </header>
+        <div class="agents__list" id="knowledge-cards"></div>
+        <footer class="settings__actions dialog__footer">
+          <button type="button" class="button-primary" id="knowledge-close">
             Fermer
           </button>
         </footer>

@@ -37,19 +37,26 @@ check_prerequisites() {
     die "modèle ${LLM_MODEL} absent d'Ollama : docker exec ollama ollama pull ${LLM_MODEL}"
 }
 
-# Token du claude-bridge (modèles Claude dans l'interface). Optionnel : sans lui,
-# seuls les modèles Ollama sont proposés.
-ensure_bridge_token() {
-  local token
-  token="$(grep -E '^BRIDGE_TOKEN=' "${AI_TO_BOOST_ENV}" 2>/dev/null | cut -d= -f2- || true)"
-  if [[ -z "${token}" ]]; then
-    log "claude-bridge non configuré : modèles Claude désactivés"
-    return
-  fi
-  log "Token du claude-bridge recopié dans .env (modèles Claude activés)"
+# Jetons recopiés depuis ai-to-boost, tous optionnels :
+#   BRIDGE_TOKEN    -> CLAUDE_BRIDGE_TOKEN : modèles Claude dans l'interface
+#   RAG_WRITE_TOKEN -> RAG_WRITE_TOKEN     : indexation des fiches de connaissance
+#   AGENT_TOKEN     -> AGENT_TOKEN         : agents d'action (worker Claude Code)
+ensure_tokens() {
+  local source target token lines=""
+  for pair in BRIDGE_TOKEN:CLAUDE_BRIDGE_TOKEN RAG_WRITE_TOKEN:RAG_WRITE_TOKEN AGENT_TOKEN:AGENT_TOKEN; do
+    source="${pair%%:*}"
+    target="${pair##*:}"
+    token="$(grep -E "^${source}=" "${AI_TO_BOOST_ENV}" 2>/dev/null | cut -d= -f2- || true)"
+    if [[ -z "${token}" ]]; then
+      log "${source} absent d'ai-to-boost : fonction correspondante désactivée"
+      continue
+    fi
+    lines+="${target}=${token}"$'\n'
+    log "${source} recopié dans .env"
+  done
   (
     umask 077
-    printf 'CLAUDE_BRIDGE_TOKEN=%s\n' "${token}" >"${ENV_FILE}"
+    printf '%s' "${lines}" >"${ENV_FILE}"
   )
 }
 
@@ -85,7 +92,7 @@ warmup_models() {
 
 main() {
   check_prerequisites
-  ensure_bridge_token
+  ensure_tokens
   log "Construction de l'image"
   docker compose build
   warmup_models

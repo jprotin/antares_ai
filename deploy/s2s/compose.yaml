@@ -153,6 +153,11 @@ services:
       RAG_URL: http://rag:8100
       QDRANT_URL: http://qdrant:6333
       RAG_LIMIT: *rag-limit
+      # Fiches de connaissance : écriture dans le RAG (jeton recopié par install.sh)
+      RAG_WRITE_TOKEN: ${RAG_WRITE_TOKEN:-}
+      # Agents d'action : worker Claude Code d'ai-to-boost (service de l'hôte, port 8089)
+      AGENT_URL: http://host.docker.internal:8089
+      AGENT_TOKEN: ${AGENT_TOKEN:-}
     extra_hosts:
       - host.docker.internal:host-gateway
     volumes:

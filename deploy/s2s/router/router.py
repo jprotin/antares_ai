@@ -18,6 +18,8 @@
                    avec le même mode, agent et documentation que la voix.
 - /api/documents : documents joints à la conversation (cf. documents.py) : envoi (corps
                    brut + en-tête X-Filename), liste, retrait.
+- /api/knowledge : fiches de connaissance (cf. knowledge.py) : rédaction par le LLM,
+                   fiches proches, indexation relue, obsolescence, suppression.
 - /healthz       : sonde de santé.
 """
 
@@ -41,6 +43,7 @@ from starlette.background import BackgroundTask
 import agents
 import claude
 import documents
+import knowledge
 import modes
 import rag
 import voicecode
@@ -439,6 +442,103 @@ async def clear_documents() -> Response:
         documents.delete(doc_id)
     settings.documents = []
     save_settings(settings)
+    return Response(status_code=204)
+
+
+# --- Fiches de connaissance ------------------------------------------------------
+
+
+class DraftRequest(BaseModel):
+    messages: list[dict] | None = None
+    document_id: str | None = None
+    project: str = ""
+
+
+async def ask_llm(system: str, user: str) -> str:
+    """Réponse complète (non diffusée) du modèle actif, pour une tâche de rédaction."""
+    model = load_settings().model
+    messages = [
+        {"role": "system", "content": system},
+        {"role": "user", "content": user},
+    ]
+    if claude.is_claude(model):
+        return await claude.ask(model, messages, spoken=False)
+    response = await client.post(
+        "/api/chat",
+        json={
+            "model": model,
+            "messages": messages,
+            "stream": False,
+            "think": False,
+            "format": "json",
+            "keep_alive": "30m",
+        },
+        timeout=httpx.Timeout(10, read=300),
+    )
+    return response.json().get("message", {}).get("content", "")
+
+
+@app.post("/api/knowledge/draft")
+async def knowledge_draft(request: DraftRequest) -> dict:
+    document = documents.load(request.document_id) if request.document_id else None
+    if request.document_id and not document:
+        raise HTTPException(404, "document inconnu")
+    if document and document["kind"] == "image":
+        raise HTTPException(422, "une image ne peut pas être résumée en fiche")
+    try:
+        text, label, cut = knowledge.source_text(request.messages, document)
+        answer = await ask_llm(knowledge.DRAFT_RULES, f"Source ({label}) :\n\n{text}")
+        draft = knowledge.parse_draft(answer)
+    except knowledge.KnowledgeError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    draft = {
+        "title": str(draft.get("title") or ""),
+        "body": str(draft.get("body") or ""),
+        "tags": draft.get("tags") or [],
+        "valid_until": draft.get("valid_until") or None,
+        "project": request.project,
+        "source": {"kind": "document" if document else "conversation", "name": label},
+    }
+    return {"draft": draft, "cut": cut, "similar": await knowledge.similar(draft)}
+
+
+@app.post("/api/knowledge/similar")
+async def knowledge_similar(draft: dict) -> list[dict]:
+    return await knowledge.similar(draft)
+
+
+@app.get("/api/knowledge")
+async def knowledge_list() -> dict:
+    return {"enabled": knowledge.enabled(), "cards": knowledge.cards()}
+
+
+class SaveRequest(BaseModel):
+    card: dict
+    replaces: list[str] = []
+
+
+@app.post("/api/knowledge")
+async def knowledge_save(request: SaveRequest) -> dict:
+    try:
+        return await knowledge.save(request.card, request.replaces)
+    except knowledge.KnowledgeError as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+
+@app.post("/api/knowledge/{card_id}/obsolete")
+async def knowledge_obsolete(card_id: str) -> dict:
+    try:
+        return await knowledge.obsolete(card_id)
+    except knowledge.KnowledgeError as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+
+@app.delete("/api/knowledge/{card_id}", status_code=204)
+async def knowledge_delete(card_id: str) -> Response:
+    try:
+        await knowledge.delete(card_id)
+    except knowledge.KnowledgeError as exc:
+        raise HTTPException(422, str(exc)) from exc
     return Response(status_code=204)
 
 

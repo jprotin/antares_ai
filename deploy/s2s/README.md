@@ -62,6 +62,25 @@ Mesuré (gemma4:e4b, moteur vocal chargé) : 48 800 tokens lus en entier en 17,6
 (repères début / milieu / fin retrouvés). Fichiers : 15 Mo au maximum, images 5 Mo.
 Stockage : `/data/documents` (volume `antares-router-data`).
 
+## Fiches de connaissance (enrichir le RAG)
+
+Rien n'est indexé automatiquement. **Proposer au RAG** (en-tête de la conversation) ou
+**RAG** (sur un document joint) : le modèle actif rédige une fiche — faits et décisions
+durables seulement, sans bavardage, états temporaires, données personnelles ni secrets.
+Vous la relisez et la corrigez (titre, projet, contenu, mots-clés, validité) avant
+**Indexer**.
+
+- **Anti-doublon** : les fiches proches du même projet sont proposées ; celles cochées
+  deviennent **obsolètes** (retirées de l'index, archivées).
+- **Validité** : une date optionnelle exclut la fiche des recherches une fois passée.
+- **Connaissances** (Réglages) : fiches par projet (active, expirée, obsolète), avec
+  « Obsolète » et « Supprimer ».
+
+Les fiches font foi dans le routeur (`/data/knowledge`, volume `antares-router-data`) ;
+le service `rag` d'ai-to-boost les indexe (`POST/DELETE /documents`, jeton
+`RAG_WRITE_TOKEN` recopié par `install.sh`) et exclut obsolètes et expirées de
+`/query`. Les documents synchronisés par ai-to-boost ne sont jamais modifiés.
+
 ## Code demandé à l'oral
 
 Quand on demande du code à la voix (script, commande, requête SQL, configuration…), le
