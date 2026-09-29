@@ -32,9 +32,32 @@ La zone de saisie sous la conversation est toujours active :
 - **Ajouter au contexte** : aucune réponse ; le texte (log, adresse, extrait…) sert à la
   suite de l'échange, écrite ou orale.
 
+Les réponses écrites sont mises en forme (Markdown rendu en HTML nettoyé) : titres,
+listes, tableaux, citations, code coloré avec bouton **Copier**, et un bloc
+**Références** listant les documents du RAG utilisés. Les liens Internet sont cités de
+mémoire par le LLM (il n'a pas accès au web) : ils s'ouvrent dans un nouvel onglet et
+sont marqués « à vérifier » (↗). Les réponses vocales restent du texte parlé.
+Bibliothèques servies localement : `frontend/vendor/` (cf. son README).
+
 L'écrit et l'oral forment une seule conversation : au début d'un appel, les 30 derniers
 messages sont rejoués au moteur vocal ; ce qui se dit en appel reste dans le fil après
 avoir raccroché. **Nouvelle conversation** (hors appel) repart de zéro.
+
+## Code demandé à l'oral
+
+Quand on demande du code à la voix (script, commande, requête SQL, configuration…), le
+LLM l'écrit dans un bloc de code et l'**explique** en phrases, sans le lire :
+
+- le routeur retire les blocs de code du flux envoyé à la synthèse vocale, au fil de
+  l'eau (`router/voicecode.py`), et l'interface les affiche sous la réponse, colorés,
+  avec un bouton **Copier** ;
+- le routeur garde la réponse complète et remet le code dans l'historique que lui renvoie
+  le moteur vocal : une relance (« modifie la boucle… ») porte bien sur le code affiché.
+  Sans cela, le modèle imite ses réponses précédentes et cesse d'écrire des blocs.
+
+La consigne vocale place cette règle en premier : après « sans markdown », le modèle
+l'ignorait pour les requêtes courtes (mesuré : SQL 0/3, puis 12/12 une fois en tête, sans
+bloc pour une question banale). Le code s'affiche à la fin de la réponse vocale.
 
 ## Changer de modèle ou de voix
 

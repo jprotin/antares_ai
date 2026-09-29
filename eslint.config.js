@@ -33,6 +33,7 @@ const browserGlobals = Object.fromEntries(
     "FormData",
     "localStorage",
     "TextDecoder",
+    "setTimeout",
   ].map((name) => [name, "readonly"]),
 );
 
