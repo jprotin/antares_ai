@@ -67,6 +67,30 @@ Mesuré (gemma4:e4b, moteur vocal chargé) : 48 800 tokens lus en entier en 17,6
 (repères début / milieu / fin retrouvés). Fichiers : 15 Mo au maximum, images 5 Mo.
 Stockage : `/data/documents` (volume `antares-router-data`).
 
+## Partager avec un collègue (ngrok)
+
+Accès distant temporaire, en HTTPS (le micro exige une page sécurisée), par un tunnel
+ngrok dans un conteneur (`ngrok/ngrok`, version figée). Une fois, ajouter son jeton
+([dashboard ngrok](https://dashboard.ngrok.com/get-started/your-authtoken)) dans
+`deploy/s2s/.env`, avec un éditeur (pas dans l'historique du shell) :
+`NGROK_AUTHTOKEN=…`. Ensuite :
+
+```bash
+./share.sh collegue@gmail.com      # une ou plusieurs adresses Google autorisées
+```
+
+Le script affiche l'URL à envoyer ; Ctrl+C ferme le partage.
+
+- **Accès** : connexion Google obligatoire, puis refus de toute adresse non listée
+  (traffic policy ngrok, générée à chaque partage).
+- **Pendant le partage** : Claude (ton abonnement) et l'écriture dans le RAG (fiches)
+  sont désactivés pour tout le monde ; le pictogramme de connexion affiche
+  « Internet · partagé ». Tout revient à la normale à la fermeture.
+- **À savoir** : un seul appel vocal à la fois (le moteur n'a qu'une place) ; les
+  réglages (avatar et voix côté serveur, modèle, agent, mode, projet) sont communs ;
+  le RAG reste consultable ; le trafic de l'invité (voix, texte) transite déchiffré
+  par ngrok. Ton usage en local ne passe pas par le tunnel.
+
 ## Recherche web et connexion Internet
 
 Un pictogramme en haut de l'écran d'appel indique la connexion : **Internet** (vert) ou

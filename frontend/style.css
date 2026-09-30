@@ -1401,6 +1401,11 @@ body {
 .net--offline .net__slash {
   display: inline;
 }
+.net--sharing {
+  border-color: color-mix(in srgb, var(--warn-text) 55%, transparent);
+  background: var(--warn-bg);
+  color: var(--warn-text);
+}
 
 .option--disabled {
   opacity: 0.5;

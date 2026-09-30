@@ -14,10 +14,11 @@ function element(tag, className, text) {
   return node;
 }
 
-export const net = { online: null };
+export const net = { online: null, sharing: null };
 
-// Pictogramme : connecté / hors ligne ; `onChange` quand l'état bascule
-export function initNet({ indicator, onChange }) {
+// Pictogramme : connecté / hors ligne (et partage ngrok en cours) ; `onChange` et
+// `onSharing` quand l'état bascule
+export function initNet({ indicator, onChange, onSharing }) {
   const label = indicator.querySelector(".net__label");
   async function poll() {
     let state;
@@ -27,13 +28,25 @@ export function initNet({ indicator, onChange }) {
       return;
     }
     const changed = state.online !== net.online;
+    const sharingChanged = state.sharing !== net.sharing;
     net.online = state.online;
     indicator.classList.toggle("net--offline", !state.online);
-    label.textContent = state.online ? "Internet" : "Hors ligne";
+    indicator.classList.toggle("net--sharing", Boolean(state.sharing));
+    label.textContent = state.online
+      ? state.sharing
+        ? "Internet · partagé"
+        : "Internet"
+      : "Hors ligne";
     indicator.title = state.online
       ? `Connecté à Internet : recherche web ${state.search ? "disponible" : "indisponible (SearXNG ne répond pas)"}, modèles Claude disponibles`
       : "Pas de connexion à Internet : pas de recherche web, modèles locaux seulement";
-    if (changed && net.online !== null) onChange(state.online);
+    if (state.sharing) {
+      indicator.title +=
+        " — Partage ngrok en cours : Claude et l'écriture dans le RAG sont désactivés";
+    }
+    if (changed && net.sharing !== null) onChange(state.online);
+    if (sharingChanged && net.sharing !== null) onSharing(state.sharing);
+    net.sharing = state.sharing;
   }
   poll();
   window.setInterval(poll, POLL_MS);

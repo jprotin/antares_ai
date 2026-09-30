@@ -261,6 +261,7 @@ rechargement (quelques secondes) et évince le modèle précédent.
 | Documents joints       | lecture intégrale dans la consigne ; contexte long à l'écrit ; refus au-delà                  | RAG sur le document, troncature                                 | Ollama tronque sans prévenir ; 65 536 tient sur le GPU avec le moteur vocal (48 800 tokens lus en entier, 17,6 s).                                                                             | ADR 0005 |
 | Fiches de connaissance | rédigées par le LLM, **relues** avant indexation, via une API d'écriture du service `rag`     | indexation automatique, index propre à antares                  | Ne pas polluer le RAG ; une seule chaîne d'embeddings ; obsolescence et validité filtrées à la recherche.                                                                                      | ADR 0006 |
 | Recherche web          | SearXNG local, déclenchement sur l'actuel ou sur demande, date seulement lors d'une recherche | API Brave (clé), décision par le LLM à chaque question (+0,5 s) | Sans clé ni compte ; aucune latence ajoutée aux autres questions ; hors ligne, phrase imposée par le routeur.                                                                                  | ADR 0008 |
+| Accès distant          | tunnel ngrok à la demande (`share.sh`), connexion Google limitée à des adresses               | port ouvert, VPN                                                | Pas d'ouverture de port ni de configuration réseau ; HTTPS fourni (micro) ; Claude et l'écriture RAG coupés pendant le partage.                                                                | —        |
 
 ## 6. Annexes : limites connues et suite
 
@@ -278,5 +279,5 @@ rechargement (quelques secondes) et évince le modèle précédent.
 **Suite prévue**
 
 1. **Archive et historique** des appels.
-2. PDF scannés (reconnaissance de caractères), correctif de lecture sous Chrome, accès
-   distant (ngrok), cible cloud.
+2. PDF scannés (reconnaissance de caractères), correctif de lecture sous Chrome, cible
+   cloud.
