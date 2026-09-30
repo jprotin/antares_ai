@@ -53,6 +53,9 @@ ensure_tokens() {
     lines+="${target}=${token}"$'\n'
     log "${source} recopié dans .env"
   done
+  # Jeton ngrok (partage, cf. share.sh) : saisi par l'utilisateur, conservé tel quel
+  token="$(grep -E "^NGROK_AUTHTOKEN=" "${ENV_FILE}" 2>/dev/null | cut -d= -f2- || true)"
+  [[ -n "${token}" ]] && lines+="NGROK_AUTHTOKEN=${token}"$'\n'
   # Secret de SearXNG (recherche web) : conservé d'une installation à l'autre
   token="$(grep -E "^SEARXNG_SECRET=" "${ENV_FILE}" 2>/dev/null | cut -d= -f2- || true)"
   if [[ -z "${token}" ]]; then

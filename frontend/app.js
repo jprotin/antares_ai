@@ -781,6 +781,12 @@ initNet({
         : "Connexion Internet perdue : pas de recherche web, modèles locaux seulement.",
       !online,
     ),
+  onSharing: (sharing) =>
+    systemLine(
+      sharing
+        ? "Partage ngrok ouvert : Claude et l'écriture dans le RAG sont désactivés."
+        : "Partage ngrok fermé.",
+    ),
 });
 
 const knowledgeUI = initKnowledge({

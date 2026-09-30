@@ -18,8 +18,9 @@
                    avec le même mode, agent et documentation que la voix.
 - /api/documents : documents joints à la conversation (cf. documents.py) : envoi (corps
                    brut + en-tête X-Filename), liste, retrait.
-- /api/net       : connexion Internet et recherche web en cours (cf. web.py). Hors
-                   ligne, les modèles Claude sont indisponibles.
+- /api/net       : connexion Internet, recherche web en cours (cf. web.py) et partage
+                   actif. Hors ligne ou pendant un partage, les modèles Claude sont
+                   indisponibles.
 - /api/knowledge : fiches de connaissance (cf. knowledge.py) : rédaction par le LLM,
                    fiches proches, indexation relue, obsolescence, suppression.
 - /healthz       : sonde de santé.
@@ -54,6 +55,9 @@ import web
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://ollama:11434")
 DEFAULT_MODEL = os.environ["DEFAULT_MODEL"]
 SETTINGS_PATH = Path(os.environ.get("SETTINGS_PATH", "/data/settings.json"))
+# Partage en cours (tunnel ngrok, cf. share.sh) : fichier posé le temps du partage.
+# Claude (abonnement de l'utilisateur) et l'écriture dans le RAG sont alors bloqués.
+SHARING_FLAG = SETTINGS_PATH.with_name("sharing")
 # Vitesses mesurées par modèle : {"model": {"ttft": s, "speed": tokens/s}}
 OBSERVED_PATH = SETTINGS_PATH.with_name("observed.json")
 SMOOTHING = 0.3
@@ -160,6 +164,19 @@ async def measure(
         record_observed(model, first - start, deltas / (end - first))
 
 
+def sharing() -> bool:
+    return SHARING_FLAG.exists()
+
+
+def claude_available() -> bool:
+    return web.online() and not sharing()
+
+
+def refuse_while_sharing() -> None:
+    if sharing():
+        raise HTTPException(403, "Désactivé pendant un partage (tunnel ngrok ouvert)")
+
+
 async def chat_models() -> list[dict]:
     tags = (await client.get("/api/tags")).json().get("models", [])
     loaded = {m["name"] for m in (await client.get("/api/ps")).json().get("models", [])}
@@ -187,8 +204,9 @@ async def chat_models() -> list[dict]:
                 **model,
                 "loaded": True,
                 "observed": observed.get(model["name"]),
-                # Claude passe par Internet : indisponible hors ligne
-                "available": web.online(),
+                # Claude passe par Internet (indisponible hors ligne) et utilise
+                # l'abonnement de l'utilisateur (indisponible pendant un partage)
+                "available": claude_available(),
             }
         )
     return models
@@ -224,7 +242,7 @@ async def healthz() -> dict:
 
 @app.get("/api/net")
 async def net_state() -> dict:
-    return web.state
+    return {**web.state, "sharing": sharing()}
 
 
 class TagsRequest(BaseModel):
@@ -281,9 +299,10 @@ async def update_settings(update: SettingsUpdate) -> Settings:
     if update.model is not None and update.model != settings.model:
         if update.model not in {m["name"] for m in await chat_models()}:
             raise HTTPException(422, f"Modèle inconnu : {update.model}")
-        if claude.is_claude(update.model) and not web.online():
+        if claude.is_claude(update.model) and not claude_available():
             raise HTTPException(
-                422, "Hors ligne : les modèles Claude sont indisponibles"
+                422,
+                "Modèles Claude indisponibles (hors ligne ou partage en cours)",
             )
         settings.model = update.model
         if not claude.is_claude(update.model):
@@ -425,8 +444,9 @@ async def prepare(
         agent = agents.find(settings.agent)
     model = (agent.model if agent and agent.model else "") or settings.model
     notice = None
-    if claude.is_claude(model) and not web.online():
-        notice = f"hors ligne : {model} remplacé par le modèle local {DEFAULT_MODEL}"
+    if claude.is_claude(model) and not claude_available():
+        reason = "partage en cours" if sharing() else "hors ligne"
+        notice = f"{reason} : {model} remplacé par le modèle local {DEFAULT_MODEL}"
         model = DEFAULT_MODEL
 
     attached = [d for d in map(documents.load, settings.documents) if d]
@@ -547,6 +567,8 @@ class DraftRequest(BaseModel):
 async def ask_llm(system: str, user: str) -> str:
     """Réponse complète (non diffusée) du modèle actif, pour une tâche de rédaction."""
     model = load_settings().model
+    if claude.is_claude(model) and not claude_available():
+        model = DEFAULT_MODEL
     messages = [
         {"role": "system", "content": system},
         {"role": "user", "content": user},
@@ -570,6 +592,7 @@ async def ask_llm(system: str, user: str) -> str:
 
 @app.post("/api/knowledge/draft")
 async def knowledge_draft(request: DraftRequest) -> dict:
+    refuse_while_sharing()
     document = documents.load(request.document_id) if request.document_id else None
     if request.document_id and not document:
         raise HTTPException(404, "document inconnu")
@@ -609,6 +632,7 @@ class SaveRequest(BaseModel):
 
 @app.post("/api/knowledge")
 async def knowledge_save(request: SaveRequest) -> dict:
+    refuse_while_sharing()
     try:
         return await knowledge.save(request.card, request.replaces)
     except knowledge.KnowledgeError as exc:
@@ -617,6 +641,7 @@ async def knowledge_save(request: SaveRequest) -> dict:
 
 @app.post("/api/knowledge/{card_id}/obsolete")
 async def knowledge_obsolete(card_id: str) -> dict:
+    refuse_while_sharing()
     try:
         return await knowledge.obsolete(card_id)
     except knowledge.KnowledgeError as exc:
@@ -625,6 +650,7 @@ async def knowledge_obsolete(card_id: str) -> dict:
 
 @app.delete("/api/knowledge/{card_id}", status_code=204)
 async def knowledge_delete(card_id: str) -> Response:
+    refuse_while_sharing()
     try:
         await knowledge.delete(card_id)
     except knowledge.KnowledgeError as exc:
