@@ -46,12 +46,7 @@ export function initAgentsDialog({ onChanged }) {
     instructions: document.getElementById("agent-instructions"),
     project: document.getElementById("agent-project"),
     model: document.getElementById("agent-model"),
-    kind: document.getElementById("agent-kind"),
-    repo: document.getElementById("agent-repo"),
   };
-  const repoLabel = document.getElementById("agent-repo-label");
-  const showKind = () => (repoLabel.hidden = fields.kind.value !== "action");
-  fields.kind.addEventListener("change", showKind);
   fields.instructions.placeholder = EXAMPLE_INSTRUCTIONS;
   let agents = [];
   let editing = null;
@@ -77,14 +72,8 @@ export function initAgentsDialog({ onChanged }) {
             element("span", "option__title", agent.name),
             element("span", "badge badge--unknown", agent.usage),
           );
-          if (agent.kind === "action") {
-            head.append(
-              element("span", "badge badge--cloud", "action · hors local"),
-            );
-          }
           const extras = [
             agent.project && `projet ${agent.project}`,
-            agent.repo && `agit sur ${agent.repo}`,
             agent.model && modelLabel(agent.model),
           ].filter(Boolean);
           const detail = element(
@@ -109,12 +98,11 @@ export function initAgentsDialog({ onChanged }) {
   }
 
   async function refresh() {
-    const [loaded, meta, projects, models, workers] = await Promise.all([
+    const [loaded, meta, projects, models] = await Promise.all([
       getJson("api/agents"),
       getJson("api/agents/meta"),
       getJson("api/projects").catch(() => []),
       getJson("api/models").catch(() => []),
-      getJson("api/actions/projects").catch(() => ({ projects: [] })),
     ]);
     agents = loaded;
     // Listes proposées + valeurs personnelles déjà utilisées
@@ -145,14 +133,6 @@ export function initAgentsDialog({ onChanged }) {
       ],
       "",
     );
-    fillSelect(
-      fields.repo,
-      [
-        ["", "Projet précisé au lancement"],
-        ...workers.projects.map((p) => [p, p]),
-      ],
-      "",
-    );
     renderList();
   }
 
@@ -162,8 +142,6 @@ export function initAgentsDialog({ onChanged }) {
     for (const [key, input] of Object.entries(fields)) {
       input.value = agent?.[key] ?? "";
     }
-    fields.kind.value = agent?.kind ?? "consigne";
-    showKind();
     error.textContent = "";
     form.hidden = false;
     fields.name.focus();
