@@ -1540,3 +1540,15 @@ body {
     display: none;
   }
 }
+
+/* Choix de la voix sous l'avatar Orbe Antares */
+.option__voices {
+  display: grid;
+  gap: 0.4rem;
+  margin: -0.2rem 0 0 1.6rem;
+  padding-left: 0.8rem;
+  border-left: 2px solid var(--accent);
+}
+.option__voices[hidden] {
+  display: none;
+}

@@ -135,10 +135,11 @@ Depuis l'interface : bouton **Réglages** (roue dentée). Le choix est appliqué
 phrase suivante, même en cours d'appel, et persisté par le routeur LLM.
 
 - **Modèle** : tout modèle de chat installé dans Ollama (`docker exec ollama ollama pull …`).
-- **Voix** : voix clonées décrites dans `voices/voices.json`. Pour en ajouter une, déposer
+- **Voix** : liée à l'avatar (cf. Modes et apparence), voix clonées décrites dans
+  `voices/voices.json`. Pour en ajouter une, déposer
   un extrait `.wav` propre (5 à 15 s, une seule voix) dans `voices/` et l'ajouter au
-  catalogue (`id`, `name`, `gender`, `file`, `source`). Le prénom et le genre servent à
-  la consigne donnée au LLM (« Tu es Ryan, un assistant vocal… »).
+  catalogue (`id`, `name`, `gender`, `file`, `source`, `avatars`). Le nom et le genre servent à
+  la consigne donnée au LLM (« Tu es Mr Antares, un assistant… »).
 
 ### Claude Code comme modèle (hors local)
 
@@ -204,7 +205,7 @@ L'agent utilisé s'affiche sous la réponse.
 - **Avatar** (Réglages), mémorisé dans le navigateur ; modèles 3D originaux
   (three.js/WebGL, `frontend/face3d.js` et `frontend/avatars3d/`), rendus à 30 images/s
   au plus (GPU partagé), repli sur l'orbe sans WebGL :
-  - **Cyborg 3D** (défaut) : tête d'endosquelette en plaques argentées, yeux émissifs,
+  - **Terminator** (défaut) : tête d'endosquelette en plaques argentées, yeux émissifs,
     mâchoire sur charnière suivie par les vérins ;
   - **Chappie** : robot à visière, yeux en matrice de LED qui changent d'expression
     (clignement, curiosité, réflexion, sourire), écran-bouche en égaliseur qui suit la
@@ -213,11 +214,12 @@ L'agent utilisé s'affiche sous la réponse.
     comme sombre), canette de bière rouge générique dans une main, cigare fumant dans
     l'autre ; grille de dents qui s'ouvre au rythme de la voix, pupilles carrées qui
     regardent, gorgées et bouffées de cigare au repos ;
-  - **Orbe**.
-- **Voix** : Mr Antares (voix clonée `ryan`), Miss Antares (voix clonée `sohee`),
-  Terminator et Bender ; les noms affichés et donnés au LLM viennent de
-  `voices/voices.json`. Choisir l'avatar Cyborg 3D coche la voix Terminator, l'avatar
-  Bender la voix Bender (champ `avatar` du catalogue), modifiable.
+  - **Orbe Antares**.
+- **Voix** : elle suit l'avatar (champ `avatars` de `voices/voices.json`) — Terminator
+  → Terminator, Chappie → Chappie, Bender → Bender ; seul **Orbe Antares** laisse
+  choisir entre Mr Antares (voix clonée `ryan`) et Miss Antares (voix clonée `sohee`).
+  Le nom affiché et donné au LLM est celui de la voix. L'avatar est mémorisé dans le
+  navigateur, la voix côté serveur : au chargement, la voix est réalignée sur l'avatar.
 
 Les fenêtres se ferment d'un clic à l'extérieur ou avec Échap, et passent en plein
 écran sur mobile.
@@ -228,7 +230,7 @@ Les locuteurs prédéfinis de Qwen3-TTS (modèle CustomVoice) changent de timbre
 phrase à l'autre. Mesuré sur 10 phrases : similarité de timbre minimale 0,81-0,85 pour
 `sohee`, contre 0,965 une fois clonée (x-vector depuis un extrait, modèle Base).
 
-### Voix Bender et Terminator : décrites, pas clonées d'un comédien
+### Voix Bender, Terminator et Chappie : décrites, pas clonées d'un comédien
 
 La voix d'un personnage est celle de son comédien : on ne la clone pas. La voix Bender
 est **synthétique**, créée par Qwen3-TTS VoiceDesign à partir d'une description (« voix
@@ -246,6 +248,10 @@ La voix **Terminator** suit la même méthode, sans imiter l'acteur (ni timbre n
 accent) : voix décrite « grave, timbre métallique et synthétique, monocorde, hachée »
 (`voices/terminator.wav`), effet **cyborg** à la lecture : lecture à 0,92 (plus grave et
 plus lente), échos de 4 et 9 ms, bande 90-4500 Hz. Aperçu : `terminator-cyborg.wav`.
+
+La voix **Chappie** : robot jeune adulte décrit (« environ 25 ans, hauteur moyenne,
+claire et amicale, très métallique, articulation robotique »), effet **metal** à la
+lecture : échos de 2, 4 et 6 ms, bande 180-6500 Hz. Aperçu : `chappie-metal.wav`.
 
 ### Pourquoi un tirage bridé
 

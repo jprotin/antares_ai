@@ -19,6 +19,7 @@ import {
   saveSetting,
   writtenInstructionsFor,
   voicePath,
+  voicesFor,
 } from "./settings.js";
 import { hueFor, initTheme } from "./theme.js";
 import { initNet, showWebSources, watchSearch } from "./web.js";
@@ -252,6 +253,7 @@ async function annotateSources(line, since) {
 // - robot  : ffmpeg aecho=0.8:0.55:7:0.45,highpass=110,lowpass=6500,volume=1.1
 // - cyborg : asetrate ×0.92 (plus grave et plus lent), aecho=0.8:0.6:4|9:0.4|0.25,
 //            highpass=90, lowpass=4500, volume=1.2
+// - metal  : aecho=0.8:0.7:2|4|6:0.55|0.4|0.3, highpass=180, lowpass=6500
 const VOICE_EFFECTS = {
   robot: {
     rate: 1,
@@ -269,6 +271,17 @@ const VOICE_EFFECTS = {
       [0.009, 0.25],
     ],
     band: [90, 4500],
+  },
+  metal: {
+    rate: 1,
+    inGain: 0.8,
+    outGain: 0.7,
+    echoes: [
+      [0.002, 0.55],
+      [0.004, 0.4],
+      [0.006, 0.3],
+    ],
+    band: [180, 6500],
   },
 };
 
@@ -922,8 +935,22 @@ initAgentsDialog({
   },
 });
 
+// La voix suit l'avatar (mémorisé dans ce navigateur) : réalignement au chargement
+async function alignVoiceWithAvatar() {
+  const voices = voicesFor(orb.kind);
+  if (!voices.length || voices.some((v) => v.id === profile.settings?.voice)) {
+    return;
+  }
+  try {
+    await saveSetting({ voice: voices[0].id });
+  } catch (error) {
+    console.warn("Voix de l'avatar non appliquée", error);
+  }
+}
+
 loadProfile()
-  .then(() => {
+  .then(async () => {
+    await alignVoiceWithAvatar();
     renderProfile();
     renderPickers();
   })
