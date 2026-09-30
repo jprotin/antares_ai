@@ -142,6 +142,10 @@ affiché.
 - **Avatars et voix** : chaque avatar a sa voix — Terminator, Chappie et Bender ont la
   leur ; Orbe Antares laisse choisir Mr ou Miss Antares. Terminator, Chappie et Bender
   sont des voix synthétiques décrites, avec un effet cyborg, métal ou robot à la lecture.
+- **Caractère** : Terminator (machine en mission, obéissance totale), Bender (imbu de
+  lui-même, drôle et fêtard) et Chappie (gentil, curieux, « mon vénérable créateur »)
+  répondent avec leur caractère, en plus de l'agent et du mode ; l'Orbe Antares reste
+  neutre et bienveillant.
 
 ## 4. Architecture technique
 

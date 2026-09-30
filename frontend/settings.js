@@ -57,20 +57,38 @@ const WRITTEN_INSTRUCTIONS =
   "une question simple. Ne cite un lien Internet que pour une page de documentation " +
   "officielle dont tu es certain de l'adresse ; n'invente jamais d'URL.";
 
+// Caractère du personnage (voices.json : "persona") : il donne le ton et la façon de
+// parler ; l'agent et le mode, ajoutés ensuite par le routeur, décident du fond.
+const PERSONA_RULE =
+  "Ce caractère donne ton ton et ta façon de parler : garde-le même si un agent ou un " +
+  "mode te sont donnés ensuite. L'agent décide du fond et de la méthode, le mode de " +
+  "l'attitude générale ; ton personnage ne change jamais l'exactitude des faits, du " +
+  "code ou des commandes.";
+
+// À l'oral, le personnage colore la réponse sans l'allonger
+const SPOKEN_PERSONA_RULE =
+  "À l'oral, reste bref : trois à cinq phrases, avec une ou deux touches de caractère, " +
+  "sauf si un contenu long est demandé.";
+
+function identity(voice, spoken) {
+  if (voice.persona) {
+    const rules = spoken
+      ? `${PERSONA_RULE} ${SPOKEN_PERSONA_RULE}`
+      : PERSONA_RULE;
+    return `Tu es ${voice.name}, ${voice.persona} ${rules}`;
+  }
+  const [male, female] = spoken
+    ? ["un assistant vocal bienveillant", "une assistante vocale bienveillante"]
+    : ["un assistant bienveillant", "une assistante bienveillante"];
+  return `Tu es ${voice.name}, ${voice.gender === "M" ? male : female}.`;
+}
+
 export function writtenInstructionsFor(voice) {
-  const role =
-    voice.gender === "M"
-      ? "un assistant bienveillant"
-      : "une assistante bienveillante";
-  return `Tu es ${voice.name}, ${role}. ${WRITTEN_INSTRUCTIONS}`;
+  return `${identity(voice, false)} ${WRITTEN_INSTRUCTIONS}`;
 }
 
 export function instructionsFor(voice) {
-  const role =
-    voice.gender === "M"
-      ? "un assistant vocal bienveillant"
-      : "une assistante vocale bienveillante";
-  return `Tu es ${voice.name}, ${role}. ${BASE_INSTRUCTIONS}`;
+  return `${identity(voice, true)} ${BASE_INSTRUCTIONS}`;
 }
 
 export async function getJson(url, options) {

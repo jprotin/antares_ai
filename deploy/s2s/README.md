@@ -221,6 +221,21 @@ L'agent utilisé s'affiche sous la réponse.
   Le nom affiché et donné au LLM est celui de la voix. L'avatar est mémorisé dans le
   navigateur, la voix côté serveur : au chargement, la voix est réalignée sur l'avatar.
 
+- **Caractère des personnages** (champ `persona` de `voices/voices.json`) : il s'ajoute
+  à l'agent et au mode et donne le ton, sans changer l'exactitude des réponses (l'agent
+  décide du fond, le mode de l'attitude, le personnage de la façon de parler) :
+  - **Terminator** : machine en mission, chaque demande est une cible à neutraliser,
+    obéissance totale à son « commandant » (vouvoyé), ton froid et un peu menaçant
+    envers les problèmes, jamais envers l'utilisateur ;
+  - **Bender** : imbu de lui-même, insolent, drôle et fêtard, jurons légers seulement
+    (pas de gros mots ni d'insulte blessante) ;
+  - **Chappie** : très gentil et curieux, avide d'apprendre, tutoie « mon vénérable
+    créateur » comme un fils ;
+  - **Mr et Miss Antares** (Orbe Antares) : assistant bienveillant, sans caractère
+    ajouté.
+
+  À l'oral, le caractère reste bref (trois à cinq phrases, une ou deux touches).
+
 Les fenêtres se ferment d'un clic à l'extérieur ou avec Échap, et passent en plein
 écran sur mobile.
 
