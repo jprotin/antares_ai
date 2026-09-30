@@ -1,4 +1,5 @@
-// Réglages : voix (catalogue voices/voices.json), modèle LLM et projet RAG (routeur /api).
+// Réglages : avatar et sa voix (catalogue voices/voices.json), modèle LLM et projet RAG
+// (routeur /api).
 // L'agent et le mode se choisissent sur l'écran d'appel (cf. app.js).
 // Les choix sont persistés côté serveur par le routeur LLM.
 
@@ -31,6 +32,12 @@ export function currentVoice() {
     profile.voices.find((voice) => voice.id === profile.settings?.voice) ??
     profile.voices[0]
   );
+}
+
+// Voix d'un avatar (champ `avatars` du catalogue), la première par défaut. Seul l'orbe
+// en propose plusieurs.
+export function voicesFor(kind) {
+  return profile.voices.filter((voice) => voice.avatars?.includes(kind));
 }
 
 export function voicePath(voice) {
@@ -169,35 +176,69 @@ function optionRow({
 export function initSettingsDialog({ avatar, onApplied }) {
   const dialog = document.getElementById("settings");
   const form = document.getElementById("settings-form");
-  const voiceOptions = document.getElementById("voice-options");
+  const orbVoices = document.getElementById("orb-voices");
   const modelOptions = document.getElementById("model-options");
   const projectOptions = document.getElementById("project-options");
   const error = document.getElementById("settings-error");
   const apply = document.getElementById("apply-settings");
   const preview = document.getElementById("preview");
 
-  function renderVoices() {
-    voiceOptions.replaceChildren(
-      ...profile.voices.map((voice) => {
-        const listen = document.createElement("button");
-        listen.type = "button";
-        listen.className = "preview-button";
-        listen.textContent = "Écouter";
-        listen.addEventListener("click", (event) => {
-          event.preventDefault();
-          preview.src = previewPath(voice);
-          preview.play();
-        });
-        return optionRow({
+  function listenButton(voice) {
+    const listen = document.createElement("button");
+    listen.type = "button";
+    listen.className = "preview-button";
+    listen.textContent = "Écouter";
+    listen.title = `Écouter la voix ${voice.name}`;
+    listen.addEventListener("click", (event) => {
+      event.preventDefault();
+      preview.src = previewPath(voice);
+      preview.play();
+    });
+    return listen;
+  }
+
+  // Avatars : leur voix (et « Écouter ») ; choix Mr / Miss Antares sous l'orbe
+  function renderAvatars() {
+    for (const input of form.querySelectorAll('input[name="avatar"]')) {
+      input.checked = input.value === avatar.kind;
+      const label = input.closest("label");
+      const voices = voicesFor(input.value);
+      let note = label.querySelector(".option__voice");
+      if (!note) {
+        note = document.createElement("span");
+        note.className = "option__detail option__voice";
+        label.querySelector(".option__title").parentElement.append(note);
+      }
+      note.textContent =
+        voices.length > 1
+          ? `Voix au choix : ${voices.map((v) => v.name).join(" ou ")}`
+          : `Voix : ${voices[0]?.name ?? "par défaut"}`;
+      const trailing = label.lastElementChild;
+      trailing.replaceChildren(
+        ...(voices.length === 1 ? [listenButton(voices[0])] : []),
+      );
+    }
+    const choices = voicesFor("orb");
+    const selected =
+      choices.find((v) => v.id === profile.settings.voice) ?? choices[0];
+    orbVoices.replaceChildren(
+      ...choices.map((voice) =>
+        optionRow({
           name: "voice",
           value: voice.id,
-          checked: voice.id === profile.settings.voice,
+          checked: voice.id === selected?.id,
           title: voice.name,
-          detail: `${voice.gender === "M" ? "Voix masculine" : "Voix féminine"} · ${voice.source}`,
-          trailing: listen,
-        });
-      }),
+          detail: voice.gender === "M" ? "Voix masculine" : "Voix féminine",
+          trailing: listenButton(voice),
+        }),
+      ),
     );
+    showOrbVoices();
+  }
+
+  function showOrbVoices() {
+    orbVoices.hidden =
+      form.querySelector('input[name="avatar"]:checked')?.value !== "orb";
   }
 
   async function renderModels() {
@@ -245,23 +286,15 @@ export function initSettingsDialog({ avatar, onApplied }) {
     );
   }
 
-  // Avatar associé à une voix (Bender) : sa voix est cochée avec lui, modifiable
   form.addEventListener("change", (event) => {
-    if (event.target.name !== "avatar") return;
-    const voice = profile.voices.find((v) => v.avatar === event.target.value);
-    const input =
-      voice && form.querySelector(`input[name="voice"][value="${voice.id}"]`);
-    if (input) input.checked = true;
+    if (event.target.name === "avatar") showOrbVoices();
   });
 
   document
     .getElementById("open-settings")
     .addEventListener("click", async () => {
       error.textContent = "";
-      renderVoices();
-      for (const input of form.querySelectorAll('input[name="avatar"]')) {
-        input.checked = input.value === avatar.kind;
-      }
+      renderAvatars();
       dialog.showModal();
       const [models, projects] = await Promise.allSettled([
         renderModels(),
@@ -288,17 +321,19 @@ export function initSettingsDialog({ avatar, onApplied }) {
     const data = new FormData(form);
     apply.disabled = true;
     error.textContent = "";
+    // La voix suit l'avatar ; seul l'orbe laisse choisir
+    const kind = data.get("avatar") ?? avatar.kind;
+    const voice = kind === "orb" ? data.get("voice") : voicesFor(kind)[0]?.id;
     try {
       profile.settings = await getJson("api/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          voice: data.get("voice"),
+          voice: voice ?? undefined,
           model: data.get("model"),
           project: data.get("project") ?? undefined,
         }),
       });
-      const kind = data.get("avatar");
       if (kind && kind !== avatar.kind) avatar.use(kind);
       preview.pause();
       dialog.close();

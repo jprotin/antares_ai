@@ -139,9 +139,9 @@ affiché.
   (défaut), Chappie (robot à visière aux yeux LED expressifs), Bender (bière et cigare en
   main) — ou orbe. Chacun suit
   l'état de l'appel ; en parole, la mâchoire ou l'écran-bouche suit la voix.
-- **Voix** : Mr Antares et Miss Antares (voix clonées) ; Terminator et Bender (voix
-  synthétiques décrites, effet cyborg ou robot à la lecture, associées aux avatars
-  Cyborg 3D et Bender).
+- **Avatars et voix** : chaque avatar a sa voix — Terminator, Chappie et Bender ont la
+  leur ; Orbe Antares laisse choisir Mr ou Miss Antares. Terminator, Chappie et Bender
+  sont des voix synthétiques décrites, avec un effet cyborg, métal ou robot à la lecture.
 
 ## 4. Architecture technique
 

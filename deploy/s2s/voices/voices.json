@@ -2,18 +2,14 @@
   "default": "sohee",
   "voices": [
     {
-      "id": "sohee",
-      "name": "Miss Antares",
-      "gender": "F",
-      "file": "sohee.wav",
-      "source": "Qwen3-TTS CustomVoice, locutrice sohee"
-    },
-    {
-      "id": "ryan",
-      "name": "Mr Antares",
+      "id": "terminator",
+      "name": "Terminator",
       "gender": "M",
-      "file": "ryan.wav",
-      "source": "Qwen3-TTS CustomVoice, locuteur ryan"
+      "file": "terminator.wav",
+      "source": "voix synthétique Qwen3-TTS VoiceDesign (décrite, sans imiter d'acteur), effet cyborg à la lecture",
+      "effect": "cyborg",
+      "preview": "terminator-cyborg.wav",
+      "avatars": ["face3d"]
     },
     {
       "id": "bender",
@@ -23,17 +19,33 @@
       "source": "voix synthétique Qwen3-TTS VoiceDesign (décrite, non clonée d'un comédien), effet robot à la lecture",
       "effect": "robot",
       "preview": "bender-robot.wav",
-      "avatar": "bender"
+      "avatars": ["bender"]
     },
     {
-      "id": "terminator",
-      "name": "Terminator",
+      "id": "chappie",
+      "name": "Chappie",
       "gender": "M",
-      "file": "terminator.wav",
-      "source": "voix synthétique Qwen3-TTS VoiceDesign (décrite, sans imiter d'acteur), effet cyborg à la lecture",
-      "effect": "cyborg",
-      "preview": "terminator-cyborg.wav",
-      "avatar": "face3d"
+      "file": "chappie.wav",
+      "source": "voix synthétique Qwen3-TTS VoiceDesign (jeune adulte robot, décrite), effet métal à la lecture",
+      "effect": "metal",
+      "preview": "chappie-metal.wav",
+      "avatars": ["visor"]
+    },
+    {
+      "id": "ryan",
+      "name": "Mr Antares",
+      "gender": "M",
+      "file": "ryan.wav",
+      "source": "Qwen3-TTS CustomVoice, locuteur ryan",
+      "avatars": ["orb"]
+    },
+    {
+      "id": "sohee",
+      "name": "Miss Antares",
+      "gender": "F",
+      "file": "sohee.wav",
+      "source": "Qwen3-TTS CustomVoice, locutrice sohee",
+      "avatars": ["orb"]
     }
   ]
 }
