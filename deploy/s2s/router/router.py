@@ -18,6 +18,8 @@
                    avec le même mode, agent et documentation que la voix.
 - /api/documents : documents joints à la conversation (cf. documents.py) : envoi (corps
                    brut + en-tête X-Filename), liste, retrait.
+- /api/net       : connexion Internet et recherche web en cours (cf. web.py). Hors
+                   ligne, les modèles Claude sont indisponibles.
 - /api/knowledge : fiches de connaissance (cf. knowledge.py) : rédaction par le LLM,
                    fiches proches, indexation relue, obsolescence, suppression.
 - /healthz       : sonde de santé.
@@ -37,7 +39,7 @@ from urllib.parse import unquote
 
 from fastapi import FastAPI, HTTPException, Request, Response
 from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from starlette.background import BackgroundTask
 
 import agents
@@ -47,6 +49,7 @@ import knowledge
 import modes
 import rag
 import voicecode
+import web
 
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://ollama:11434")
 DEFAULT_MODEL = os.environ["DEFAULT_MODEL"]
@@ -180,7 +183,13 @@ async def chat_models() -> list[dict]:
     models.sort(key=lambda m: m["sizeGb"])
     for model in await claude.available_models():
         models.append(
-            {**model, "loaded": True, "observed": observed.get(model["name"])}
+            {
+                **model,
+                "loaded": True,
+                "observed": observed.get(model["name"]),
+                # Claude passe par Internet : indisponible hors ligne
+                "available": web.online(),
+            }
         )
     return models
 
@@ -203,9 +212,57 @@ async def preload(model: str) -> None:
         logger.warning("Préchargement de %s impossible : %s", model, exc)
 
 
+@app.on_event("startup")
+async def start_watch() -> None:
+    app.state.web_watch = asyncio.create_task(web.watch())
+
+
 @app.get("/healthz")
 async def healthz() -> dict:
     return {"status": "ok"}
+
+
+@app.get("/api/net")
+async def net_state() -> dict:
+    return web.state
+
+
+class TagsRequest(BaseModel):
+    question: str = Field(max_length=4000)
+    answer: str = Field(max_length=20000)
+
+
+@app.post("/api/web/tags")
+async def web_tags(request: TagsRequest) -> dict:
+    """Mots-clés d'une réponse issue d'une recherche web (modèle local, après coup)."""
+    model = load_settings().model
+    if claude.is_claude(model):
+        model = DEFAULT_MODEL
+    try:
+        response = await client.post(
+            "/api/chat",
+            json={
+                "model": model,
+                "messages": [
+                    {"role": "system", "content": web.TAGS_PROMPT},
+                    {
+                        "role": "user",
+                        "content": f"Question : {request.question}\n\n"
+                        f"Réponse : {request.answer[:6000]}",
+                    },
+                ],
+                "stream": False,
+                "think": False,
+                "format": "json",
+                "keep_alive": "30m",
+                "options": {"temperature": 0.2, "num_predict": 80},
+            },
+            timeout=httpx.Timeout(30),
+        )
+        return {"tags": web.parse_tags(response.json()["message"]["content"])}
+    except (httpx.HTTPError, KeyError, ValueError) as exc:
+        logger.warning("Mots-clés indisponibles : %s", exc)
+        return {"tags": []}
 
 
 @app.get("/api/models")
@@ -224,6 +281,10 @@ async def update_settings(update: SettingsUpdate) -> Settings:
     if update.model is not None and update.model != settings.model:
         if update.model not in {m["name"] for m in await chat_models()}:
             raise HTTPException(422, f"Modèle inconnu : {update.model}")
+        if claude.is_claude(update.model) and not web.online():
+            raise HTTPException(
+                422, "Hors ligne : les modèles Claude sont indisponibles"
+            )
         settings.model = update.model
         if not claude.is_claude(update.model):
             asyncio.create_task(preload(update.model))
@@ -338,6 +399,10 @@ last_turn: dict = {
     # Documents joints lus ou écartés (trop longs pour la voix, image avec Claude)
     "documents": [],
     "skipped": [],
+    # Recherche web : {"query", "sources"}, {"offline": True} ou None ; mots-clés
+    "web": None,
+    # Remarque affichée sous la réponse (ex. Claude remplacé hors ligne)
+    "notice": None,
 }
 
 
@@ -359,6 +424,10 @@ async def prepare(
     if agent is None and settings.agent:
         agent = agents.find(settings.agent)
     model = (agent.model if agent and agent.model else "") or settings.model
+    notice = None
+    if claude.is_claude(model) and not web.online():
+        notice = f"hors ligne : {model} remplacé par le modèle local {DEFAULT_MODEL}"
+        model = DEFAULT_MODEL
 
     attached = [d for d in map(documents.load, settings.documents) if d]
     refused = []
@@ -379,7 +448,28 @@ async def prepare(
         messages = rag.add_system(messages, agents.instructions(agent))
     project = (agent.project if agent and agent.project else "") or settings.project
     messages = await rag.augment(messages, project, spoken)
+    found, prefix = None, ""
+    asked = rag.question(messages)
+    if asked and web.wanted(asked):
+        if web.online():
+            found = await web.search(asked)
+            if found:
+                messages = rag.add_system(messages, web.context(found, spoken))
+            else:
+                notice = "recherche web sans résultat : réponse sur les connaissances du modèle"
+        else:
+            messages = rag.add_system(messages, web.OFFLINE_RULES)
+            prefix = web.OFFLINE_NOTICE
+    usage["prefix"] = prefix
     last_turn.update(
+        web=(
+            {"query": found["query"], "sources": web.public_sources(found)}
+            if found
+            else {"offline": True}
+            if prefix
+            else None
+        ),
+        notice=notice,
         at=time.time(),
         agent=agent.name if agent else None,
         model=model,
@@ -589,6 +679,16 @@ async def native_stream(model: str, response: httpx.Response) -> AsyncIterator[b
     yield b"data: [DONE]\n\n"
 
 
+async def with_prefix(
+    model: str, prefix: str, chunks: AsyncIterator[bytes]
+) -> AsyncIterator[bytes]:
+    """Phrase imposée en tête de réponse (ex. connexion perdue), puis le flux du LLM."""
+    if prefix:
+        yield claude._chunk(model, prefix)
+    async for chunk in chunks:
+        yield chunk
+
+
 class ChatRequest(BaseModel):
     messages: list[dict]
 
@@ -628,7 +728,11 @@ async def written_chat(request: ChatRequest) -> StreamingResponse:
         )
         logger.info("Contexte long : ~%d tokens de documents", usage["tokens"])
         return StreamingResponse(
-            measure(model, start, native_stream(model, upstream)),
+            with_prefix(
+                model,
+                usage["prefix"],
+                measure(model, start, native_stream(model, upstream)),
+            ),
             status_code=upstream.status_code,
             media_type="text/event-stream",
             background=BackgroundTask(upstream.aclose),
@@ -648,7 +752,9 @@ async def written_chat(request: ChatRequest) -> StreamingResponse:
         stream=True,
     )
     return StreamingResponse(
-        measure(model, start, upstream.aiter_raw()),
+        with_prefix(
+            model, usage["prefix"], measure(model, start, upstream.aiter_raw())
+        ),
         status_code=upstream.status_code,
         media_type=upstream.headers.get("content-type"),
         background=BackgroundTask(upstream.aclose),
@@ -663,6 +769,7 @@ async def relay(path: str, request: Request) -> StreamingResponse:
     model = settings.model
     chat = path == "chat/completions" and request.method == "POST"
     payload: dict = {}
+    prefix = ""
     if chat or (
         body and request.headers.get("content-type", "").startswith("application/json")
     ):
@@ -670,7 +777,8 @@ async def relay(path: str, request: Request) -> StreamingResponse:
     if chat and "messages" in payload:
         # Voix : l'historique du moteur ne contient que le texte prononcé
         messages = voicecode.restore(payload["messages"])
-        payload["messages"], model, _ = await prepare(messages, settings)
+        payload["messages"], model, usage = await prepare(messages, settings)
+        prefix = usage["prefix"]
     if claude.is_claude(model):
         if not chat:
             raise HTTPException(501, f"/v1/{path} non disponible avec {model}")
@@ -701,7 +809,7 @@ async def relay(path: str, request: Request) -> StreamingResponse:
     if chat:
         chunks = voicecode.filter_sse(chunks, keep_code)
     return StreamingResponse(
-        measure(model, start, chunks),
+        with_prefix(model, prefix, measure(model, start, chunks)),
         status_code=upstream.status_code,
         media_type=upstream.headers.get("content-type"),
         background=BackgroundTask(upstream.aclose),

@@ -21,6 +21,7 @@ import {
   voicePath,
 } from "./settings.js";
 import { hueFor, initTheme } from "./theme.js";
+import { initNet, showWebSources, watchSearch } from "./web.js";
 
 const SAMPLE_RATE = 24000;
 const REALTIME_URL = `${location.protocol === "https:" ? "wss" : "ws"}://${location.host}/v1/realtime`;
@@ -89,11 +90,25 @@ const theme = initTheme({
 });
 let call = null;
 
+// Recherche web pendant la réflexion : le statut l'indique (sans phrase parlée)
+let stopSearchWatch = null;
+function followSearch(active, defaultText) {
+  stopSearchWatch?.();
+  stopSearchWatch = active
+    ? watchSearch((searching) => {
+        ui.status.textContent = searching
+          ? "Je cherche sur internet…"
+          : defaultText;
+      })
+    : null;
+}
+
 function setState(state, detail) {
   ui.root.dataset.state = state;
   ui.status.textContent = detail ?? STATUS_TEXT[state];
   orb.setState(state);
   if (call) call.state = state;
+  followSearch(state === "thinking", STATUS_TEXT.thinking);
 }
 
 function base64FromPcm(buffer) {
@@ -178,7 +193,9 @@ function annotate(line, text) {
 // Code demandé à l'oral : retiré de la voix par le routeur, affiché sous la réponse
 // et gardé dans la conversation pour qu'on puisse y revenir.
 function showSpokenCode(line, blocks) {
-  const fenced = blocks
+  const code = blocks.filter((block) => block.lang !== "tags");
+  const tags = blocks.filter((block) => block.lang === "tags");
+  const fenced = [...code, ...tags]
     .map((block) => `\`\`\`${block.lang}\n${block.code}\n\`\`\``)
     .join("\n\n");
   const container = document.createElement("div");
@@ -198,10 +215,14 @@ async function annotateSources(line, since) {
     const turn = await response.json();
     if (turn.at * 1000 < since) return;
     if (turn.agent) annotate(line, `agent : ${turn.agent}`);
+    if (turn.notice) annotate(line, turn.notice);
+    if (turn.web?.offline)
+      annotate(line, "hors ligne : réponse sans recherche web");
     if (turn.projects.length) {
       annotate(line, `documentation : ${turn.projects.join(", ")}`);
     }
     if (turn.code?.length) showSpokenCode(line, turn.code);
+    if (turn.web?.sources) showWebSources(line, turn.web);
     if (turn.skipped?.length) {
       annotate(line, `non lu : ${turn.skipped.join(", ")}`);
     }
@@ -573,6 +594,7 @@ async function writtenReply() {
   // Orbe et statut seulement : l'écran reste « hors appel » (bouton Appeler intact)
   orb.setState("thinking");
   ui.status.textContent = "Je vous réponds à l'écrit…";
+  followSearch(true, "Je vous réponds à l'écrit…");
   try {
     const response = await fetch("api/chat", {
       method: "POST",
@@ -628,6 +650,7 @@ async function writtenReply() {
     if (answer) remember("assistant", answer);
     ui.status.textContent = STATUS_TEXT.idle;
   } finally {
+    followSearch(false);
     if (!call) orb.setState("idle");
     setWriting(false);
   }
@@ -669,6 +692,13 @@ ui.composer.addEventListener("submit", (event) => {
 });
 ui.composerContext.addEventListener("click", () => sendText(false));
 enableCodeCopy(ui.subtitles);
+// Mot-clé d'une réponse web : nouvelle recherche sur ce mot-clé
+ui.subtitles.addEventListener("click", (event) => {
+  const tag = event.target.closest(".tag");
+  if (!tag || writing) return;
+  ui.composerText.value = `Cherche sur internet : ${tag.dataset.tag}`;
+  sendText(true);
+});
 // Ligne d'information dans la conversation (document joint, refus…)
 function systemLine(text, error = false) {
   ui.empty?.remove();
@@ -691,6 +721,17 @@ const attachments = initAttachments({
         )
       : systemLine(text, true),
   onPropose: (documentId) => knowledgeUI.fromDocument(documentId),
+});
+
+initNet({
+  indicator: document.getElementById("net"),
+  onChange: (online) =>
+    systemLine(
+      online
+        ? "Connexion Internet rétablie : recherche web et modèles Claude disponibles."
+        : "Connexion Internet perdue : pas de recherche web, modèles locaux seulement.",
+      !online,
+    ),
 });
 
 const knowledgeUI = initKnowledge({

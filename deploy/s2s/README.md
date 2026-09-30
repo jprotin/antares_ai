@@ -67,6 +67,33 @@ Mesuré (gemma4:e4b, moteur vocal chargé) : 48 800 tokens lus en entier en 17,6
 (repères début / milieu / fin retrouvés). Fichiers : 15 Mo au maximum, images 5 Mo.
 Stockage : `/data/documents` (volume `antares-router-data`).
 
+## Recherche web et connexion Internet
+
+Un pictogramme en haut de l'écran d'appel indique la connexion : **Internet** (vert) ou
+**Hors ligne** (barré). Le routeur la teste toutes les 30 s (`WEB_PROBE_URLS`).
+
+- **Connecté** : une question sur l'actuel (« dernier », « aujourd'hui », « prix »,
+  « météo », « version », une année…) ou une demande explicite (« cherche sur
+  internet… ») déclenche une recherche : SearXNG local (conteneur `antares-searxng`,
+  sans clé ni compte), puis lecture des 3 premières pages. Le LLM reçoit les extraits,
+  la date du jour et cite ses sources `[1]`. Le statut affiche « Je cherche sur
+  internet… » (pas de phrase d'attente) ; ~1 à 3 s de plus avant le premier mot.
+- **Réponse enrichie** : renvois `[n]` cliquables, bloc **Sources** (titre, site,
+  extrait ; lien dans un nouvel onglet), **mots-clés** demandés ensuite au modèle local
+  (un clic relance une recherche). À l'oral, sources et mots-clés s'affichent sans être
+  lus. « sans chercher » dans la question l'évite.
+- **Hors ligne** : modèles Claude grisés (un modèle Claude choisi est remplacé par le
+  modèle local par défaut, signalé sous la réponse). Une question qui aurait demandé une
+  recherche commence par « Je n'ai plus accès à internet, je ne peux pas faire de
+  recherche. Je vous réponds d'après mes connaissances… » (phrase imposée par le
+  routeur), puis le LLM répond simplement.
+
+Confidentialité : le texte de la question part vers les moteurs de recherche (via
+SearXNG). L'audio et le moteur vocal restent isolés (`check-local.sh`). Seules les pages
+publiques sont lues (pas d'adresse privée, taille et durée bornées) ; leur contenu est
+donné au LLM comme donnée, jamais comme consigne. Simuler une coupure :
+`WEB_PROBE_URLS=https://offline.invalid docker compose up -d llm-router`.
+
 ## Fiches de connaissance (enrichir le RAG)
 
 Rien n'est indexé automatiquement. **Proposer au RAG** (en-tête de la conversation) ou

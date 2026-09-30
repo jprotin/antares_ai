@@ -155,6 +155,10 @@ services:
       RAG_LIMIT: *rag-limit
       # Fiches de connaissance : écriture dans le RAG (jeton recopié par install.sh)
       RAG_WRITE_TOKEN: ${RAG_WRITE_TOKEN:-}
+      # Recherche web (cf. router/web.py) : SearXNG local ; la connexion est testée
+      # régulièrement sur ces adresses (HEAD, 3 s)
+      SEARXNG_URL: http://searxng:8080
+      WEB_PROBE_URLS: ${WEB_PROBE_URLS:-https://www.wikipedia.org,https://duckduckgo.com}
     extra_hosts:
       - host.docker.internal:host-gateway
     volumes:
@@ -170,7 +174,21 @@ services:
       interval: 15s
       timeout: 5s
       start_period: 20s
-    networks: [antares-local, ai-assistant-net]
+    networks: [antares-local, ai-assistant-net, antares-search]
+
+  # Métamoteur de recherche web (interroge DuckDuckGo, Brave, Wikipédia…), sans clé ni
+  # compte. Joignable par le routeur seul ; le moteur vocal n'y a pas accès.
+  searxng:
+    image: searxng/searxng:2026.9.30-a9d990033
+    container_name: antares-searxng
+    restart: unless-stopped
+    environment:
+      SEARXNG_SECRET: ${SEARXNG_SECRET:?lancer install.sh}
+    volumes:
+      - ./searxng/settings.yml:/etc/searxng/settings.yml:ro
+    cap_drop: [ALL]
+    cap_add: [CHOWN, SETGID, SETUID, DAC_OVERRIDE]
+    networks: [antares-search]
 
 networks:
   antares-local:
@@ -180,6 +198,9 @@ networks:
     name: antares-edge
   antares-download:
     name: antares-download
+  # Accès Internet de la recherche web (SearXNG et routeur)
+  antares-search:
+    name: antares-search
   ai-assistant-net:
     external: true
 
