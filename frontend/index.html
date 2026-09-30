@@ -220,8 +220,12 @@
           <div class="settings__options" id="model-options"></div>
           <p class="settings__hint">
             Changer de modèle le charge en mémoire : la première réponse peut
-            prendre quelques secondes de plus.
+            prendre quelques secondes de plus. Les modèles viennent des
+            fournisseurs déclarés dans les Connexions.
           </p>
+          <button type="button" class="button-ghost" id="open-connections">
+            Connexions (Ollama, LiteLLM, API…)
+          </button>
         </fieldset>
 
         <fieldset class="settings__group">
@@ -418,6 +422,100 @@
         <div class="agents__list" id="knowledge-cards"></div>
         <footer class="settings__actions dialog__footer">
           <button type="button" class="button-primary" id="knowledge-close">
+            Fermer
+          </button>
+        </footer>
+      </div>
+    </dialog>
+
+    <dialog
+      class="settings agents"
+      id="connections"
+      aria-labelledby="connections-title"
+    >
+      <div class="settings__form">
+        <header class="settings__header dialog__header">
+          <h2 id="connections-title">Connexions</h2>
+          <p>
+            Fournisseurs de modèles : Ollama (sur cette machine ou ailleurs),
+            LiteLLM ou toute API compatible OpenAI. Leurs modèles apparaissent
+            dans les Réglages.
+          </p>
+        </header>
+        <div class="agents__list" id="providers-list"></div>
+
+        <form class="agent-form" id="provider-form" hidden>
+          <h3 id="provider-form-title">Nouveau fournisseur</h3>
+          <div class="agent-form__row">
+            <label
+              >Nom
+              <input id="provider-name" required maxlength="60" />
+            </label>
+            <label
+              >Identifiant (préfixe des modèles)
+              <input
+                id="provider-id"
+                required
+                pattern="[a-z0-9][a-z0-9-]{0,31}"
+                maxlength="32"
+              />
+            </label>
+          </div>
+          <div class="agent-form__row">
+            <label
+              >Type
+              <select id="provider-type">
+                <option value="ollama">Ollama</option>
+                <option value="openai">
+                  API compatible OpenAI (LiteLLM, OpenAI, Mistral…)
+                </option>
+              </select>
+            </label>
+            <label
+              >Adresse
+              <input id="provider-url" required maxlength="300" />
+            </label>
+          </div>
+          <label
+            >Clé d'API (optionnelle)
+            <input
+              id="provider-key"
+              type="password"
+              autocomplete="off"
+              maxlength="400"
+            />
+          </label>
+          <label class="checkbox"
+            ><input type="checkbox" id="provider-local" /> Service local (cette
+            machine ou ton réseau) : sinon « hors local », coupé hors ligne et
+            pendant un partage</label
+          >
+          <label class="checkbox"
+            ><input type="checkbox" id="provider-noreasoning" /> Couper le
+            raisonnement (gemma4, qwen3 via Ollama ou LiteLLM : sinon plusieurs
+            secondes de réflexion silencieuse avant le premier mot)</label
+          >
+          <label class="checkbox"
+            ><input type="checkbox" id="provider-enabled" /> Actif</label
+          >
+          <p class="settings__hint" id="provider-result" role="status"></p>
+          <footer class="settings__actions">
+            <button type="button" class="button-ghost" id="provider-cancel">
+              Annuler
+            </button>
+            <button type="button" class="button-ghost" id="provider-test">
+              Tester
+            </button>
+            <button type="submit" class="button-primary">Enregistrer</button>
+          </footer>
+        </form>
+
+        <p class="settings__error" id="connections-error" role="alert"></p>
+        <footer class="settings__actions dialog__footer">
+          <button type="button" class="button-ghost" id="provider-new">
+            Ajouter un fournisseur
+          </button>
+          <button type="button" class="button-primary" id="connections-close">
             Fermer
           </button>
         </footer>

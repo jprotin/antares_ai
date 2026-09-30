@@ -158,12 +158,46 @@ bloc pour une question banale). Le code s'affiche à la fin de la réponse vocal
 Depuis l'interface : bouton **Réglages** (roue dentée). Le choix est appliqué dès la
 phrase suivante, même en cours d'appel, et persisté par le routeur LLM.
 
-- **Modèle** : tout modèle de chat installé dans Ollama (`docker exec ollama ollama pull …`).
+- **Modèle** : la liste est construite à la volée à partir des **fournisseurs** déclarés
+  dans Réglages → **Connexions** (groupée par fournisseur, rafraîchie toutes les 30 s).
 - **Voix** : liée à l'avatar (cf. Modes et apparence), voix clonées décrites dans
   `voices/voices.json`. Pour en ajouter une, déposer
   un extrait `.wav` propre (5 à 15 s, une seule voix) dans `voices/` et l'ajouter au
   catalogue (`id`, `name`, `gender`, `file`, `source`, `avatars`). Le nom et le genre servent à
   la consigne donnée au LLM (« Tu es Mr Antares, un assistant… »).
+
+### Connexions : fournisseurs de modèles
+
+Réglages → **Connexions (Ollama, LiteLLM, API…)** : ajouter, tester, modifier ou retirer
+un fournisseur. Types :
+
+- **Ollama** (sur cette machine ou ailleurs) : liste native (taille, paramètres),
+  préchargement, contexte long pour les documents joints ;
+- **API compatible OpenAI** : LiteLLM, vLLM, OpenAI, Mistral, Groq… (`GET /models`,
+  `POST /chat/completions` ; l'adresse inclut `/v1`).
+
+Chaque modèle s'appelle `<fournisseur>/<modèle>` (ex. `ollama/gemma4:e4b`,
+`litellm/local-gemma`) ; les anciens noms sans fournisseur désignent `ollama`. Un
+fournisseur déclaré **hors local** (case décochée) est signalé comme tel, et ses
+modèles sont coupés hors ligne et pendant un partage (repli sur le modèle par défaut).
+« Tester » affiche la latence et les modèles trouvés, ou l'erreur.
+
+**Couper le raisonnement** (option par fournisseur, cochée par défaut s'il est local) :
+gemma4 et qwen3 « réfléchissent » en silence si on ne le leur interdit pas. Via LiteLLM,
+qui retire `reasoning_effort` (`drop_params`), c'était 3 à 30 s avant le premier mot ;
+l'option envoie `reasoning_effort: none` en l'autorisant explicitement
+(`allowed_openai_params`), et LiteLLM retombe à 0,3 s comme Ollama direct (mesuré).
+À décocher pour une API externe qui refuserait le paramètre. « Tester » mesure aussi le
+premier mot et signale un modèle qui réfléchit ou trop lent.
+
+En local, **Ollama direct** reste le meilleur chemin : LiteLLM sert les mêmes modèles, il
+n'apporte rien de plus ici ; il est utile pour regrouper des API externes et leurs clés.
+Sur 12 Go de VRAM, gemma4:26b (18,6 Go) déborde sur le processeur et se recharge à
+chaque changement de modèle (~18 s).
+
+La configuration est dans `/data/connections.json` (volume du routeur, lisible par lui
+seul), initialisée depuis `OLLAMA_URL` au premier lancement. Les clés d'API ne sont
+jamais renvoyées à l'interface (« clé définie »). Écriture refusée pendant un partage.
 
 ### Claude Code comme modèle (hors local)
 

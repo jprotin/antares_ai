@@ -39,21 +39,23 @@ import uvicorn
 from urllib.parse import unquote
 
 from fastapi import FastAPI, HTTPException, Request, Response
-from fastapi.responses import StreamingResponse
+from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 from starlette.background import BackgroundTask
 
 import agents
 import claude
+import connections
 import documents
 import knowledge
 import modes
+import providers
 import rag
 import voicecode
 import web
 
-OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://ollama:11434")
-DEFAULT_MODEL = os.environ["DEFAULT_MODEL"]
+# Modèle par défaut (repli hors ligne, partage) : nom complet <fournisseur>/<modèle>
+DEFAULT_MODEL = providers.normalize(os.environ["DEFAULT_MODEL"])
 SETTINGS_PATH = Path(os.environ.get("SETTINGS_PATH", "/data/settings.json"))
 # Partage en cours (tunnel ngrok, cf. share.sh) : fichier posé le temps du partage.
 # Claude (abonnement de l'utilisateur) et l'écriture dans le RAG sont alors bloqués.
@@ -70,7 +72,6 @@ logging.basicConfig(
 logger = logging.getLogger("router")
 
 app = FastAPI(title="antares llm-router", docs_url=None, redoc_url=None)
-client = httpx.AsyncClient(base_url=OLLAMA_URL, timeout=httpx.Timeout(10, read=None))
 
 
 class Settings(BaseModel):
@@ -103,9 +104,12 @@ def load_settings() -> Settings:
     if not SETTINGS_PATH.exists():
         return defaults
     stored = json.loads(SETTINGS_PATH.read_text(encoding="utf-8"))
-    return defaults.model_copy(
+    settings = defaults.model_copy(
         update={k: v for k, v in stored.items() if k in Settings.model_fields}
     )
+    # Réglages antérieurs aux fournisseurs : « gemma4:e4b » -> « ollama/gemma4:e4b »
+    settings.model = providers.normalize(settings.model)
+    return settings
 
 
 def save_settings(settings: Settings) -> None:
@@ -116,7 +120,10 @@ def save_settings(settings: Settings) -> None:
 
 
 def load_observed() -> dict:
-    return json.loads(OBSERVED_PATH.read_text()) if OBSERVED_PATH.exists() else {}
+    if not OBSERVED_PATH.exists():
+        return {}
+    stored = json.loads(OBSERVED_PATH.read_text())
+    return {providers.normalize(name): value for name, value in stored.items()}
 
 
 def record_observed(model: str, ttft: float, speed: float | None) -> None:
@@ -168,8 +175,19 @@ def sharing() -> bool:
     return SHARING_FLAG.exists()
 
 
-def claude_available() -> bool:
+def external_allowed() -> bool:
+    """Services hors local (Claude, API externes) : connectés et hors partage."""
     return web.online() and not sharing()
+
+
+def claude_available() -> bool:
+    return external_allowed()
+
+
+async def model_available(name: str) -> bool:
+    if claude.is_claude(name):
+        return claude_available()
+    return any(m["name"] == name and m["available"] for m in await chat_models())
 
 
 def refuse_while_sharing() -> None:
@@ -177,31 +195,18 @@ def refuse_while_sharing() -> None:
         raise HTTPException(403, "Désactivé pendant un partage (tunnel ngrok ouvert)")
 
 
-async def chat_models() -> list[dict]:
-    tags = (await client.get("/api/tags")).json().get("models", [])
-    loaded = {m["name"] for m in (await client.get("/api/ps")).json().get("models", [])}
+async def chat_models(force: bool = False) -> list[dict]:
+    """Modèles de tous les fournisseurs (cf. providers.py), puis Claude (bridge)."""
     observed = load_observed()
-    models = []
-    for tag in tags:
-        show = (await client.post("/api/show", json={"model": tag["name"]})).json()
-        if "completion" not in show.get("capabilities", []):
-            continue
-        models.append(
-            {
-                "name": tag["name"],
-                "label": tag["name"],
-                "provider": "ollama",
-                "sizeGb": round(tag["size"] / 1e9, 1),
-                "parameterSize": tag.get("details", {}).get("parameter_size"),
-                "loaded": tag["name"] in loaded,
-                "observed": observed.get(tag["name"]),
-            }
-        )
-    models.sort(key=lambda m: m["sizeGb"])
+    models = [
+        {**m, "observed": observed.get(m["name"])}
+        for m in await providers.list_models(external_allowed(), force)
+    ]
     for model in await claude.available_models():
         models.append(
             {
                 **model,
+                "local": False,
                 "loaded": True,
                 "observed": observed.get(model["name"]),
                 # Claude passe par Internet (indisponible hors ligne) et utilise
@@ -210,24 +215,6 @@ async def chat_models() -> list[dict]:
             }
         )
     return models
-
-
-async def preload(model: str) -> None:
-    """Charge et préchauffe le modèle : sans génération réelle, la 1re réponse prend ~10 s."""
-    try:
-        await client.post(
-            "/api/generate",
-            json={
-                "model": model,
-                "prompt": "Bonjour",
-                "keep_alive": "30m",
-                "think": False,
-                "options": {"num_predict": 1},
-            },
-        )
-        logger.info("Modèle préchargé : %s", model)
-    except httpx.HTTPError as exc:
-        logger.warning("Préchargement de %s impossible : %s", model, exc)
 
 
 @app.on_event("startup")
@@ -254,38 +241,106 @@ class TagsRequest(BaseModel):
 async def web_tags(request: TagsRequest) -> dict:
     """Mots-clés d'une réponse issue d'une recherche web (modèle local, après coup)."""
     model = load_settings().model
-    if claude.is_claude(model):
+    if claude.is_claude(model) or not await model_available(model):
         model = DEFAULT_MODEL
     try:
-        response = await client.post(
-            "/api/chat",
-            json={
-                "model": model,
-                "messages": [
-                    {"role": "system", "content": web.TAGS_PROMPT},
-                    {
-                        "role": "user",
-                        "content": f"Question : {request.question}\n\n"
-                        f"Réponse : {request.answer[:6000]}",
-                    },
-                ],
-                "stream": False,
-                "think": False,
-                "format": "json",
-                "keep_alive": "30m",
-                "options": {"temperature": 0.2, "num_predict": 80},
-            },
-            timeout=httpx.Timeout(30),
+        answer = await providers.complete(
+            model,
+            [
+                {"role": "system", "content": web.TAGS_PROMPT},
+                {
+                    "role": "user",
+                    "content": f"Question : {request.question}\n\n"
+                    f"Réponse : {request.answer[:6000]}",
+                },
+            ],
+            json_mode=True,
+            max_tokens=80,
+            temperature=0.2,
+            timeout=30,
         )
-        return {"tags": web.parse_tags(response.json()["message"]["content"])}
-    except (httpx.HTTPError, KeyError, ValueError) as exc:
+        return {"tags": web.parse_tags(answer)}
+    except (httpx.HTTPError, KeyError, ValueError, LookupError) as exc:
         logger.warning("Mots-clés indisponibles : %s", exc)
         return {"tags": []}
 
 
 @app.get("/api/models")
-async def list_models() -> list[dict]:
-    return await chat_models()
+async def list_models(refresh: bool = False) -> list[dict]:
+    return await chat_models(force=refresh)
+
+
+# --- Connexions (fournisseurs de modèles) -----------------------------------------------
+
+
+class ProviderDraft(connections.Provider):
+    # Clé vide à l'enregistrement : la clé déjà enregistrée est conservée
+    keep_key: bool = True
+
+
+@app.get("/api/connections")
+async def get_connections() -> dict:
+    await chat_models()  # état des fournisseurs à jour (cache court)
+    return {
+        "providers": [connections.public(p) for p in connections.providers()],
+        "status": providers.status(),
+        "defaultModel": DEFAULT_MODEL,
+        "types": list(connections.PROVIDER_TYPES),
+    }
+
+
+@app.put("/api/connections/providers/{provider_id}")
+async def save_provider(provider_id: str, draft: ProviderDraft) -> dict:
+    refuse_while_sharing()
+    if draft.id != provider_id:
+        raise HTTPException(422, "identifiant incohérent")
+    saved = connections.upsert(
+        connections.Provider(**draft.model_dump(exclude={"keep_key"})), draft.keep_key
+    )
+    providers.invalidate()
+    return connections.public(saved)
+
+
+@app.delete("/api/connections/providers/{provider_id}", status_code=204)
+async def delete_provider(provider_id: str) -> Response:
+    refuse_while_sharing()
+    if providers.split(DEFAULT_MODEL)[0] == provider_id:
+        raise HTTPException(
+            422, f"Fournisseur du modèle par défaut ({DEFAULT_MODEL}) : non supprimable"
+        )
+    try:
+        connections.remove(provider_id)
+    except KeyError as exc:
+        raise HTTPException(404, "fournisseur inconnu") from exc
+    providers.invalidate()
+    return Response(status_code=204)
+
+
+@app.post("/api/connections/test")
+async def test_provider(draft: ProviderDraft) -> dict:
+    """Teste un fournisseur (enregistré ou non) : modèles trouvés, durée, erreur."""
+    refuse_while_sharing()
+    provider = connections.Provider(**draft.model_dump(exclude={"keep_key"}))
+    if draft.keep_key and not provider.api_key:
+        stored = {p.id: p for p in connections.providers()}.get(provider.id)
+        provider.api_key = stored.api_key if stored else ""
+    models, error, seconds = await providers.probe(provider)
+    # Premier mot sur le premier modèle (chargement compris) : révèle un raisonnement
+    # silencieux ou un modèle trop gros pour la VRAM
+    first = (
+        await providers.first_token(provider, models[0]["model"])
+        if models and not error
+        else None
+    )
+    return {
+        "ok": error is None,
+        "error": error,
+        "seconds": round(seconds, 2),
+        "count": len(models),
+        "models": [m["model"] for m in models][:12],
+        "firstToken": first,
+        "firstModel": models[0]["model"] if models else None,
+    }
 
 
 @app.get("/api/settings")
@@ -296,9 +351,16 @@ async def get_settings() -> Settings:
 @app.put("/api/settings")
 async def update_settings(update: SettingsUpdate) -> Settings:
     settings = load_settings()
+    if update.model is not None:
+        update.model = providers.normalize(update.model)
     if update.model is not None and update.model != settings.model:
-        if update.model not in {m["name"] for m in await chat_models()}:
+        known = {m["name"]: m for m in await chat_models()}
+        if update.model not in known:
             raise HTTPException(422, f"Modèle inconnu : {update.model}")
+        if not known[update.model]["available"] and not claude.is_claude(update.model):
+            raise HTTPException(
+                422, "Modèle externe indisponible (hors ligne ou partage en cours)"
+            )
         if claude.is_claude(update.model) and not claude_available():
             raise HTTPException(
                 422,
@@ -306,7 +368,7 @@ async def update_settings(update: SettingsUpdate) -> Settings:
             )
         settings.model = update.model
         if not claude.is_claude(update.model):
-            asyncio.create_task(preload(update.model))
+            asyncio.create_task(providers.preload(update.model))
     if update.voice is not None:
         if update.voice not in {v["id"] for v in voice_catalog()["voices"]}:
             raise HTTPException(422, f"Voix inconnue : {update.voice}")
@@ -350,6 +412,8 @@ async def turn_last() -> dict:
 async def check_agent(draft: agents.AgentDraft) -> None:
     if draft.project and draft.project not in {p["id"] for p in await rag.projects()}:
         raise HTTPException(422, f"Projet inconnu : {draft.project}")
+    if draft.model:
+        draft.model = providers.normalize(draft.model)
     if draft.model and draft.model not in {m["name"] for m in await chat_models()}:
         raise HTTPException(422, f"Modèle inconnu : {draft.model}")
 
@@ -361,7 +425,11 @@ async def list_modes() -> list[modes.Mode]:
 
 @app.get("/api/agents")
 async def list_agents() -> list[agents.Agent]:
-    return agents.load()
+    # Modèle propre à l'agent : nom complet <fournisseur>/<modèle> (anciens noms inclus)
+    return [
+        a.model_copy(update={"model": providers.normalize(a.model)})
+        for a in agents.load()
+    ]
 
 
 @app.get("/api/agents/meta")
@@ -442,10 +510,18 @@ async def prepare(
     agent = agents.cited(rag.question(messages))
     if agent is None and settings.agent:
         agent = agents.find(settings.agent)
-    model = (agent.model if agent and agent.model else "") or settings.model
+    model = providers.normalize(
+        (agent.model if agent and agent.model else "") or settings.model
+    )
     notice = None
-    if claude.is_claude(model) and not claude_available():
-        reason = "partage en cours" if sharing() else "hors ligne"
+    if model != DEFAULT_MODEL and not await model_available(model):
+        reason = (
+            "partage en cours"
+            if sharing()
+            else "hors ligne"
+            if not web.online()
+            else "modèle indisponible"
+        )
         notice = f"{reason} : {model} remplacé par le modèle local {DEFAULT_MODEL}"
         model = DEFAULT_MODEL
 
@@ -567,7 +643,7 @@ class DraftRequest(BaseModel):
 async def ask_llm(system: str, user: str) -> str:
     """Réponse complète (non diffusée) du modèle actif, pour une tâche de rédaction."""
     model = load_settings().model
-    if claude.is_claude(model) and not claude_available():
+    if not await model_available(model):
         model = DEFAULT_MODEL
     messages = [
         {"role": "system", "content": system},
@@ -575,19 +651,7 @@ async def ask_llm(system: str, user: str) -> str:
     ]
     if claude.is_claude(model):
         return await claude.ask(model, messages, spoken=False)
-    response = await client.post(
-        "/api/chat",
-        json={
-            "model": model,
-            "messages": messages,
-            "stream": False,
-            "think": False,
-            "format": "json",
-            "keep_alive": "30m",
-        },
-        timeout=httpx.Timeout(10, read=300),
-    )
-    return response.json().get("message", {}).get("content", "")
+    return await providers.complete(model, messages, json_mode=True)
 
 
 @app.post("/api/knowledge/draft")
@@ -678,33 +742,6 @@ def to_native(messages: list[dict]) -> list[dict]:
     return native
 
 
-async def native_stream(model: str, response: httpx.Response) -> AsyncIterator[bytes]:
-    """Flux NDJSON natif d'Ollama -> flux SSE `chat.completion.chunk` (même format)."""
-    async for line in response.aiter_lines():
-        if not line.strip():
-            continue
-        data = json.loads(line)
-        if data.get("error"):
-            logger.error("Ollama (contexte long) : %s", data["error"])
-            break
-        content = data.get("message", {}).get("content")
-        finish = "stop" if data.get("done") else None
-        if content or finish:
-            payload = {
-                "object": "chat.completion.chunk",
-                "model": model,
-                "choices": [
-                    {
-                        "index": 0,
-                        "delta": {"content": content or ""},
-                        "finish_reason": finish,
-                    }
-                ],
-            }
-            yield f"data: {json.dumps(payload, ensure_ascii=False)}\n\n".encode()
-    yield b"data: [DONE]\n\n"
-
-
 async def with_prefix(
     model: str, prefix: str, chunks: AsyncIterator[bytes]
 ) -> AsyncIterator[bytes]:
@@ -735,54 +772,24 @@ async def written_chat(request: ChatRequest) -> StreamingResponse:
             ),
             media_type="text/event-stream",
         )
-    if usage["tokens"] > documents.LONG_CONTEXT_FROM:
-        # Contexte long : l'API /v1 ne transmet pas num_ctx, seule l'API native le fait
-        upstream = await client.send(
-            client.build_request(
-                "POST",
-                "/api/chat",
-                json={
-                    "model": model,
-                    "messages": to_native(messages),
-                    "stream": True,
-                    "think": False,
-                    "keep_alive": "30m",
-                    "options": {"num_ctx": documents.LONG_CONTEXT},
-                },
-            ),
-            stream=True,
-        )
+    long_context = usage["tokens"] > documents.LONG_CONTEXT_FROM
+    provider, _ = providers.resolve(model)
+    native = long_context and provider.type == "ollama"
+    if native:
+        # Contexte long : l'API /v1 d'Ollama ne transmet pas num_ctx, l'API native oui
         logger.info("Contexte long : ~%d tokens de documents", usage["tokens"])
-        return StreamingResponse(
-            with_prefix(
-                model,
-                usage["prefix"],
-                measure(model, start, native_stream(model, upstream)),
-            ),
-            status_code=upstream.status_code,
-            media_type="text/event-stream",
-            background=BackgroundTask(upstream.aclose),
-        )
-    upstream = await client.send(
-        client.build_request(
-            "POST",
-            "/v1/chat/completions",
-            json={
-                "model": model,
-                "messages": messages,
-                "stream": True,
-                # Comme pour la voix : pas de raisonnement (gemma4 réfléchit par défaut)
-                "reasoning_effort": "none",
-            },
-        ),
-        stream=True,
+    upstream = await providers.open_stream(
+        model,
+        {"messages": to_native(messages) if native else messages},
+        native_ctx=documents.LONG_CONTEXT if native else None,
+    )
+    chunks = (
+        providers.native_stream(model, upstream) if native else upstream.aiter_raw()
     )
     return StreamingResponse(
-        with_prefix(
-            model, usage["prefix"], measure(model, start, upstream.aiter_raw())
-        ),
+        with_prefix(model, usage["prefix"], measure(model, start, chunks)),
         status_code=upstream.status_code,
-        media_type=upstream.headers.get("content-type"),
+        media_type="text/event-stream",
         background=BackgroundTask(upstream.aclose),
     )
 
@@ -817,27 +824,16 @@ async def relay(path: str, request: Request) -> StreamingResponse:
             ),
             media_type="text/event-stream",
         )
-    if "model" in payload:
-        payload["model"] = model
-        body = json.dumps(payload).encode()
-    upstream = await client.send(
-        client.build_request(
-            request.method,
-            f"/v1/{path}",
-            content=body,
-            headers={
-                "content-type": request.headers.get("content-type", "application/json")
-            },
-        ),
-        stream=True,
-    )
-    chunks = upstream.aiter_raw()
-    if chat:
-        chunks = voicecode.filter_sse(chunks, keep_code)
+    if path == "models":
+        return JSONResponse({"object": "list", "data": [{"id": model}]})
+    if not chat:
+        raise HTTPException(404, f"/v1/{path} non relayé")
+    upstream = await providers.open_stream(model, payload)
+    chunks = voicecode.filter_sse(upstream.aiter_raw(), keep_code)
     return StreamingResponse(
         with_prefix(model, prefix, measure(model, start, chunks)),
         status_code=upstream.status_code,
-        media_type=upstream.headers.get("content-type"),
+        media_type="text/event-stream",
         background=BackgroundTask(upstream.aclose),
     )
 
