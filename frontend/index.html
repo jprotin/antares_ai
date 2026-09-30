@@ -132,14 +132,6 @@
             <button
               type="button"
               class="button-ghost"
-              id="launch-action"
-              title="Confier une tâche à un agent d'action (Claude, hors local) : il modifie les fichiers d'un projet sur une branche à part"
-            >
-              Lancer un agent
-            </button>
-            <button
-              type="button"
-              class="button-ghost"
               id="composer-context"
               title="Ajoute le texte à la conversation sans demander de réponse"
             >
@@ -331,23 +323,6 @@
               <select id="agent-model"></select>
             </label>
           </div>
-          <div class="agent-form__row">
-            <label
-              >Type
-              <select id="agent-kind">
-                <option value="consigne">
-                  Consigne (répond dans la conversation)
-                </option>
-                <option value="action">
-                  Action (modifie les fichiers d'un projet)
-                </option>
-              </select>
-            </label>
-            <label id="agent-repo-label"
-              >Projet du worker (action)
-              <select id="agent-repo"></select>
-            </label>
-          </div>
           <p class="settings__hint">
             Un modèle différent de celui des Réglages est chargé en mémoire à la
             première réponse de l'agent : quelques secondes de plus.
@@ -438,56 +413,6 @@
           </button>
         </footer>
       </div>
-    </dialog>
-
-    <dialog
-      class="settings agents"
-      id="action-launch"
-      aria-labelledby="action-launch-title"
-    >
-      <form class="settings__form" id="action-form">
-        <header class="settings__header dialog__header">
-          <h2 id="action-launch-title">Lancer un agent d'action</h2>
-          <p>
-            L'agent travaille avec Claude (<strong>hors local</strong>) sur une
-            branche <code>agent/…</code> du projet : fichiers seulement, sans
-            commande, sans push ni fusion.
-          </p>
-        </header>
-        <div class="agent-form">
-          <div class="agent-form__row">
-            <label
-              >Agent
-              <select id="action-agent" required></select>
-            </label>
-            <label
-              >Projet
-              <select id="action-project" required></select>
-            </label>
-          </div>
-          <p class="settings__hint" id="action-agent-detail"></p>
-          <label
-            >Tâche
-            <textarea
-              id="action-task"
-              rows="5"
-              required
-              minlength="5"
-              maxlength="4000"
-              placeholder="Ex. : ajoute au README une section Licence (MIT)."
-            ></textarea>
-          </label>
-          <p class="settings__error" id="action-error" role="alert"></p>
-        </div>
-        <footer class="settings__actions dialog__footer">
-          <button type="button" class="button-ghost" id="action-cancel">
-            Annuler
-          </button>
-          <button type="submit" class="button-primary" id="action-submit">
-            Lancer
-          </button>
-        </footer>
-      </form>
     </dialog>
 
     <audio id="preview" preload="none"></audio>

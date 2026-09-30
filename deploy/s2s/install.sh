@@ -40,10 +40,9 @@ check_prerequisites() {
 # Jetons recopiés depuis ai-to-boost, tous optionnels :
 #   BRIDGE_TOKEN    -> CLAUDE_BRIDGE_TOKEN : modèles Claude dans l'interface
 #   RAG_WRITE_TOKEN -> RAG_WRITE_TOKEN     : indexation des fiches de connaissance
-#   AGENT_TOKEN     -> AGENT_TOKEN         : agents d'action (worker Claude Code)
 ensure_tokens() {
   local source target token lines=""
-  for pair in BRIDGE_TOKEN:CLAUDE_BRIDGE_TOKEN RAG_WRITE_TOKEN:RAG_WRITE_TOKEN AGENT_TOKEN:AGENT_TOKEN; do
+  for pair in BRIDGE_TOKEN:CLAUDE_BRIDGE_TOKEN RAG_WRITE_TOKEN:RAG_WRITE_TOKEN; do
     source="${pair%%:*}"
     target="${pair##*:}"
     token="$(grep -E "^${source}=" "${AI_TO_BOOST_ENV}" 2>/dev/null | cut -d= -f2- || true)"

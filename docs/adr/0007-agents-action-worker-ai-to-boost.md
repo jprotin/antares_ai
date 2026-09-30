@@ -1,9 +1,15 @@
 # 0007 — Agents d'action : worker ai-to-boost en mode fichiers, lancement vocal confirmé
 
-- **Status** : accepted
+- **Status** : deprecated (fonctionnalité retirée le 2026-09-30 : pas de besoin réel)
 - **Date** : 2026-09-30
 - **Auteur(s)** : jprotin
 - **Tags** : agents, sécurité, voix
+
+## Retrait
+
+Implémentée puis retirée le jour même : l'utilisateur n'a pas l'usage de tâches
+confiées à un worker produisant des branches git. Le code reste dans l'historique
+(commit 7077711) si le besoin revient.
 
 ## Contexte
 

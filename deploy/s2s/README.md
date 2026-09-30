@@ -159,31 +159,10 @@ réponse), et en option un projet (documentation RAG) et un modèle.
   son modèle, s'il diffère des Réglages, est chargé à sa première réponse.
 
 Les fiches sont stockées par le routeur (`/data/agents.json`, volume
-`antares-router-data`). Un catalogue de 31 agents (`router/catalogue.json`, dont 3 d'action) est créé
+`antares-router-data`). Un catalogue de 28 agents (`router/catalogue.json`) est créé
 au premier lancement ; pour l'ajouter à une installation existante :
 `docker exec -w /app antares-llm-router python -c "import agents; agents.seed_catalogue()"`.
 L'agent utilisé s'affiche sous la réponse.
-
-### Agents d'action (hors local)
-
-Un agent de type **Action** ne répond pas : il confie une tâche au worker agentique
-d'ai-to-boost (`claude -p` avec outils, service de l'hôte, port 8089), qui modifie les
-fichiers d'un projet dans un worktree, sur une branche `agent/<id>`. **Fichiers
-seulement** (pas de commande shell), jamais de push ni de fusion : la branche est à relire
-puis fusionner soi-même. Le texte de la tâche part chez Anthropic (badge « hors local »).
-
-- **À l'écrit** : **Lancer un agent** (sous la saisie) → agent, projet du worker, tâche.
-- **À la voix** (ou à l'écrit) : « lance l'agent Documentaliste sur le projet microHabit,
-  pour ajouter une section licence au README ». L'assistant répète la tâche et attend
-  « oui » (« non » annule) ; aucun LLM n'intervient dans ce dialogue.
-- Une carte suit l'action dans la conversation (en cours, résumé, fichiers modifiés,
-  branche) ; pendant un appel, l'assistant annonce la fin à voix haute.
-
-Trois exemples au catalogue : **Documentaliste**, **Auteur de tests** (sans pouvoir les
-exécuter), **Correcteur**. Le projet se prend dans la phrase, sinon celui de l'agent,
-sinon le projet choisi dans l'interface. Suivi : `/data/actions.json` (50 dernières).
-Prérequis : `AGENT_TOKEN` (recopié par `install.sh`) et projets initialisés dans
-ai-to-boost (marqueur `.ai-to-boost/`).
 
 ### Modes et apparence
 

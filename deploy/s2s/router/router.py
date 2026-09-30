@@ -18,9 +18,6 @@
                    avec le même mode, agent et documentation que la voix.
 - /api/documents : documents joints à la conversation (cf. documents.py) : envoi (corps
                    brut + en-tête X-Filename), liste, retrait.
-- /api/actions   : agents d'action (cf. actions.py) : lancement d'une tâche sur le
-                   worker d'ai-to-boost, suivi ; projets du worker. « lance l'agent X… »
-                   dans la conversation est traité sans LLM (confirmation par « oui »).
 - /api/knowledge : fiches de connaissance (cf. knowledge.py) : rédaction par le LLM,
                    fiches proches, indexation relue, obsolescence, suppression.
 - /healthz       : sonde de santé.
@@ -43,7 +40,6 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 from starlette.background import BackgroundTask
 
-import actions
 import agents
 import claude
 import documents
@@ -242,10 +238,7 @@ async def update_settings(update: SettingsUpdate) -> Settings:
             raise HTTPException(422, f"Projet inconnu : {update.project}")
         settings.project = update.project
     if update.agent is not None:
-        chosen = agents.find(update.agent) if update.agent else None
-        if chosen and chosen.kind == "action":
-            raise HTTPException(422, "Un agent d'action se lance, il ne se choisit pas")
-        if update.agent and chosen is None:
+        if update.agent and agents.find(update.agent) is None:
             raise HTTPException(422, f"Agent inconnu : {update.agent}")
         settings.agent = update.agent
     if update.mode is not None:
@@ -279,10 +272,6 @@ async def check_agent(draft: agents.AgentDraft) -> None:
         raise HTTPException(422, f"Projet inconnu : {draft.project}")
     if draft.model and draft.model not in {m["name"] for m in await chat_models()}:
         raise HTTPException(422, f"Modèle inconnu : {draft.model}")
-    if draft.kind == "action" and draft.repo:
-        known = await actions.projects()
-        if known and actions.resolve_project(known, draft.repo) is None:
-            raise HTTPException(422, f"Projet inconnu du worker : {draft.repo}")
 
 
 @app.get("/api/modes")
@@ -600,45 +589,6 @@ async def native_stream(model: str, response: httpx.Response) -> AsyncIterator[b
     yield b"data: [DONE]\n\n"
 
 
-# --- Agents d'action ------------------------------------------------------------------
-
-
-class LaunchRequest(BaseModel):
-    agent_id: str
-    task: str
-    project: str = ""
-
-
-@app.get("/api/actions/projects")
-async def action_projects() -> dict:
-    return {"enabled": actions.enabled(), "projects": sorted(await actions.projects())}
-
-
-@app.get("/api/actions")
-async def action_list() -> list[dict]:
-    return await actions.refresh()
-
-
-@app.post("/api/actions", status_code=201)
-async def action_launch(request: LaunchRequest) -> dict:
-    agent = agents.find(request.agent_id)
-    if agent is None:
-        raise HTTPException(404, "Agent inconnu")
-    try:
-        return await actions.launch(
-            agent, request.task, request.project or load_settings().project or ""
-        )
-    except actions.ActionError as exc:
-        raise HTTPException(422, str(exc)) from exc
-
-
-async def canned(model: str, text: str) -> AsyncIterator[bytes]:
-    """Réponse fixe au format `chat.completion.chunk` (sans passer par un LLM)."""
-    yield claude._chunk(model, text)
-    yield claude._chunk(model, finish="stop")
-    yield b"data: [DONE]\n\n"
-
-
 class ChatRequest(BaseModel):
     messages: list[dict]
 
@@ -648,11 +598,6 @@ async def written_chat(request: ChatRequest) -> StreamingResponse:
     """Réponse écrite : même préparation que la voix, flux `chat.completion.chunk`."""
     start = time.monotonic()
     settings = load_settings()
-    reply = await actions.intercept(request.messages, settings.project or "")
-    if reply:
-        return StreamingResponse(
-            canned(settings.model, reply), media_type="text/event-stream"
-        )
     messages, model, usage = await prepare(request.messages, settings, spoken=False)
     if claude.is_claude(model):
         return StreamingResponse(
@@ -725,11 +670,6 @@ async def relay(path: str, request: Request) -> StreamingResponse:
     if chat and "messages" in payload:
         # Voix : l'historique du moteur ne contient que le texte prononcé
         messages = voicecode.restore(payload["messages"])
-        reply = await actions.intercept(messages, settings.project or "")
-        if reply:
-            return StreamingResponse(
-                canned(model, reply), media_type="text/event-stream"
-            )
         payload["messages"], model, _ = await prepare(messages, settings)
     if claude.is_claude(model):
         if not chat:

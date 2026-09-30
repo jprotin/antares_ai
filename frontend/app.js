@@ -1,7 +1,6 @@
 // Écran d'appel : micro -> serveur Realtime (WebSocket) -> voix + sous-titres.
 // Protocole : sous-ensemble OpenAI Realtime implémenté par huggingface/speech-to-speech.
 
-import { initActions } from "./actions.js";
 import { initAgentsDialog } from "./agents.js";
 import { initAttachments } from "./attachments.js";
 import { initKnowledge } from "./knowledge.js";
@@ -694,32 +693,6 @@ const attachments = initAttachments({
   onPropose: (documentId) => knowledgeUI.fromDocument(documentId),
 });
 
-// Fin d'un agent d'action pendant un appel : l'assistant l'annonce à voix haute
-function announceAction(action) {
-  if (call?.ws.readyState !== WebSocket.OPEN) return;
-  const outcome =
-    action.status === "done"
-      ? `a terminé. Son résumé : ${(action.summary || "aucun").slice(0, 800)}`
-      : `a échoué : ${action.error || "erreur du worker"}`;
-  const text =
-    `[Notification] L'agent ${action.agent}, sur le projet ${action.project}, ` +
-    `${outcome}\nAnnonce-le en une ou deux phrases, sans lire de nom de fichier.`;
-  call.ws.send(
-    JSON.stringify(messageItem(`msg_action${Date.now()}`, "user", text)),
-  );
-  if (call.responseDone) {
-    requestResponse();
-  } else {
-    call.pendingTextResponse = true;
-  }
-}
-
-initActions({
-  lines: ui.subtitles,
-  beforeAppend: () => ui.empty?.remove(),
-  onFinished: announceAction,
-});
-
 const knowledgeUI = initKnowledge({
   notify: (text, error = false) => systemLine(text, error),
   historyFor: () => recentHistory(),
@@ -801,9 +774,7 @@ const modePicker = createPicker({
 });
 
 function renderPickers() {
-  const { modes, settings } = profile;
-  // Les agents d'action se lancent (bouton ou voix), ils ne se choisissent pas
-  const agents = profile.agents.filter((agent) => agent.kind !== "action");
+  const { agents, modes, settings } = profile;
   const mode = modes.find((m) => m.id === settings?.mode) ?? modes[0];
   const item = (agent) => ({
     value: agent.id,
