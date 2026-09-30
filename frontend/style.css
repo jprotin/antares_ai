@@ -1557,3 +1557,29 @@ body {
 .option__voices[hidden] {
   display: none;
 }
+
+/* --- Connexions ------------------------------------------------------------------ */
+
+.option__group {
+  margin: 0.4rem 0 0;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.option__group:first-child {
+  margin-top: 0;
+}
+
+.agent-form .checkbox {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+}
+.agent-form .checkbox input {
+  width: auto;
+  margin-top: 0.2rem;
+  accent-color: var(--accent);
+}

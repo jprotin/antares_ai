@@ -2,6 +2,7 @@
 // Protocole : sous-ensemble OpenAI Realtime implémenté par huggingface/speech-to-speech.
 
 import { initAgentsDialog } from "./agents.js";
+import { initConnections } from "./connections.js";
 import { initAttachments } from "./attachments.js";
 import { initKnowledge } from "./knowledge.js";
 import { Avatar } from "./avatar.js";
@@ -926,13 +927,15 @@ function renderPickers() {
   theme.setDomain(active?.domain);
 }
 
-initSettingsDialog({
+const settingsDialog = initSettingsDialog({
   avatar: orb,
   onApplied: () => {
     renderProfile();
     sendVoiceSession();
   },
 });
+
+initConnections({ onChanged: () => settingsDialog.refreshModels() });
 
 initAgentsDialog({
   onChanged: async () => {

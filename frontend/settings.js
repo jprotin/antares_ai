@@ -126,15 +126,17 @@ export async function loadProfile() {
 // suffisent pour suivre la parole : au-delà de 15, la réponse ne prend pas de retard.
 function modelBadge(model) {
   const observed = model.observed;
+  if (model.available === false) return ["badge--unknown", "indisponible"];
   if (model.provider === "claude") {
-    if (model.available === false) return ["badge--unknown", "hors ligne"];
     const delay = observed
       ? ` · ~${Math.round(observed.ttft)} s par réponse`
       : "";
     return ["badge--cloud", `hors local${delay}`];
   }
   if (!observed) {
-    return ["badge--unknown", "pas encore utilisé"];
+    return model.local === false
+      ? ["badge--cloud", "hors local"]
+      : ["badge--unknown", "pas encore utilisé"];
   }
   const speed = `${Math.round(observed.speed)} tok/s · 1er mot ${observed.ttft.toFixed(1).replace(".", ",")} s`;
   return [observed.speed >= 15 ? "badge--gpu" : "badge--slow", speed];
@@ -144,7 +146,10 @@ function modelDetail(model) {
   if (model.provider === "claude") {
     return "Claude Code (abonnement) · la conversation écrite est envoyée à Anthropic";
   }
-  return `${model.parameterSize ?? "?"} paramètres · ${model.sizeGb} Go`;
+  if (model.provider === "openai") {
+    return `${model.providerName} (API compatible OpenAI)${model.local ? "" : " · hors local"}`;
+  }
+  return `${model.providerName ?? "Ollama"} · ${model.parameterSize ?? "?"} paramètres · ${model.sizeGb} Go`;
 }
 
 export function modelLabel(name) {
@@ -152,7 +157,11 @@ export function modelLabel(name) {
     const model = name.slice("claude:".length);
     return `Claude ${model.charAt(0).toUpperCase()}${model.slice(1)} (hors local)`;
   }
-  return name ?? "?";
+  // « fournisseur/modèle » : le modèle, suivi du fournisseur s'il n'est pas Ollama
+  const [provider, ...rest] = (name ?? "?").split("/");
+  if (!rest.length) return name ?? "?";
+  const model = rest.join("/");
+  return provider === "ollama" ? model : `${model} (${provider})`;
 }
 
 export function agentLabel(agentId) {
@@ -262,23 +271,37 @@ export function initSettingsDialog({ avatar, onApplied }) {
   async function renderModels() {
     modelOptions.textContent = "Chargement de la liste…";
     const models = await getJson("api/models");
+    // Groupés par fournisseur, dans l'ordre de la liste (Ollama, API, Claude)
+    const groups = [];
+    for (const model of models) {
+      const key = model.providerName ?? "Claude (abonnement)";
+      let group = groups.find((g) => g.key === key);
+      if (!group) groups.push((group = { key, models: [] }));
+      group.models.push(model);
+    }
     modelOptions.replaceChildren(
-      ...models.map((model) => {
-        const [variant, text] = modelBadge(model);
-        const badge = document.createElement("span");
-        badge.className = `badge ${variant}`;
-        badge.textContent = text;
-        return optionRow({
-          name: "model",
-          value: model.name,
-          checked: model.name === profile.settings.model,
-          title: model.label ?? model.name,
-          detail: modelDetail(model),
-          trailing: badge,
-          // Claude passe par Internet : indisponible hors ligne
-          disabled: model.available === false,
-        });
-      }),
+      ...groups.flatMap(({ key, models: list }) => [
+        Object.assign(document.createElement("p"), {
+          className: "option__group",
+          textContent: key,
+        }),
+        ...list.map((model) => {
+          const [variant, text] = modelBadge(model);
+          const badge = document.createElement("span");
+          badge.className = `badge ${variant}`;
+          badge.textContent = text;
+          return optionRow({
+            name: "model",
+            value: model.name,
+            checked: model.name === profile.settings.model,
+            title: model.label ?? model.name,
+            detail: modelDetail(model),
+            trailing: badge,
+            // Modèles hors local : indisponibles hors ligne et pendant un partage
+            disabled: model.available === false,
+          });
+        }),
+      ]),
     );
   }
 
@@ -362,6 +385,12 @@ export function initSettingsDialog({ avatar, onApplied }) {
       apply.disabled = false;
     }
   });
+
+  // Après un changement de connexions : liste des modèles à jour
+  return {
+    refreshModels: () =>
+      renderModels().catch((err) => (error.textContent = err.message)),
+  };
 }
 
 // Enregistre un réglage (agent, mode…) choisi hors de la fenêtre Réglages
