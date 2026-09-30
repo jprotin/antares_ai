@@ -247,13 +247,32 @@ async function annotateSources(line, since) {
 
 // --- Lecture de la réponse -----------------------------------------------------
 
-// Effet de lecture propre à une voix (voices.json : "effect"). « robot » : écho court
-// de 7 ms et bande 110-6500 Hz, le même filtre que l'extrait choisi à l'écoute
-// (ffmpeg aecho=0.8:0.55:7:0.45,highpass=110,lowpass=6500,volume=1.1).
+// Effets de lecture propres à une voix (voices.json : "effect"), reproduisant les filtres
+// des extraits choisis à l'écoute :
+// - robot  : ffmpeg aecho=0.8:0.55:7:0.45,highpass=110,lowpass=6500,volume=1.1
+// - cyborg : asetrate ×0.92 (plus grave et plus lent), aecho=0.8:0.6:4|9:0.4|0.25,
+//            highpass=90, lowpass=4500, volume=1.2
+const VOICE_EFFECTS = {
+  robot: {
+    rate: 1,
+    inGain: 0.8,
+    outGain: 0.55 * 1.1,
+    echoes: [[0.007, 0.45]],
+    band: [110, 6500],
+  },
+  cyborg: {
+    rate: 0.92,
+    inGain: 0.8,
+    outGain: 0.6 * 1.2,
+    echoes: [
+      [0.004, 0.4],
+      [0.009, 0.25],
+    ],
+    band: [90, 4500],
+  },
+};
+
 function createVoiceEffect(ctx, input, output) {
-  const dry = ctx.createGain();
-  input.connect(dry).connect(output);
-  const robot = ctx.createGain();
   const gain = (value) => {
     const node = ctx.createGain();
     node.gain.value = value;
@@ -265,24 +284,39 @@ function createVoiceEffect(ctx, input, output) {
     node.frequency.value = frequency;
     return node;
   };
-  const inGain = gain(0.8);
-  const delay = ctx.createDelay(0.05);
-  delay.delayTime.value = 0.007;
-  const decay = gain(0.45);
-  const mix = gain(0.55 * 1.1);
-  const highpass = filter("highpass", 110);
-  const lowpass = filter("lowpass", 6500);
-  input.connect(inGain);
-  inGain.connect(mix);
-  inGain.connect(delay).connect(decay).connect(mix);
-  mix.connect(highpass).connect(lowpass).connect(robot).connect(output);
-  return {
-    set(effect) {
-      const on = effect === "robot";
-      dry.gain.value = on ? 0 : 1;
-      robot.gain.value = on ? 1 : 0;
+  const dry = gain(1);
+  input.connect(dry).connect(output);
+  const chains = {};
+  for (const [name, preset] of Object.entries(VOICE_EFFECTS)) {
+    const inGain = gain(preset.inGain);
+    const mix = gain(preset.outGain);
+    const on = gain(0);
+    input.connect(inGain);
+    inGain.connect(mix);
+    for (const [seconds, decay] of preset.echoes) {
+      const delay = ctx.createDelay(0.05);
+      delay.delayTime.value = seconds;
+      inGain.connect(delay).connect(gain(decay)).connect(mix);
+    }
+    mix
+      .connect(filter("highpass", preset.band[0]))
+      .connect(filter("lowpass", preset.band[1]))
+      .connect(on)
+      .connect(output);
+    chains[name] = on;
+  }
+  const effect = {
+    rate: 1,
+    set(name) {
+      const preset = VOICE_EFFECTS[name];
+      dry.gain.value = preset ? 0 : 1;
+      for (const [key, on] of Object.entries(chains)) {
+        on.gain.value = key === name ? 1 : 0;
+      }
+      effect.rate = preset?.rate ?? 1;
     },
   };
+  return effect;
 }
 
 function enqueuePlayback(samples) {
@@ -291,10 +325,12 @@ function enqueuePlayback(samples) {
   buffer.copyToChannel(samples, 0);
   const source = ctx.createBufferSource();
   source.buffer = buffer;
+  // Effet « cyborg » : lecture ralentie, donc plus grave
+  source.playbackRate.value = call.voiceEffect.rate;
   source.connect(call.voiceInput);
   const startAt = Math.max(ctx.currentTime + 0.03, call.playhead);
   source.start(startAt);
-  call.playhead = startAt + buffer.duration;
+  call.playhead = startAt + buffer.duration / call.voiceEffect.rate;
   call.sources.add(source);
   source.onended = () => {
     call?.sources.delete(source);

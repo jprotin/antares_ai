@@ -3,14 +3,14 @@
   "voices": [
     {
       "id": "sohee",
-      "name": "Sarah Connor",
+      "name": "Miss Antares",
       "gender": "F",
       "file": "sohee.wav",
       "source": "Qwen3-TTS CustomVoice, locutrice sohee"
     },
     {
       "id": "ryan",
-      "name": "Terminator",
+      "name": "Mr Antares",
       "gender": "M",
       "file": "ryan.wav",
       "source": "Qwen3-TTS CustomVoice, locuteur ryan"
@@ -24,6 +24,16 @@
       "effect": "robot",
       "preview": "bender-robot.wav",
       "avatar": "bender"
+    },
+    {
+      "id": "terminator",
+      "name": "Terminator",
+      "gender": "M",
+      "file": "terminator.wav",
+      "source": "voix synthétique Qwen3-TTS VoiceDesign (décrite, sans imiter d'acteur), effet cyborg à la lecture",
+      "effect": "cyborg",
+      "preview": "terminator-cyborg.wav",
+      "avatar": "face3d"
     }
   ]
 }
