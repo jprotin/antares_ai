@@ -18,6 +18,11 @@ docker compose up -d    # ensuite, hors ligne
 
 Interface d'appel : <http://127.0.0.1:8765>
 
+Les dépendances Python de l'image sont figées dans `constraints.txt` (ensemble validé) :
+une reconstruction ne tire aucune nouvelle version. `qwentts-cpp-python` 0.4.2 plante sur
+le poste de dev (« Illegal instruction ») ; pour monter de version, reconstruire, passer
+`./smoke-test.sh`, puis régénérer le fichier (`uv pip freeze` dans le conteneur).
+
 Navigateur recommandé : **Firefox**. Sous Chrome, la voix se dégrade au fil d'un appel
 laissé ouvert (constaté sur le poste de dev ; l'audio envoyé par le serveur reste net).
 

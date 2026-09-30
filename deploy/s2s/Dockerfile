@@ -25,9 +25,12 @@ RUN apt-get update \
         python3-venv \
     && rm -rf /var/lib/apt/lists/*
 
+# Dépendances figées (constraints.txt) : une reconstruction reprend l'ensemble validé,
+# sans tirer de nouvelle version (qwentts-cpp-python 0.4.2 casse la synthèse ici).
+COPY constraints.txt /tmp/constraints.txt
 RUN python3 -m venv /opt/venv \
     && pip install --no-cache-dir uv==0.12.20 \
-    && uv pip install --no-cache --prerelease=allow \
+    && uv pip install --no-cache --prerelease=allow --constraint /tmp/constraints.txt \
         "speech-to-speech[pocket,kokoro,supertonic]==${S2S_VERSION}"
 
 # Ressources NLTK embarquées dans l'image : aucun nltk.download() au démarrage.
