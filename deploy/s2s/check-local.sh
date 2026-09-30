@@ -63,4 +63,4 @@ fi
   echo "${failures} vérification(s) en échec"
   exit 1
 }
-echo "100 % local : vérifié"
+echo "Moteur vocal 100 % local : vérifié (seuls le routeur et SearXNG accèdent à Internet, pour la recherche web et Claude)"

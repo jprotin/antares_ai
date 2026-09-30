@@ -89,7 +89,16 @@ affiché.
 - Un document trop long, un PDF scanné ou un format inconnu est **refusé avec la raison**,
   plutôt que tronqué sans prévenir.
 
-### 3.5 Fiches de connaissance
+### 3.5 Recherche web et connexion
+
+- Un **indicateur de connexion** Internet est affiché en permanence.
+- Connecté : les questions sur l'actuel (ou « cherche sur internet… ») déclenchent une
+  **recherche web** ; la réponse cite ses sources (renvois cliquables, bloc Sources,
+  mots-clés cliquables qui relancent une recherche).
+- Hors ligne : seuls les modèles locaux sont proposés ; l'IA prévient que la recherche
+  est impossible, puis répond simplement d'après ses connaissances.
+
+### 3.6 Fiches de connaissance
 
 - Depuis une conversation ou un document joint, l'assistant **rédige une fiche** (faits
   et décisions durables) que l'utilisateur **relit et corrige** avant de l'indexer dans
@@ -98,7 +107,7 @@ affiché.
   une **date de validité** optionnelle retire la fiche des recherches une fois passée.
 - Un panneau **Connaissances** liste les fiches par projet et permet de les retirer.
 
-### 3.6 Agents et modes
+### 3.7 Agents et modes
 
 - **Agents** : fiches de consignes réutilisables (rôle, méthode, format de réponse), avec
   un domaine, une utilité et, en option, un projet et un modèle. Un **catalogue de 28
@@ -112,7 +121,7 @@ affiché.
   Expert technique, Cool / Relax, Incident / Astreinte, Coach / Formateur,
   Brainstorming, Avocat du diable. Un mode place en tête les agents utiles (« Suggérés »).
 
-### 3.7 Documentation des projets (RAG)
+### 3.8 Documentation des projets (RAG)
 
 - La documentation indexée par ai-to-boost (collections `knowledge` et `proj-<projet>`)
   est consultée si un **projet est choisi** dans les Réglages, ou si la question **cite un
@@ -120,7 +129,7 @@ affiché.
 - Les extraits pertinents sont ajoutés à la consigne ; les projets consultés s'affichent
   sous la réponse (et, à l'écrit, dans le bloc Références).
 
-### 3.8 Apparence
+### 3.9 Apparence
 
 - **Thème** clair, sombre ou celui du système.
 - **Nuance de couleur** selon le domaine de l'agent actif (teinte seulement, dans une plage
@@ -155,10 +164,12 @@ la stack ai-to-boost.
 | **ollama**        | ai-to-boost                              | LLM locaux (gemma4:e4b par défaut, gemma4:26b, qwen3.5:9b…), API OpenAI `/v1`.                                                                                                                        |
 | **rag / qdrant**  | ai-to-boost                              | Recherche sémantique (FastEmbed nomic 768d) dans les collections `knowledge` et `proj-*`.                                                                                                             |
 | **claude-bridge** | service systemd de l'hôte (ai-to-boost)  | Option Claude : exécute `claude -p` sur l'abonnement de l'utilisateur.                                                                                                                                |
+| **searxng**       | SearXNG (conteneur antares)              | Recherche web : métamoteur local sans clé ; interrogé par le routeur seul.                                                                                                                            |
 
 **Modules du routeur** : `router.py` (API, préparation de la consigne, relais),
 `documents.py` (extraction, limites, injection des documents joints), `knowledge.py`
-(fiches de connaissance : rédaction, anti-doublon, indexation), `rag.py`
+(fiches de connaissance : rédaction, anti-doublon, indexation), `web.py` (connexion,
+recherche web, lecture des pages), `rag.py`
 (projets, recherche, injection), `agents.py` + `catalogue.json` (agents), `modes.py`
 (modes), `voicecode.py` (code retiré de la voix, restauré en mémoire), `claude.py` (pont
 Claude). Le module `qwen3_sampling.py`, chargé dans l'image s2s, règle le tirage de la
@@ -195,12 +206,15 @@ en flux SSE, rendue en Markdown au fil de l'eau.
 | `antares-edge`     | bridge                | web                          | Publication du port `127.0.0.1:8765` vers l'hôte uniquement. |
 | `ai-assistant-net` | externe (ai-to-boost) | llm-router                   | Accès à Ollama, rag et qdrant.                               |
 | `antares-download` | bridge                | warmup                       | Téléchargement des modèles à l'installation.                 |
+| `antares-search`   | bridge                | searxng, llm-router          | Recherche web : SearXNG et lecture des pages par le routeur. |
 
 Le moteur s2s, qui traite l'audio, n'est branché que sur `antares-local` et tourne en mode
 hors ligne Hugging Face : même mal configuré, il ne peut rien envoyer à l'extérieur.
 `check-local.sh` le prouve (Hugging Face, OpenAI et 1.1.1.1 injoignables). Le seul flux
-sortant possible est l'**option Claude**, choisie explicitement et signalée « hors local »
-dans l'interface ; l'audio et la transcription restent locaux dans tous les cas.
+sortant est celui du routeur : l'**option Claude**, choisie explicitement et signalée
+« hors local », et la **recherche web** (texte de la question vers SearXNG et les moteurs
+publics, pages lues par le routeur). L'audio et la transcription restent locaux dans tous
+les cas.
 
 ### 4.5 Données et configuration
 
@@ -223,24 +237,25 @@ rechargement (quelques secondes) et évince le modèle précédent.
 
 ## 5. Choix techniques
 
-| Sujet                  | Choix                                                                                     | Alternatives écartées                                   | Justification (mesures)                                                                                                                                                                        | Réf.     |
-| ---------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
-| Moteur temps réel      | huggingface/speech-to-speech 1.0.0 conteneurisé                                           | cascade maison (Pipecat), modèle speech-to-speech natif | Premier appel fonctionnel en un jour ; API Realtime compatible OpenAI ; texte à chaque étape (sous-titres). Les modèles natifs sont faibles en français et incompatibles avec Ollama / Claude. | ADR 0001 |
-| Transport audio        | WebSocket (API Realtime)                                                                  | WebRTC                                                  | Compatible avec un accès distant futur via ngrok (pas d'UDP).                                                                                                                                  | ADR 0001 |
-| Transcription          | Parakeet TDT                                                                              | faster-whisper (speaches)                               | ~25 ms par phrase, bon français.                                                                                                                                                               | ADR 0001 |
-| LLM                    | Ollama **en direct** via le routeur, gemma4:e4b par défaut                                | LiteLLM                                                 | LiteLLM perd `reasoning_effort=none` en streaming (latence ×3). e4b : ~1,0 s ; 26b : 2,1-3,5 s, meilleure qualité.                                                                             | ADR 0001 |
-| Synthèse vocale        | Qwen3-TTS 1.7B Base **Q8_0**, voix **clonée** `sohee`                                     | Kokoro, Piper, locuteurs prédéfinis                     | Clonage : similarité de timbre 0,965 contre 0,81. BF16 ne tient pas en VRAM.                                                                                                                   | ADR 0001 |
-| Régularité de la voix  | tirage T 0.3, top_k 10, **pénalité de répétition 1.2**, plafond 1,5 trame/caractère       | tirage amont (0.9 / 50)                                 | Écart-type de hauteur 24 → 14 Hz ; emballements (voix qui déraille jusqu'à 28 s) 7/120 → 0/120.                                                                                                | ADR 0001 |
-| Claude                 | option via le claude-bridge (`claude -p`)                                                 | clé d'API Anthropic                                     | Règle héritée d'ai-to-boost (ADR 0002 d'ai-to-boost) ; ~7 s par réponse.                                                                                                                       | ADR 0001 |
-| Documentation          | RAG d'ai-to-boost, projet **choisi ou cité**                                              | seuil de score, outil appelé par le LLM                 | Scores non discriminants (0,645 question projet, 0,611 recette). Recherche 40-100 ms, +0,1 s au premier mot.                                                                                   | ADR 0002 |
-| Agents                 | fiches « consignes » locales, choisies ou citées                                          | agents d'action (worker), choix par le LLM              | Aucune latence ajoutée (0,40 s au premier mot) ; agents d'action essayés puis retirés (ADR 0007).                                                                                              | ADR 0003 |
-| Modes et apparence     | mode = ton ; couleur = domaine de l'agent ; thème clair / sombre                          | couleur par mode, fusion modes / agents                 | Deux choix à un clic sur l'écran d'appel, charte cohérente (teinte seule).                                                                                                                     | ADR 0004 |
-| Écrit                  | `/api/chat` du routeur, conversation unique                                               | session Realtime sans micro                             | Pas de voix ni de place d'appel occupée ; 1er mot ~0,4 s ; historique rejoué au moteur vocal (vérifié).                                                                                        | —        |
-| Rendu                  | marked + DOMPurify + highlight.js **servis localement**                                   | CDN                                                     | CSP `script-src 'self'`, fonctionnement hors ligne, HTML nettoyé (injections neutralisées).                                                                                                    | —        |
-| Code à l'oral          | blocs retirés du flux vocal par le routeur, restaurés dans l'historique                   | laisser le LLM lire le code                             | Règle placée en tête de consigne : SQL 0/3 → 12/12 ; sans restauration, le modèle cesse d'écrire des blocs (0/3 contre 3/3).                                                                   | —        |
-| Interface              | page statique sans framework, servie par nginx                                            | React / Next.js                                         | Surface minimale, aucun build, tout local.                                                                                                                                                     | —        |
-| Documents joints       | lecture intégrale dans la consigne ; contexte long à l'écrit ; refus au-delà              | RAG sur le document, troncature                         | Ollama tronque sans prévenir ; 65 536 tient sur le GPU avec le moteur vocal (48 800 tokens lus en entier, 17,6 s).                                                                             | ADR 0005 |
-| Fiches de connaissance | rédigées par le LLM, **relues** avant indexation, via une API d'écriture du service `rag` | indexation automatique, index propre à antares          | Ne pas polluer le RAG ; une seule chaîne d'embeddings ; obsolescence et validité filtrées à la recherche.                                                                                      | ADR 0006 |
+| Sujet                  | Choix                                                                                         | Alternatives écartées                                           | Justification (mesures)                                                                                                                                                                        | Réf.     |
+| ---------------------- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- |
+| Moteur temps réel      | huggingface/speech-to-speech 1.0.0 conteneurisé                                               | cascade maison (Pipecat), modèle speech-to-speech natif         | Premier appel fonctionnel en un jour ; API Realtime compatible OpenAI ; texte à chaque étape (sous-titres). Les modèles natifs sont faibles en français et incompatibles avec Ollama / Claude. | ADR 0001 |
+| Transport audio        | WebSocket (API Realtime)                                                                      | WebRTC                                                          | Compatible avec un accès distant futur via ngrok (pas d'UDP).                                                                                                                                  | ADR 0001 |
+| Transcription          | Parakeet TDT                                                                                  | faster-whisper (speaches)                                       | ~25 ms par phrase, bon français.                                                                                                                                                               | ADR 0001 |
+| LLM                    | Ollama **en direct** via le routeur, gemma4:e4b par défaut                                    | LiteLLM                                                         | LiteLLM perd `reasoning_effort=none` en streaming (latence ×3). e4b : ~1,0 s ; 26b : 2,1-3,5 s, meilleure qualité.                                                                             | ADR 0001 |
+| Synthèse vocale        | Qwen3-TTS 1.7B Base **Q8_0**, voix **clonée** `sohee`                                         | Kokoro, Piper, locuteurs prédéfinis                             | Clonage : similarité de timbre 0,965 contre 0,81. BF16 ne tient pas en VRAM.                                                                                                                   | ADR 0001 |
+| Régularité de la voix  | tirage T 0.3, top_k 10, **pénalité de répétition 1.2**, plafond 1,5 trame/caractère           | tirage amont (0.9 / 50)                                         | Écart-type de hauteur 24 → 14 Hz ; emballements (voix qui déraille jusqu'à 28 s) 7/120 → 0/120.                                                                                                | ADR 0001 |
+| Claude                 | option via le claude-bridge (`claude -p`)                                                     | clé d'API Anthropic                                             | Règle héritée d'ai-to-boost (ADR 0002 d'ai-to-boost) ; ~7 s par réponse.                                                                                                                       | ADR 0001 |
+| Documentation          | RAG d'ai-to-boost, projet **choisi ou cité**                                                  | seuil de score, outil appelé par le LLM                         | Scores non discriminants (0,645 question projet, 0,611 recette). Recherche 40-100 ms, +0,1 s au premier mot.                                                                                   | ADR 0002 |
+| Agents                 | fiches « consignes » locales, choisies ou citées                                              | agents d'action (worker), choix par le LLM                      | Aucune latence ajoutée (0,40 s au premier mot) ; agents d'action essayés puis retirés (ADR 0007).                                                                                              | ADR 0003 |
+| Modes et apparence     | mode = ton ; couleur = domaine de l'agent ; thème clair / sombre                              | couleur par mode, fusion modes / agents                         | Deux choix à un clic sur l'écran d'appel, charte cohérente (teinte seule).                                                                                                                     | ADR 0004 |
+| Écrit                  | `/api/chat` du routeur, conversation unique                                                   | session Realtime sans micro                                     | Pas de voix ni de place d'appel occupée ; 1er mot ~0,4 s ; historique rejoué au moteur vocal (vérifié).                                                                                        | —        |
+| Rendu                  | marked + DOMPurify + highlight.js **servis localement**                                       | CDN                                                             | CSP `script-src 'self'`, fonctionnement hors ligne, HTML nettoyé (injections neutralisées).                                                                                                    | —        |
+| Code à l'oral          | blocs retirés du flux vocal par le routeur, restaurés dans l'historique                       | laisser le LLM lire le code                                     | Règle placée en tête de consigne : SQL 0/3 → 12/12 ; sans restauration, le modèle cesse d'écrire des blocs (0/3 contre 3/3).                                                                   | —        |
+| Interface              | page statique sans framework, servie par nginx                                                | React / Next.js                                                 | Surface minimale, aucun build, tout local.                                                                                                                                                     | —        |
+| Documents joints       | lecture intégrale dans la consigne ; contexte long à l'écrit ; refus au-delà                  | RAG sur le document, troncature                                 | Ollama tronque sans prévenir ; 65 536 tient sur le GPU avec le moteur vocal (48 800 tokens lus en entier, 17,6 s).                                                                             | ADR 0005 |
+| Fiches de connaissance | rédigées par le LLM, **relues** avant indexation, via une API d'écriture du service `rag`     | indexation automatique, index propre à antares                  | Ne pas polluer le RAG ; une seule chaîne d'embeddings ; obsolescence et validité filtrées à la recherche.                                                                                      | ADR 0006 |
+| Recherche web          | SearXNG local, déclenchement sur l'actuel ou sur demande, date seulement lors d'une recherche | API Brave (clé), décision par le LLM à chaque question (+0,5 s) | Sans clé ni compte ; aucune latence ajoutée aux autres questions ; hors ligne, phrase imposée par le routeur.                                                                                  | ADR 0008 |
 
 ## 6. Annexes : limites connues et suite
 

@@ -102,6 +102,7 @@ export async function loadProfile() {
 function modelBadge(model) {
   const observed = model.observed;
   if (model.provider === "claude") {
+    if (model.available === false) return ["badge--unknown", "hors ligne"];
     const delay = observed
       ? ` · ~${Math.round(observed.ttft)} s par réponse`
       : "";
@@ -140,11 +141,19 @@ export function projectLabel(project) {
   return project || "aucun (projet cité par son nom)";
 }
 
-function optionRow({ name, value, checked, title, detail, trailing }) {
+function optionRow({
+  name,
+  value,
+  checked,
+  title,
+  detail,
+  trailing,
+  disabled = false,
+}) {
   const label = document.createElement("label");
-  label.className = "option";
+  label.className = `option${disabled ? " option--disabled" : ""}`;
   const input = document.createElement("input");
-  Object.assign(input, { type: "radio", name, value, checked });
+  Object.assign(input, { type: "radio", name, value, checked, disabled });
   const text = document.createElement("span");
   const strong = document.createElement("span");
   strong.className = "option__title";
@@ -207,6 +216,8 @@ export function initSettingsDialog({ avatar, onApplied }) {
           title: model.label ?? model.name,
           detail: modelDetail(model),
           trailing: badge,
+          // Claude passe par Internet : indisponible hors ligne
+          disabled: model.available === false,
         });
       }),
     );

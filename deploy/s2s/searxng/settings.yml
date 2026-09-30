@@ -1,0 +1,35 @@
+---
+# SearXNG d'antares : instance privée interrogée par le routeur (format JSON).
+# Le secret vient de SEARXNG_SECRET (généré par install.sh).
+use_default_settings:
+  engines:
+    keep_only:
+      - duckduckgo
+      - brave
+      - bing
+      - startpage
+      - mojeek
+      - wikipedia
+      - wikidata
+
+general:
+  instance_name: antares-search
+  enable_metrics: false
+
+search:
+  safe_search: 0
+  autocomplete: ""
+  default_lang: fr
+  formats:
+    - html
+    - json
+
+server:
+  limiter: false
+  public_instance: false
+  image_proxy: false
+  method: GET
+
+outgoing:
+  request_timeout: 3.0
+  max_request_timeout: 6.0

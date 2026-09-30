@@ -53,6 +53,13 @@ ensure_tokens() {
     lines+="${target}=${token}"$'\n'
     log "${source} recopié dans .env"
   done
+  # Secret de SearXNG (recherche web) : conservé d'une installation à l'autre
+  token="$(grep -E "^SEARXNG_SECRET=" "${ENV_FILE}" 2>/dev/null | cut -d= -f2- || true)"
+  if [[ -z "${token}" ]]; then
+    token="$(head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+    log "SEARXNG_SECRET généré"
+  fi
+  lines+="SEARXNG_SECRET=${token}"$'\n'
   (
     umask 077
     printf '%s' "${lines}" >"${ENV_FILE}"

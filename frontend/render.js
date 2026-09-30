@@ -24,12 +24,31 @@ function escapeHtml(text) {
     .replaceAll('"', "&quot;");
 }
 
+export function tagsHtml(text) {
+  const tags = [
+    ...new Set(
+      text
+        .split(/[,\n]/)
+        .map((t) => t.trim().replace(/^#/, ""))
+        .filter(Boolean),
+    ),
+  ].slice(0, 8);
+  const buttons = tags.map(
+    (tag) =>
+      `<button type="button" class="tag" data-tag="${escapeHtml(tag)}" ` +
+      `title="Chercher « ${escapeHtml(tag)} » sur internet">#${escapeHtml(tag)}</button>`,
+  );
+  return `<div class="tags"><span class="tags__label">Mots-clés</span>${buttons.join("")}</div>`;
+}
+
 const marked = new Marked({
   gfm: true,
   breaks: true,
   renderer: {
     code({ text, lang }) {
       const language = (lang ?? "").trim().split(/\s+/)[0].toLowerCase();
+      // Mots-clés d'une réponse issue d'une recherche web : cliquables
+      if (language === "tags") return tagsHtml(text);
       const known = language && hljs.getLanguage(language);
       const body = known
         ? hljs.highlight(text, { language, ignoreIllegals: true }).value
