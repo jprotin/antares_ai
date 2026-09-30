@@ -214,9 +214,10 @@ L'agent utilisé s'affiche sous la réponse.
     l'autre ; grille de dents qui s'ouvre au rythme de la voix, pupilles carrées qui
     regardent, gorgées et bouffées de cigare au repos ;
   - **Orbe**.
-- **Voix** : Terminator (voix clonée `ryan`), Sarah Connor (voix clonée `sohee`) et
-  Bender ; les noms affichés et donnés au LLM viennent de `voices/voices.json`. Choisir
-  l'avatar Bender coche aussi sa voix (champ `avatar` du catalogue), modifiable.
+- **Voix** : Mr Antares (voix clonée `ryan`), Miss Antares (voix clonée `sohee`),
+  Terminator et Bender ; les noms affichés et donnés au LLM viennent de
+  `voices/voices.json`. Choisir l'avatar Cyborg 3D coche la voix Terminator, l'avatar
+  Bender la voix Bender (champ `avatar` du catalogue), modifiable.
 
 Les fenêtres se ferment d'un clic à l'extérieur ou avec Échap, et passent en plein
 écran sur mobile.
@@ -227,7 +228,7 @@ Les locuteurs prédéfinis de Qwen3-TTS (modèle CustomVoice) changent de timbre
 phrase à l'autre. Mesuré sur 10 phrases : similarité de timbre minimale 0,81-0,85 pour
 `sohee`, contre 0,965 une fois clonée (x-vector depuis un extrait, modèle Base).
 
-### Voix Bender : décrite, pas clonée d'un comédien
+### Voix Bender et Terminator : décrites, pas clonées d'un comédien
 
 La voix d'un personnage est celle de son comédien : on ne la clone pas. La voix Bender
 est **synthétique**, créée par Qwen3-TTS VoiceDesign à partir d'une description (« voix
@@ -240,6 +241,11 @@ l'interface (champ `effect: "robot"` : écho de 7 ms, bande 110-6500 Hz, cf.
 avec effet, joué par « Écouter » (champ `preview`). Génération : modèle
 `Qwen3-TTS-12Hz-1.7B-VoiceDesign` (GGUF Q8_0) avec le paramètre `instruct` du
 `Qwen3TTSHandler`, dans le conteneur s2s.
+
+La voix **Terminator** suit la même méthode, sans imiter l'acteur (ni timbre ni
+accent) : voix décrite « grave, timbre métallique et synthétique, monocorde, hachée »
+(`voices/terminator.wav`), effet **cyborg** à la lecture : lecture à 0,92 (plus grave et
+plus lente), échos de 4 et 9 ms, bande 90-4500 Hz. Aperçu : `terminator-cyborg.wav`.
 
 ### Pourquoi un tirage bridé
 
