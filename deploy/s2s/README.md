@@ -203,8 +203,9 @@ ai-to-boost (marqueur `.ai-to-boost/`).
     l'autre ; grille de dents qui s'ouvre au rythme de la voix, pupilles carrées qui
     regardent, gorgées et bouffées de cigare au repos ;
   - **Orbe**.
-- **Voix** : Terminator (voix clonée `ryan`) et Sarah Connor (voix clonée `sohee`) ; les
-  noms affichés et donnés au LLM viennent de `voices/voices.json`.
+- **Voix** : Terminator (voix clonée `ryan`), Sarah Connor (voix clonée `sohee`) et
+  Bender ; les noms affichés et donnés au LLM viennent de `voices/voices.json`. Choisir
+  l'avatar Bender coche aussi sa voix (champ `avatar` du catalogue), modifiable.
 
 Les fenêtres se ferment d'un clic à l'extérieur ou avec Échap, et passent en plein
 écran sur mobile.
@@ -214,6 +215,20 @@ Les fenêtres se ferment d'un clic à l'extérieur ou avec Échap, et passent en
 Les locuteurs prédéfinis de Qwen3-TTS (modèle CustomVoice) changent de timbre d'une
 phrase à l'autre. Mesuré sur 10 phrases : similarité de timbre minimale 0,81-0,85 pour
 `sohee`, contre 0,965 une fois clonée (x-vector depuis un extrait, modèle Base).
+
+### Voix Bender : décrite, pas clonée d'un comédien
+
+La voix d'un personnage est celle de son comédien : on ne la clone pas. La voix Bender
+est **synthétique**, créée par Qwen3-TTS VoiceDesign à partir d'une description (« voix
+masculine grave, résonance légèrement métallique, arrogante et effrontée »), puis clonée
+comme les autres pour stabiliser son timbre (`voices/bender.wav`).
+
+Le clonage ne garde que le timbre : l'effet robot est appliqué **à la lecture**, par
+l'interface (champ `effect: "robot"` : écho de 7 ms, bande 110-6500 Hz, cf.
+`createVoiceEffect` dans `frontend/app.js`). `voices/bender-robot.wav` est l'extrait
+avec effet, joué par « Écouter » (champ `preview`). Génération : modèle
+`Qwen3-TTS-12Hz-1.7B-VoiceDesign` (GGUF Q8_0) avec le paramètre `instruct` du
+`Qwen3TTSHandler`, dans le conteneur s2s.
 
 ### Pourquoi un tirage bridé
 

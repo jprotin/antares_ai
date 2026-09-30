@@ -227,13 +227,51 @@ async function annotateSources(line, since) {
 
 // --- Lecture de la réponse -----------------------------------------------------
 
+// Effet de lecture propre à une voix (voices.json : "effect"). « robot » : écho court
+// de 7 ms et bande 110-6500 Hz, le même filtre que l'extrait choisi à l'écoute
+// (ffmpeg aecho=0.8:0.55:7:0.45,highpass=110,lowpass=6500,volume=1.1).
+function createVoiceEffect(ctx, input, output) {
+  const dry = ctx.createGain();
+  input.connect(dry).connect(output);
+  const robot = ctx.createGain();
+  const gain = (value) => {
+    const node = ctx.createGain();
+    node.gain.value = value;
+    return node;
+  };
+  const filter = (type, frequency) => {
+    const node = ctx.createBiquadFilter();
+    node.type = type;
+    node.frequency.value = frequency;
+    return node;
+  };
+  const inGain = gain(0.8);
+  const delay = ctx.createDelay(0.05);
+  delay.delayTime.value = 0.007;
+  const decay = gain(0.45);
+  const mix = gain(0.55 * 1.1);
+  const highpass = filter("highpass", 110);
+  const lowpass = filter("lowpass", 6500);
+  input.connect(inGain);
+  inGain.connect(mix);
+  inGain.connect(delay).connect(decay).connect(mix);
+  mix.connect(highpass).connect(lowpass).connect(robot).connect(output);
+  return {
+    set(effect) {
+      const on = effect === "robot";
+      dry.gain.value = on ? 0 : 1;
+      robot.gain.value = on ? 1 : 0;
+    },
+  };
+}
+
 function enqueuePlayback(samples) {
   const { ctx } = call;
   const buffer = ctx.createBuffer(1, samples.length, SAMPLE_RATE);
   buffer.copyToChannel(samples, 0);
   const source = ctx.createBufferSource();
   source.buffer = buffer;
-  source.connect(call.outputGain);
+  source.connect(call.voiceInput);
   const startAt = Math.max(ctx.currentTime + 0.03, call.playhead);
   source.start(startAt);
   call.playhead = startAt + buffer.duration;
@@ -390,11 +428,14 @@ async function startCall() {
     // Sortie via un <audio> (et non ctx.destination) : le navigateur l'utilise
     // comme référence d'annulation d'écho, ce qui permet de lui couper la parole.
     const outputGain = ctx.createGain();
+    const voiceInput = ctx.createGain();
     const outputAnalyser = ctx.createAnalyser();
     const outputStream = ctx.createMediaStreamDestination();
     outputGain.connect(outputAnalyser);
     outputGain.connect(outputStream);
     ui.speaker.srcObject = outputStream.stream;
+    const voiceEffect = createVoiceEffect(ctx, voiceInput, outputGain);
+    voiceEffect.set(currentVoice()?.effect);
 
     const ws = new WebSocket(REALTIME_URL);
     call = {
@@ -405,6 +446,8 @@ async function startCall() {
       micAnalyser,
       outputGain,
       outputAnalyser,
+      voiceInput,
+      voiceEffect,
       sources: new Set(),
       playhead: 0,
       state: "connecting",
@@ -722,6 +765,7 @@ function renderProfile() {
 
 function sendVoiceSession() {
   if (call?.ws.readyState !== WebSocket.OPEN) return;
+  call.voiceEffect.set(currentVoice()?.effect);
   call.ws.send(
     JSON.stringify({
       type: "session.update",

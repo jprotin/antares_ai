@@ -37,6 +37,11 @@ export function voicePath(voice) {
   return `/voices/${voice.file}`;
 }
 
+// Extrait à écouter : avec l'effet de lecture de la voix, s'il y en a un
+export function previewPath(voice) {
+  return `/voices/${voice.preview ?? voice.file}`;
+}
+
 // À l'écrit, la mise en forme est rendue (render.js) : Markdown encouragé
 const WRITTEN_INSTRUCTIONS =
   "Réponds toujours en français. L'échange se fait à l'écrit : structure tes réponses " +
@@ -171,7 +176,7 @@ export function initSettingsDialog({ avatar, onApplied }) {
         listen.textContent = "Écouter";
         listen.addEventListener("click", (event) => {
           event.preventDefault();
-          preview.src = voicePath(voice);
+          preview.src = previewPath(voice);
           preview.play();
         });
         return optionRow({
@@ -228,6 +233,15 @@ export function initSettingsDialog({ avatar, onApplied }) {
       ),
     );
   }
+
+  // Avatar associé à une voix (Bender) : sa voix est cochée avec lui, modifiable
+  form.addEventListener("change", (event) => {
+    if (event.target.name !== "avatar") return;
+    const voice = profile.voices.find((v) => v.avatar === event.target.value);
+    const input =
+      voice && form.querySelector(`input[name="voice"][value="${voice.id}"]`);
+    if (input) input.checked = true;
+  });
 
   document
     .getElementById("open-settings")

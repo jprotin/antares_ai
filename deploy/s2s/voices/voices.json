@@ -14,6 +14,16 @@
       "gender": "M",
       "file": "ryan.wav",
       "source": "Qwen3-TTS CustomVoice, locuteur ryan"
+    },
+    {
+      "id": "bender",
+      "name": "Bender",
+      "gender": "M",
+      "file": "bender.wav",
+      "source": "voix synthétique Qwen3-TTS VoiceDesign (décrite, non clonée d'un comédien), effet robot à la lecture",
+      "effect": "robot",
+      "preview": "bender-robot.wav",
+      "avatar": "bender"
     }
   ]
 }
