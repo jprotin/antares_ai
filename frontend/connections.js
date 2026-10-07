@@ -1,6 +1,8 @@
-// Connexions : fournisseurs de modèles (Ollama, LiteLLM, API compatibles OpenAI).
+// Connexions : fournisseurs de modèles (Ollama, LiteLLM, API compatibles OpenAI), puis
+// services (RAG, recherche, Claude, MCP : cf. services.js).
 // Les clés d'API restent côté routeur : l'interface ne sait que si une clé est définie.
 
+import { renderServices } from "./services.js";
 import { closeOnBackdrop, getJson } from "./settings.js";
 
 const PLACEHOLDERS = {
@@ -95,9 +97,13 @@ export function initConnections({ onChanged }) {
   }
 
   async function render() {
-    const { providers, status, defaultModel } =
+    const { providers, status, defaultModel, services } =
       await getJson("api/connections");
     const defaultProvider = defaultModel.split("/")[0];
+    renderServices(document.getElementById("services"), services, {
+      onSaved: () => (changed = true),
+      rerender: () => render(),
+    });
     list.replaceChildren(
       ...providers.map((provider) => {
         const card = element("article", "agent-card");

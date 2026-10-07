@@ -8,7 +8,7 @@ archivée ici). Une date de validité optionnelle exclut la fiche des recherches
 dépassée (filtre du service rag d'ai-to-boost).
 
 Les fiches font foi ici (KNOWLEDGE_PATH, un JSON par fiche) ; le service rag n'en est
-que l'index (POST/DELETE /documents, jeton RAG_WRITE_TOKEN).
+que l'index (POST/DELETE /documents, jeton d'écriture des Connexions).
 """
 
 import datetime as dt
@@ -22,9 +22,9 @@ from pathlib import Path
 
 import httpx
 
+import connections
+
 KNOWLEDGE_PATH = Path(os.environ.get("KNOWLEDGE_PATH", "/data/knowledge"))
-RAG_URL = os.environ.get("RAG_URL", "http://rag:8100")
-RAG_WRITE_TOKEN = os.environ.get("RAG_WRITE_TOKEN", "")
 COMMON = "knowledge"
 PREFIX = "proj-"
 # Source trop longue pour la rédaction : on le dit, plutôt que de tronquer en silence
@@ -54,7 +54,8 @@ class KnowledgeError(ValueError):
 
 
 def enabled() -> bool:
-    return bool(RAG_WRITE_TOKEN)
+    config = connections.rag()
+    return config.mode != "none" and bool(config.write_token)
 
 
 def collection(project: str) -> str:
@@ -121,14 +122,14 @@ def _valid_until_ts(value: str | None) -> float | None:
 async def _rag(method: str, payload: dict) -> dict:
     if not enabled():
         raise KnowledgeError(
-            "indexation désactivée (RAG_WRITE_TOKEN absent d'ai-to-boost)"
+            "indexation désactivée (RAG absent ou sans jeton d'écriture : Connexions)"
         )
     try:
         response = await http.request(
             method,
-            f"{RAG_URL}/documents",
+            f"{connections.rag().url}/documents",
             json=payload,
-            headers={"Authorization": f"Bearer {RAG_WRITE_TOKEN}"},
+            headers={"Authorization": f"Bearer {connections.rag().write_token}"},
         )
     except httpx.HTTPError as exc:
         raise KnowledgeError(f"service RAG injoignable : {exc}") from exc
@@ -245,7 +246,7 @@ async def similar(draft: dict) -> list[dict]:
         return []
     try:
         response = await http.post(
-            f"{RAG_URL}/query",
+            f"{connections.rag().url}/query",
             json={
                 "collections": [collection(str(draft.get("project") or ""))],
                 "query": text,

@@ -48,6 +48,7 @@ import claude
 import connections
 import documents
 import knowledge
+import mcp
 import modes
 import providers
 import rag
@@ -284,6 +285,7 @@ async def get_connections() -> dict:
     return {
         "providers": [connections.public(p) for p in connections.providers()],
         "status": providers.status(),
+        "services": connections.public_services(),
         "defaultModel": DEFAULT_MODEL,
         "types": list(connections.PROVIDER_TYPES),
     }
@@ -314,6 +316,135 @@ async def delete_provider(provider_id: str) -> Response:
         raise HTTPException(404, "fournisseur inconnu") from exc
     providers.invalidate()
     return Response(status_code=204)
+
+
+# --- Connexions (services : RAG, recherche web, Claude, MCP) ---------------------------
+
+SERVICES = ("rag", "search", "claude")
+
+
+def _with_stored_secret(name: str, values: dict) -> dict:
+    """Test d'une section non enregistrée : jeton vide = jeton enregistré."""
+    secret = connections.SECRETS.get(name)
+    if secret and not values.get(secret):
+        values = {**values, secret: connections.load()[name].get(secret, "")}
+    return values
+
+
+@app.put("/api/connections/services/{name}")
+async def save_service(name: str, values: dict) -> dict:
+    refuse_while_sharing()
+    if name not in SERVICES:
+        raise HTTPException(404, "service inconnu")
+    try:
+        connections.update_service(name, dict(values))
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    rag.invalidate_projects()
+    providers.invalidate()
+    asyncio.create_task(web.probe())
+    return connections.public_services()[name]
+
+
+@app.post("/api/connections/services/{name}/test")
+async def test_service(name: str, values: dict) -> dict:
+    refuse_while_sharing()
+    if name not in SERVICES:
+        raise HTTPException(404, "service inconnu")
+    values = _with_stored_secret(name, dict(values))
+    start = time.monotonic()
+    http = httpx.AsyncClient(timeout=httpx.Timeout(8))
+    try:
+        if name == "rag":
+            config = connections.Rag(**values)
+            if config.mode == "none":
+                return {"ok": True, "detail": "pas de RAG"}
+            health = (await http.get(f"{config.url}/health")).json()
+            collections = (
+                (await http.get(f"{config.qdrant_url}/collections")).json()["result"][
+                    "collections"
+                ]
+                if config.qdrant_url
+                else []
+            )
+            projects = [c["name"] for c in collections if c["name"].startswith("proj-")]
+            detail = f"service {health.get('status', '?')} · {len(projects)} projet(s)"
+            if config.write_token:
+                # Vérifie le jeton sans rien écrire : suppression d'un document absent
+                check = await http.request(
+                    "DELETE",
+                    f"{config.url}/documents",
+                    json={
+                        "collection": "knowledge",
+                        "doc_id": "antares:test-connexion",
+                    },
+                    headers={"Authorization": f"Bearer {config.write_token}"},
+                )
+                detail += (
+                    " · écriture autorisée"
+                    if check.status_code == 200
+                    else f" · écriture refusée (HTTP {check.status_code})"
+                )
+            else:
+                detail += " · sans jeton d'écriture (fiches désactivées)"
+        elif name == "search":
+            config_s = connections.Search(**values)
+            found = (
+                await http.get(
+                    f"{config_s.url}/search",
+                    params={"q": "antares", "format": "json"},
+                )
+            ).json()
+            detail = f"{len(found.get('results', []))} résultat(s) pour « antares »"
+        else:
+            config_c = connections.Claude(**values)
+            (await http.get(f"{config_c.url}/health")).raise_for_status()
+            detail = "bridge joignable" + (
+                "" if config_c.token else " · sans jeton (Claude masqué)"
+            )
+    except (httpx.HTTPError, KeyError, ValueError) as exc:
+        reason = str(exc).splitlines()[0] if str(exc) else type(exc).__name__
+        return {"ok": False, "error": reason[:300]}
+    finally:
+        await http.aclose()
+    return {"ok": True, "detail": detail, "seconds": round(time.monotonic() - start, 2)}
+
+
+class McpDraft(connections.McpServer):
+    keep_token: bool = True
+
+
+def _mcp_with_token(draft: McpDraft) -> connections.McpServer:
+    server = connections.McpServer(**draft.model_dump(exclude={"keep_token"}))
+    if draft.keep_token and not server.token:
+        stored = {m.id: m for m in connections.mcp_servers()}.get(server.id)
+        server.token = stored.token if stored else ""
+    return server
+
+
+@app.put("/api/connections/mcp/{server_id}")
+async def save_mcp(server_id: str, draft: McpDraft) -> dict:
+    refuse_while_sharing()
+    if draft.id != server_id:
+        raise HTTPException(422, "identifiant incohérent")
+    connections.upsert_mcp(_mcp_with_token(draft))
+    return connections.public_services()["mcp"]
+
+
+@app.delete("/api/connections/mcp/{server_id}", status_code=204)
+async def delete_mcp(server_id: str) -> Response:
+    refuse_while_sharing()
+    try:
+        connections.remove_mcp(server_id)
+    except KeyError as exc:
+        raise HTTPException(404, "serveur MCP inconnu") from exc
+    return Response(status_code=204)
+
+
+@app.post("/api/connections/mcp/test")
+async def test_mcp(draft: McpDraft) -> dict:
+    refuse_while_sharing()
+    return await mcp.list_tools(_mcp_with_token(draft))
 
 
 @app.post("/api/connections/test")

@@ -14,18 +14,15 @@ signalée dans l'interface.
 
 import json
 import logging
-import os
 import re
 import time
 from collections.abc import AsyncIterator
 
 import httpx
 
+import connections
 import voicecode
 
-BRIDGE_URL = os.environ.get("CLAUDE_BRIDGE_URL", "http://host.docker.internal:8088")
-BRIDGE_TOKEN = os.environ.get("CLAUDE_BRIDGE_TOKEN", "")
-MODELS = [m for m in os.environ.get("CLAUDE_MODELS", "opus,sonnet").split(",") if m]
 PREFIX = "claude:"
 BRIDGE_TIMEOUT_S = 120
 
@@ -41,9 +38,17 @@ VOICE_RULES = (
 )
 
 logger = logging.getLogger("router.claude")
-bridge = httpx.AsyncClient(
-    base_url=BRIDGE_URL, timeout=httpx.Timeout(5, read=BRIDGE_TIMEOUT_S)
-)
+_bridges: dict[str, httpx.AsyncClient] = {}
+
+
+def bridge() -> httpx.AsyncClient:
+    """Client du bridge configuré dans les Connexions (adresse relue à chaque appel)."""
+    url = connections.claude().url
+    if url not in _bridges:
+        _bridges[url] = httpx.AsyncClient(
+            base_url=url, timeout=httpx.Timeout(5, read=BRIDGE_TIMEOUT_S)
+        )
+    return _bridges[url]
 
 
 def is_claude(model: str) -> bool:
@@ -52,10 +57,11 @@ def is_claude(model: str) -> bool:
 
 async def available_models() -> list[dict]:
     """Modèles Claude proposés, uniquement si le bridge est configuré et répond."""
-    if not BRIDGE_TOKEN:
+    config = connections.claude()
+    if not config.enabled or not config.token:
         return []
     try:
-        (await bridge.get("/health")).raise_for_status()
+        (await bridge().get("/health", timeout=3)).raise_for_status()
     except httpx.HTTPError as exc:
         logger.warning("claude-bridge injoignable (%s) : modèles Claude masqués", exc)
         return []
@@ -65,7 +71,7 @@ async def available_models() -> list[dict]:
             "label": f"Claude {m.capitalize()}",
             "provider": "claude",
         }
-        for m in MODELS
+        for m in config.models
     ]
 
 
@@ -109,9 +115,9 @@ def _chunk(model: str, content: str | None = None, finish: str | None = None) ->
 
 
 async def ask(model: str, messages: list[dict], spoken: bool = True) -> str:
-    response = await bridge.post(
+    response = await bridge().post(
         "/run",
-        headers={"Authorization": f"Bearer {BRIDGE_TOKEN}"},
+        headers={"Authorization": f"Bearer {connections.claude().token}"},
         json={
             "model": model.removeprefix(PREFIX),
             "prompt": build_prompt(messages, spoken),
