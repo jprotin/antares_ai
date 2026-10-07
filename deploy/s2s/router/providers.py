@@ -53,9 +53,13 @@ def client(provider: Provider) -> httpx.AsyncClient:
 
 
 def split(name: str) -> tuple[str, str]:
-    """(identifiant du fournisseur, modèle) ; nom ancien sans fournisseur -> ollama."""
+    """(identifiant du fournisseur, modèle) ; nom ancien sans fournisseur -> ollama.
+
+    « ollama/ » est toujours un préfixe, même fournisseur supprimé : sans cela, chaque
+    passage rajouterait « ollama/ » (« ollama/ollama/… »).
+    """
     head, sep, rest = name.partition("/")
-    if sep and head in {p.id for p in connections.providers()}:
+    if sep and (head == "ollama" or head in {p.id for p in connections.providers()}):
         return head, rest
     return "ollama", name
 
