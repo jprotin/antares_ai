@@ -444,6 +444,13 @@
         </header>
         <div class="agents__list" id="providers-list"></div>
 
+        <label class="fallback"
+          >Modèle de repli (quand le modèle choisi est indisponible : hors
+          ligne, partage, fournisseur injoignable)
+          <select id="fallback-model"></select>
+          <span class="settings__hint" id="fallback-hint" role="status"></span>
+        </label>
+
         <form class="agent-form" id="provider-form" hidden>
           <h3 id="provider-form-title">Nouveau fournisseur</h3>
           <div class="agent-form__row">

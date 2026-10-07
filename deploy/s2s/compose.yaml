@@ -17,10 +17,10 @@
 ---
 name: antares-s2s
 
-# Profil par défaut. Le modèle et la voix se changent ensuite dans l'interface
-# (Réglages) ; les voix disponibles sont décrites dans voices/voices.json.
+# Profil par défaut. Aucun modèle de langage n'est figé ici : le modèle et son repli se
+# choisissent dans l'interface (Réglages, Connexions) parmi ceux des fournisseurs
+# configurés. La voix aussi ; les voix disponibles sont décrites dans voices/voices.json.
 x-profile:
-  llm: &llm gemma4:e4b
   stt: &stt parakeet-tdt
   tts: &tts qwen3
   tts-model: &tts-model Qwen/Qwen3-TTS-12Hz-1.7B-Base
@@ -60,9 +60,9 @@ x-s2s: &s2s
     - *stt
     - --parakeet_tdt_language=fr
     - --llm_backend=chat-completions
-    # Valeur de démarrage : le routeur la remplace par le modèle choisi dans l'interface
+    # Nom neutre, pas un vrai modèle : le routeur le remplace par le modèle choisi
     - --model_name
-    - *llm
+    - antares
     - --responses_api_base_url=http://llm-router:11434/v1
     - --responses_api_api_key=
     # Les modèles gemma4 raisonnent par défaut (~350 tokens, +3 à 5 s) : désactivé pour la voix
@@ -143,7 +143,6 @@ services:
     entrypoint: [python, /app/router.py]
     environment:
       OLLAMA_URL: http://ollama:11434
-      DEFAULT_MODEL: *llm
       # Claude Code via le claude-bridge d'ai-to-boost (service de l'hôte, port 8088).
       # Token recopié par install.sh ; vide = modèles Claude masqués.
       CLAUDE_BRIDGE_URL: http://host.docker.internal:8088

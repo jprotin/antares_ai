@@ -3,14 +3,13 @@
 #
 #   ./install.sh            (seule étape nécessitant Internet : image + modèles)
 #
-# Étapes : prérequis (stack ai-to-boost, modèle LLM) -> build -> préchargement des modèles
+# Étapes : prérequis (stack ai-to-boost) -> build -> préchargement des modèles
 # -> démarrage hors ligne -> vérification de l'isolation réseau.
 # Idempotent : relançable sans effet de bord.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly SCRIPT_DIR
-readonly LLM_MODEL=gemma4:e4b
 readonly AI_TO_BOOST_ENV="${AI_TO_BOOST_ENV:-/datadisk/ai-projects/ai-to-boost/.env}"
 readonly ENV_FILE="${SCRIPT_DIR}/.env"
 readonly READY_TIMEOUT_S=1800
@@ -33,8 +32,6 @@ check_prerequisites() {
     die "réseau ai-assistant-net absent : démarrer la stack ai-to-boost d'abord"
   [[ "$(docker inspect -f '{{.State.Running}}' ollama 2>/dev/null)" == "true" ]] ||
     die "conteneur ollama arrêté : démarrer la stack ai-to-boost d'abord"
-  docker exec ollama ollama show "${LLM_MODEL}" >/dev/null 2>&1 ||
-    die "modèle ${LLM_MODEL} absent d'Ollama : docker exec ollama ollama pull ${LLM_MODEL}"
 }
 
 # Jetons recopiés depuis ai-to-boost, tous optionnels :

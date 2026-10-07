@@ -3,7 +3,12 @@
 // Les clés d'API restent côté routeur : l'interface ne sait que si une clé est définie.
 
 import { renderServices } from "./services.js";
-import { closeOnBackdrop, getJson } from "./settings.js";
+import {
+  closeOnBackdrop,
+  getJson,
+  modelLabel,
+  saveSetting,
+} from "./settings.js";
 
 const PLACEHOLDERS = {
   ollama: "http://ollama:11434",
@@ -34,6 +39,8 @@ export function initConnections({ onChanged }) {
   const title = document.getElementById("provider-form-title");
   const result = document.getElementById("provider-result");
   const error = document.getElementById("connections-error");
+  const fallback = document.getElementById("fallback-model");
+  const fallbackHint = document.getElementById("fallback-hint");
   const fields = {
     name: document.getElementById("provider-name"),
     id: document.getElementById("provider-id"),
@@ -96,10 +103,51 @@ export function initConnections({ onChanged }) {
     });
   }
 
+  // Repli : modèles hors Claude ; le modèle réglé reste listé même s'il ne répond plus
+  function renderFallback(models, current) {
+    const names = models
+      .filter((m) => m.provider !== "claude")
+      .map((m) => ({ name: m.name, available: m.available }));
+    if (current && !names.some((m) => m.name === current)) {
+      names.unshift({ name: current, available: false });
+    }
+    const option = (text, value) => {
+      const node = element("option", "", text);
+      node.value = value;
+      return node;
+    };
+    fallback.replaceChildren(
+      option("Automatique : premier modèle disponible, local d'abord", ""),
+      ...names.map((m) =>
+        option(
+          `${modelLabel(m.name)}${m.available ? "" : " — indisponible"}`,
+          m.name,
+        ),
+      ),
+    );
+    fallback.value = current;
+    fallbackHint.classList.toggle("settings__error", !current);
+    fallbackHint.classList.toggle("settings__hint", Boolean(current));
+    fallbackHint.textContent = current
+      ? ""
+      : "Repli non réglé : choisir un modèle qui tient dans la VRAM avec la voix.";
+  }
+
+  fallback.addEventListener("change", async () => {
+    try {
+      await saveSetting({ fallback: fallback.value });
+      changed = true;
+      await render();
+    } catch (err) {
+      error.textContent = err.message;
+    }
+  });
+
   async function render() {
-    const { providers, status, defaultModel, services } =
-      await getJson("api/connections");
-    const defaultProvider = defaultModel.split("/")[0];
+    const [{ providers, status, fallbackModel, services }, models] =
+      await Promise.all([getJson("api/connections"), getJson("api/models")]);
+    const fallbackProvider = fallbackModel.split("/")[0];
+    renderFallback(models, fallbackModel);
     renderServices(document.getElementById("services"), services, {
       onSaved: () => (changed = true),
       rerender: () => render(),
@@ -161,7 +209,7 @@ export function initConnections({ onChanged }) {
             : `${provider.name} : ${outcome.error}`;
         });
         button("Modifier", () => openForm(provider));
-        if (provider.id !== defaultProvider) {
+        if (provider.id !== fallbackProvider) {
           button("Supprimer", async () => {
             if (
               !window.confirm(`Supprimer le fournisseur « ${provider.name} » ?`)

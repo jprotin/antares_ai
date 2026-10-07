@@ -1069,6 +1069,13 @@ body {
   color: var(--muted);
 }
 
+.fallback {
+  display: grid;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
 .agent-form__row {
   display: grid;
   grid-template-columns: 1fr 1fr;

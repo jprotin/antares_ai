@@ -7,8 +7,10 @@
                    pour les modèles à experts comme gemma4:26b).
                    S'y ajoutent les modèles Claude (`claude:*`) servis par le claude-bridge
                    d'ai-to-boost (cf. claude.py) : texte envoyé chez Anthropic.
-- /api/settings  : réglages actifs {model, voice, project, agent, mode}, persistés dans
-                   SETTINGS_PATH.
+- /api/settings  : réglages actifs {model, fallback, voice, project, agent, mode},
+                   persistés dans SETTINGS_PATH. `fallback` : modèle de repli quand le
+                   modèle choisi est indisponible (hors ligne, partage) ; aucun modèle
+                   n'est figé dans la configuration de déploiement.
 - /api/modes     : modes de conversation (cf. modes.py).
 - /api/projects  : projets indexés dans le RAG d'ai-to-boost (cf. rag.py).
 - /api/agents    : agents « consignes » (cf. agents.py) : liste, création, modification,
@@ -55,8 +57,6 @@ import rag
 import voicecode
 import web
 
-# Modèle par défaut (repli hors ligne, partage) : nom complet <fournisseur>/<modèle>
-DEFAULT_MODEL = providers.normalize(os.environ["DEFAULT_MODEL"])
 SETTINGS_PATH = Path(os.environ.get("SETTINGS_PATH", "/data/settings.json"))
 # Partage en cours (tunnel ngrok, cf. share.sh) : fichier posé le temps du partage.
 # Claude (abonnement de l'utilisateur) et l'écriture dans le RAG sont alors bloqués.
@@ -76,8 +76,11 @@ app = FastAPI(title="antares llm-router", docs_url=None, redoc_url=None)
 
 
 class Settings(BaseModel):
-    model: str
+    # Modèle choisi ("" : modèle de repli)
+    model: str = ""
     voice: str
+    # Modèle de repli, hors Claude ("" : premier modèle disponible, local d'abord)
+    fallback: str = ""
     # Projet dont la documentation est ajoutée à chaque question ("" : aucun)
     project: str = ""
     # Agent appliqué à tout l'appel ("" : aucun, sauf agent cité dans la question)
@@ -90,6 +93,7 @@ class Settings(BaseModel):
 
 class SettingsUpdate(BaseModel):
     model: str | None = None
+    fallback: str | None = None
     voice: str | None = None
     project: str | None = None
     agent: str | None = None
@@ -101,7 +105,7 @@ def voice_catalog() -> dict:
 
 
 def load_settings() -> Settings:
-    defaults = Settings(model=DEFAULT_MODEL, voice=voice_catalog()["default"])
+    defaults = Settings(voice=voice_catalog()["default"])
     if not SETTINGS_PATH.exists():
         return defaults
     stored = json.loads(SETTINGS_PATH.read_text(encoding="utf-8"))
@@ -110,6 +114,7 @@ def load_settings() -> Settings:
     )
     # Réglages antérieurs aux fournisseurs : « gemma4:e4b » -> « ollama/gemma4:e4b »
     settings.model = providers.normalize(settings.model)
+    settings.fallback = providers.normalize(settings.fallback)
     return settings
 
 
@@ -191,6 +196,34 @@ async def model_available(name: str) -> bool:
     return any(m["name"] == name and m["available"] for m in await chat_models())
 
 
+async def fallback_model(settings: Settings) -> str:
+    """Modèle de repli réglé s'il est disponible, sinon premier modèle disponible hors
+    Claude (local d'abord) ; "" si aucun fournisseur ne répond."""
+    candidates = [
+        m
+        for m in await chat_models()
+        if m["available"] and not claude.is_claude(m["name"])
+    ]
+    names = [m["name"] for m in candidates]
+    if settings.fallback in names:
+        return settings.fallback
+    local = [m["name"] for m in candidates if m.get("local")]
+    return (local or names or [""])[0]
+
+
+async def usable_model(model: str, settings: Settings, local_only: bool = False) -> str:
+    """`model` s'il est disponible (et non Claude si `local_only`), sinon le repli."""
+    if model and not (local_only and claude.is_claude(model)):
+        if await model_available(model):
+            return model
+    fallback = await fallback_model(settings)
+    if not fallback:
+        raise HTTPException(
+            503, "Aucun modèle disponible : configurer un fournisseur dans Connexions"
+        )
+    return fallback
+
+
 def refuse_while_sharing() -> None:
     if sharing():
         raise HTTPException(403, "Désactivé pendant un partage (tunnel ngrok ouvert)")
@@ -241,9 +274,8 @@ class TagsRequest(BaseModel):
 @app.post("/api/web/tags")
 async def web_tags(request: TagsRequest) -> dict:
     """Mots-clés d'une réponse issue d'une recherche web (modèle local, après coup)."""
-    model = load_settings().model
-    if claude.is_claude(model) or not await model_available(model):
-        model = DEFAULT_MODEL
+    settings = load_settings()
+    model = await usable_model(settings.model, settings, local_only=True)
     try:
         answer = await providers.complete(
             model,
@@ -286,7 +318,7 @@ async def get_connections() -> dict:
         "providers": [connections.public(p) for p in connections.providers()],
         "status": providers.status(),
         "services": connections.public_services(),
-        "defaultModel": DEFAULT_MODEL,
+        "fallbackModel": load_settings().fallback,
         "types": list(connections.PROVIDER_TYPES),
     }
 
@@ -306,9 +338,10 @@ async def save_provider(provider_id: str, draft: ProviderDraft) -> dict:
 @app.delete("/api/connections/providers/{provider_id}", status_code=204)
 async def delete_provider(provider_id: str) -> Response:
     refuse_while_sharing()
-    if providers.split(DEFAULT_MODEL)[0] == provider_id:
+    fallback = load_settings().fallback
+    if fallback and providers.split(fallback)[0] == provider_id:
         raise HTTPException(
-            422, f"Fournisseur du modèle par défaut ({DEFAULT_MODEL}) : non supprimable"
+            422, f"Fournisseur du modèle de repli ({fallback}) : non supprimable"
         )
     try:
         connections.remove(provider_id)
@@ -423,7 +456,7 @@ def _mcp_with_token(draft: McpDraft) -> connections.McpServer:
 
 
 @app.put("/api/connections/mcp/{server_id}")
-async def save_mcp(server_id: str, draft: McpDraft) -> dict:
+async def save_mcp(server_id: str, draft: McpDraft) -> list[dict]:
     refuse_while_sharing()
     if draft.id != server_id:
         raise HTTPException(422, "identifiant incohérent")
@@ -500,6 +533,14 @@ async def update_settings(update: SettingsUpdate) -> Settings:
         settings.model = update.model
         if not claude.is_claude(update.model):
             asyncio.create_task(providers.preload(update.model))
+    if update.fallback is not None:
+        update.fallback = providers.normalize(update.fallback)
+        if update.fallback and update.fallback != settings.fallback:
+            if claude.is_claude(update.fallback):
+                raise HTTPException(422, "Le modèle de repli ne peut pas être Claude")
+            if update.fallback not in {m["name"] for m in await chat_models()}:
+                raise HTTPException(422, f"Modèle inconnu : {update.fallback}")
+        settings.fallback = update.fallback
     if update.voice is not None:
         if update.voice not in {v["id"] for v in voice_catalog()["voices"]}:
             raise HTTPException(422, f"Voix inconnue : {update.voice}")
@@ -520,8 +561,9 @@ async def update_settings(update: SettingsUpdate) -> Settings:
         settings.mode = update.mode
     save_settings(settings)
     logger.info(
-        "Réglages : modèle=%s voix=%s projet=%s agent=%s mode=%s",
-        settings.model,
+        "Réglages : modèle=%s repli=%s voix=%s projet=%s agent=%s mode=%s",
+        settings.model or "repli",
+        settings.fallback or "auto",
         settings.voice,
         settings.project or "aucun",
         settings.agent or "aucun",
@@ -645,7 +687,8 @@ async def prepare(
         (agent.model if agent and agent.model else "") or settings.model
     )
     notice = None
-    if model != DEFAULT_MODEL and not await model_available(model):
+    chosen, model = model, await usable_model(model, settings)
+    if chosen and model != chosen:
         reason = (
             "partage en cours"
             if sharing()
@@ -653,8 +696,7 @@ async def prepare(
             if not web.online()
             else "modèle indisponible"
         )
-        notice = f"{reason} : {model} remplacé par le modèle local {DEFAULT_MODEL}"
-        model = DEFAULT_MODEL
+        notice = f"{reason} : {chosen} remplacé par le modèle de repli {model}"
 
     attached = [d for d in map(documents.load, settings.documents) if d]
     refused = []
@@ -773,9 +815,8 @@ class DraftRequest(BaseModel):
 
 async def ask_llm(system: str, user: str) -> str:
     """Réponse complète (non diffusée) du modèle actif, pour une tâche de rédaction."""
-    model = load_settings().model
-    if not await model_available(model):
-        model = DEFAULT_MODEL
+    settings = load_settings()
+    model = await usable_model(settings.model, settings)
     messages = [
         {"role": "system", "content": system},
         {"role": "user", "content": user},
@@ -956,6 +997,7 @@ async def relay(path: str, request: Request) -> StreamingResponse:
             media_type="text/event-stream",
         )
     if path == "models":
+        model = model or await fallback_model(settings)
         return JSONResponse({"object": "list", "data": [{"id": model}]})
     if not chat:
         raise HTTPException(404, f"/v1/{path} non relayé")
