@@ -30,7 +30,8 @@ from urllib.parse import urljoin, urlparse
 
 import httpx
 
-SEARXNG_URL = os.environ.get("SEARXNG_URL", "http://searxng:8080")
+import connections
+
 PROBE_URLS = [
     u
     for u in os.environ.get(
@@ -117,6 +118,8 @@ def normalize(text: str) -> str:
 
 
 def wanted(question: str) -> bool:
+    if not connections.search().enabled:
+        return False
     text = normalize(question)
     if NO_SEARCH.search(text):
         return False
@@ -155,7 +158,11 @@ async def probe() -> None:
         if online:
             break
     try:
-        search = (await http.get(f"{SEARXNG_URL}/healthz")).status_code == 200
+        config = connections.search()
+        search = (
+            config.enabled
+            and (await http.get(f"{config.url}/healthz")).status_code == 200
+        )
     except httpx.HTTPError:
         search = False
     if online != state["online"]:
@@ -273,7 +280,7 @@ async def search(question: str) -> dict | None:
     start = time.monotonic()
     try:
         response = await http.get(
-            f"{SEARXNG_URL}/search",
+            f"{connections.search().url}/search",
             params={"q": query, "format": "json", "language": "fr"},
             timeout=httpx.Timeout(8),
         )

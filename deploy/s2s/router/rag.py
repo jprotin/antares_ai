@@ -15,8 +15,8 @@ import unicodedata
 
 import httpx
 
-RAG_URL = os.environ.get("RAG_URL", "http://rag:8100")
-QDRANT_URL = os.environ.get("QDRANT_URL", "http://qdrant:6333")
+import connections
+
 RAG_LIMIT = int(os.environ.get("RAG_LIMIT", "4"))
 PREFIX = "proj-"
 COMMON = "knowledge"
@@ -58,16 +58,20 @@ async def projects() -> list[dict]:
     fetched_at, cached = _projects_cache
     if time.monotonic() - fetched_at < PROJECTS_TTL:
         return cached
+    config = connections.rag()
+    if config.mode == "none" or not config.qdrant_url:
+        _projects_cache = (time.monotonic(), [])
+        return []
     try:
-        collections = (await http.get(f"{QDRANT_URL}/collections")).json()["result"][
-            "collections"
-        ]
+        collections = (await http.get(f"{config.qdrant_url}/collections")).json()[
+            "result"
+        ]["collections"]
         found = []
         for collection in collections:
             name = collection["name"]
             if not name.startswith(PREFIX):
                 continue
-            info = (await http.get(f"{QDRANT_URL}/collections/{name}")).json()
+            info = (await http.get(f"{config.qdrant_url}/collections/{name}")).json()
             chunks = info["result"].get("points_count") or 0
             if chunks:
                 found.append({"id": name[len(PREFIX) :], "chunks": chunks})
@@ -119,6 +123,9 @@ async def augment(
     asked = question(messages)
     if not asked:
         return messages
+    config = connections.rag()
+    if config.mode == "none":
+        return messages
     chosen = [selected] if selected else []
     targets = chosen + [p for p in cited(asked, await projects()) if p not in chosen]
     if not targets:
@@ -126,7 +133,7 @@ async def augment(
     start = time.monotonic()
     try:
         response = await http.post(
-            f"{RAG_URL}/query",
+            f"{config.url}/query",
             json={
                 "collections": [COMMON] + [PREFIX + p for p in targets],
                 "query": asked,
@@ -174,3 +181,9 @@ def add_system(messages: list[dict], text: str) -> list[dict]:
     else:
         augmented.insert(0, {"role": "system", "content": text})
     return augmented
+
+
+def invalidate_projects() -> None:
+    """Après un changement de connexion RAG : liste des projets relue."""
+    global _projects_cache
+    _projects_cache = (0.0, [])

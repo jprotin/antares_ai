@@ -6,7 +6,8 @@ Appel vocal avec un LLM local, 100 % hors ligne, basé sur
 ## Prérequis
 
 - Docker + plugin compose, runtime NVIDIA (`nvidia-container-toolkit`)
-- Stack `ai-to-boost` démarrée (conteneur `ollama`, réseau `ai-assistant-net`) avec `gemma4:e4b`
+- Stack `ai-to-boost` démarrée (conteneur `ollama`, réseau `ai-assistant-net`) ; le modèle
+  de langage se choisit ensuite dans l'interface (Réglages, Connexions)
 - Optionnel : services `rag` et `qdrant` d'ai-to-boost, pour la documentation des projets
 
 ## Installation et usage
@@ -179,8 +180,15 @@ un fournisseur. Types :
 Chaque modèle s'appelle `<fournisseur>/<modèle>` (ex. `ollama/gemma4:e4b`,
 `litellm/local-gemma`) ; les anciens noms sans fournisseur désignent `ollama`. Un
 fournisseur déclaré **hors local** (case décochée) est signalé comme tel, et ses
-modèles sont coupés hors ligne et pendant un partage (repli sur le modèle par défaut).
+modèles sont coupés hors ligne et pendant un partage (repli sur le modèle de repli).
 « Tester » affiche la latence et les modèles trouvés, ou l'erreur.
+
+Aucun modèle n'est figé dans `compose.yaml`. Le **modèle de repli** se choisit dans
+Connexions parmi les modèles des fournisseurs actifs (hors Claude) ; il remplace le
+modèle choisi quand celui-ci est indisponible (hors ligne, partage, fournisseur
+injoignable) et sert tant qu'aucun modèle n'est choisi. Non réglé, le routeur prend le
+premier modèle disponible, local d'abord : à régler, ce peut être un modèle trop gros
+pour la VRAM. Son fournisseur ne peut pas être supprimé.
 
 **Couper le raisonnement** (option par fournisseur, cochée par défaut s'il est local) :
 gemma4 et qwen3 « réfléchissent » en silence si on ne le leur interdit pas. Via LiteLLM,
