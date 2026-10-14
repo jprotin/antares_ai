@@ -59,6 +59,15 @@ server {
         client_max_body_size 15m;
     }
 
+    # Documents du RAG intégré : même taille que les documents joints ; l'indexation
+    # (embeddings sur le processeur) prend jusqu'à une minute pour un long document
+    location ~ ^/api/rag/projects/[a-z0-9_-]+/documents$ {
+        proxy_pass $router_upstream;
+        proxy_set_header Host $host;
+        proxy_read_timeout 300s;
+        client_max_body_size 15m;
+    }
+
     # Réglages (modèle, voix, agent, mode…) et agents : routeur LLM
     location /api/ {
         proxy_pass $router_upstream;

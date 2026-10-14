@@ -69,7 +69,8 @@ class Provider(BaseModel):
 
 class Rag(BaseModel):
     # existing : service compatible (POST /query, POST/DELETE /documents) ; none : pas
-    # de RAG ; integrated : RAG livré avec antares (profil compose, cf. lot 3)
+    # de RAG ; integrated : RAG livré avec antares (profil compose rag-integre), dont les
+    # adresses et le jeton sont fixés par le déploiement (cf. resolved)
     mode: str = "existing"
     url: str = ""
     qdrant_url: str = ""
@@ -227,8 +228,23 @@ def remove(provider_id: str) -> None:
 # --- Services ----------------------------------------------------------------------------
 
 
+def resolved(config: Rag) -> Rag:
+    """Adresses effectives : en mode intégré, celles du déploiement ; les adresses saisies
+    pour le RAG existant restent enregistrées pour y revenir."""
+    if config.mode != "integrated":
+        return config
+    env = os.environ.get
+    return config.model_copy(
+        update={
+            "url": env("RAG_INTEGRATED_URL", "http://antares-rag:8100"),
+            "qdrant_url": env("QDRANT_INTEGRATED_URL", "http://antares-qdrant:6333"),
+            "write_token": env("RAG_INTEGRATED_TOKEN", ""),
+        }
+    )
+
+
 def rag() -> Rag:
-    return Rag(**load()["rag"])
+    return resolved(Rag(**load()["rag"]))
 
 
 def search() -> Search:

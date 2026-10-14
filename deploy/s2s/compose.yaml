@@ -10,6 +10,7 @@
 #                    ou -> claude-bridge de l'hôte si un modèle Claude est choisi
 #                    (seul cas où du texte quitte la machine, vers Anthropic) ;
 #                    documentation des projets lue dans le RAG d'ai-to-boost (rag, qdrant)
+#                    ou dans le RAG intégré (profil rag-integre, sans Internet)
 #   LiteLLM est contourné : il perd `reasoning_effort` en streaming (latence x3).
 #
 # Premier lancement : ./install.sh  —  ensuite : docker compose up -d
@@ -154,6 +155,10 @@ services:
       RAG_LIMIT: *rag-limit
       # Fiches de connaissance : écriture dans le RAG (jeton recopié par install.sh)
       RAG_WRITE_TOKEN: ${RAG_WRITE_TOKEN:-}
+      # RAG intégré (mode « integrated » de Connexions, profil rag-integre)
+      RAG_INTEGRATED_URL: http://antares-rag:8100
+      QDRANT_INTEGRATED_URL: http://antares-qdrant:6333
+      RAG_INTEGRATED_TOKEN: ${RAG_INTEGRATED_TOKEN:-}
       # Recherche web (cf. router/web.py) : SearXNG local ; la connexion est testée
       # régulièrement sur ces adresses (HEAD, 3 s)
       SEARXNG_URL: http://searxng:8080
@@ -189,6 +194,65 @@ services:
     cap_add: [CHOWN, SETGID, SETUID, DAC_OVERRIDE]
     networks: [antares-search]
 
+  # RAG intégré, pour une machine sans ai-to-boost : `COMPOSE_PROFILES=rag-integre` dans
+  # .env (posé par install.sh si le RAG d'ai-to-boost est absent), puis « RAG intégré »
+  # dans Connexions. Même API et mêmes embeddings que le RAG d'ai-to-boost ; embeddings
+  # sur le processeur (pas de VRAM) ; réseau antares-local seul : aucun accès Internet.
+  antares-rag: &rag
+    image: antares/rag:1.0.0
+    build: ./rag
+    profiles: [rag-integre]
+    container_name: antares-rag
+    restart: unless-stopped
+    depends_on: [antares-qdrant]
+    environment: &rag-env
+      QDRANT_URL: http://antares-qdrant:6333
+      EMBEDDING_MODEL: nomic-ai/nomic-embed-text-v1.5
+      RAG_WRITE_TOKEN: ${RAG_INTEGRATED_TOKEN:-}
+      HF_HUB_OFFLINE: "1"
+      HF_HUB_DISABLE_TELEMETRY: "1"
+    volumes:
+      - rag-cache:/cache
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8100/health', timeout=4)"
+      interval: 15s
+      timeout: 5s
+      start_period: 60s
+    networks: [antares-local]
+
+  # Préchargement du modèle d'embeddings (install.sh uniquement), avec accès Internet
+  rag-warmup:
+    <<: *rag
+    profiles: [rag-warmup]
+    container_name: antares-rag-warmup
+    restart: "no"
+    depends_on: []
+    environment:
+      <<: *rag-env
+      HF_HUB_OFFLINE: "0"
+    command:
+      - python
+      - -c
+      - "from fastembed import TextEmbedding; TextEmbedding('nomic-ai/nomic-embed-text-v1.5', cache_dir='/cache')"
+    healthcheck:
+      disable: true
+    networks: [antares-download]
+
+  antares-qdrant:
+    image: qdrant/qdrant:v1.18.2@sha256:75eab8c4ba42096724fdcfde8b4de0b5713d529dde32f285a1f86fdcb2c9e50c
+    profiles: [rag-integre]
+    container_name: antares-qdrant
+    restart: unless-stopped
+    environment:
+      QDRANT__TELEMETRY_DISABLED: "true"
+    volumes:
+      - rag-qdrant:/qdrant/storage
+    networks: [antares-local]
+
 networks:
   antares-local:
     name: antares-local
@@ -208,3 +272,7 @@ volumes:
     name: antares-s2s-cache
   router-data:
     name: antares-router-data
+  rag-cache:
+    name: antares-rag-cache
+  rag-qdrant:
+    name: antares-rag-qdrant

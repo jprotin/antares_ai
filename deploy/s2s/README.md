@@ -239,6 +239,27 @@ consultés s'affichent sous la réponse. Pour indexer un projet : `ai-to-boost-r
 <projet>` (côté ai-to-boost) ; il apparaît dans les Réglages sous une minute. Avec un
 modèle Claude, les extraits partent chez Anthropic avec la conversation.
 
+### RAG intégré (sans ai-to-boost)
+
+antares embarque son propre RAG (ADR 0010) : même API et mêmes embeddings que celui
+d'ai-to-boost, embeddings sur le processeur (pas de VRAM, ~2 Go de RAM), sans accès
+Internet. Les deux RAG sont séparés ; on passe de l'un à l'autre dans Connexions.
+
+```bash
+echo COMPOSE_PROFILES=rag-integre >> .env   # posé par install.sh si ai-to-boost est absent
+docker compose up -d                        # démarre antares-rag et antares-qdrant
+```
+
+Puis Connexions → RAG → **RAG intégré à antares**, et Réglages → Projet → **Projets du
+RAG intégré** : créer un projet, y déposer des documents (Markdown, texte, code, PDF,
+Word ; 15 Mo et 200 000 caractères au plus par fichier). Pour un dossier entier :
+
+```bash
+./rag-index.sh mon-appli ~/dev/mon-appli    # .md, .txt, .pdf, .docx, hors .git et cachés
+```
+
+Mesuré : 11 ADR (98 extraits) indexés en 29 s ; recherche en ~30 ms.
+
 ### Agents
 
 Un agent est une fiche de consignes réutilisable (Réglages → **Gérer les agents**) :
@@ -351,12 +372,13 @@ applique depuis `tts-temperature`, `tts-top-k`, `tts-repetition-penalty` et
 
 ## Vérifications
 
-| Script                            | Rôle                                                                    |
-| --------------------------------- | ----------------------------------------------------------------------- |
-| `./check-local.sh`                | Prouve l'isolation : Internet bloqué, seul Ollama joignable             |
-| `./smoke-test.sh`                 | Appel de bout en bout sans micro, mesure la latence (`out/reponse.wav`) |
-| `./voice-samples.sh`              | Banc d'écoute de toutes les voix (`out/voix/index.html`)                |
-| `python3 llm_bench.py <modèles…>` | Compare des LLM Ollama en conditions réelles (`out/llm/index.html`)     |
+| Script                              | Rôle                                                                    |
+| ----------------------------------- | ----------------------------------------------------------------------- |
+| `./check-local.sh`                  | Prouve l'isolation : Internet bloqué, seul Ollama joignable             |
+| `./rag-index.sh <projet> <dossier>` | Indexe un dossier dans le RAG intégré                                   |
+| `./smoke-test.sh`                   | Appel de bout en bout sans micro, mesure la latence (`out/reponse.wav`) |
+| `./voice-samples.sh`                | Banc d'écoute de toutes les voix (`out/voix/index.html`)                |
+| `python3 llm_bench.py <modèles…>`   | Compare des LLM Ollama en conditions réelles (`out/llm/index.html`)     |
 
 ## Architecture
 

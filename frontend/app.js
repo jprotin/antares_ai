@@ -5,6 +5,7 @@ import { initAgentsDialog } from "./agents.js";
 import { initConnections } from "./connections.js";
 import { initAttachments } from "./attachments.js";
 import { initKnowledge } from "./knowledge.js";
+import { initRagProjects } from "./ragprojects.js";
 import { Avatar } from "./avatar.js";
 import { createPicker } from "./picker.js";
 import { enableCodeCopy, renderInto, renderMarkdown } from "./render.js";
@@ -935,7 +936,13 @@ const settingsDialog = initSettingsDialog({
   },
 });
 
-initConnections({ onChanged: () => settingsDialog.refreshModels() });
+initConnections({
+  onChanged: () => {
+    settingsDialog.refreshModels();
+    settingsDialog.refreshProjects();
+  },
+});
+initRagProjects({ onChanged: () => settingsDialog.refreshProjects() });
 
 initAgentsDialog({
   onChanged: async () => {

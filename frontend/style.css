@@ -965,6 +965,7 @@ body {
 }
 
 .agents select,
+.fallback input,
 .agent-form input,
 .agent-form textarea {
   width: 100%;
@@ -1614,6 +1615,11 @@ body {
   gap: 0.25rem;
   font-size: 0.8rem;
   color: var(--muted);
+}
+
+.service label[hidden],
+.service p[hidden] {
+  display: none;
 }
 .service .checkbox {
   display: flex;
