@@ -3,8 +3,8 @@
 #
 #   ./install.sh            (seule étape nécessitant Internet : image + modèles)
 #
-# Étapes : prérequis (stack ai-to-boost) -> build -> préchargement des modèles
-# -> démarrage hors ligne -> vérification de l'isolation réseau.
+# Étapes : prérequis (stack ai-to-boost) -> build -> préchargement des modèles (voix et
+# RAG intégré) -> démarrage hors ligne -> vérification de l'isolation réseau.
 # Idempotent : relançable sans effet de bord.
 set -euo pipefail
 
@@ -60,6 +60,22 @@ ensure_tokens() {
     log "SEARXNG_SECRET généré"
   fi
   lines+="SEARXNG_SECRET=${token}"$'\n'
+  # Jeton d'écriture du RAG intégré : conservé d'une installation à l'autre
+  token="$(grep -E "^RAG_INTEGRATED_TOKEN=" "${ENV_FILE}" 2>/dev/null | cut -d= -f2- || true)"
+  if [[ -z "${token}" ]]; then
+    token="$(head -c 32 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+    log "RAG_INTEGRATED_TOKEN généré"
+  fi
+  lines+="RAG_INTEGRATED_TOKEN=${token}"$'\n'
+  # RAG intégré démarré avec la pile si le RAG d'ai-to-boost est absent ; un choix déjà
+  # posé dans .env est conservé
+  token="$(grep -E "^COMPOSE_PROFILES=" "${ENV_FILE}" 2>/dev/null | cut -d= -f2- || true)"
+  if [[ -z "${token}" ]] &&
+    [[ "$(docker inspect -f '{{.State.Running}}' rag 2>/dev/null)" != "true" ]]; then
+    token=rag-integre
+    log "RAG d'ai-to-boost absent : RAG intégré activé (COMPOSE_PROFILES=rag-integre)"
+  fi
+  [[ -n "${token}" ]] && lines+="COMPOSE_PROFILES=${token}"$'\n'
   (
     umask 077
     printf '%s' "${lines}" >"${ENV_FILE}"
@@ -96,12 +112,20 @@ warmup_models() {
   docker compose --profile warmup rm -sf warmup >/dev/null
 }
 
+# Modèle d'embeddings du RAG intégré (~520 Mo), préchargé même si le profil n'est pas
+# actif : passer au RAG intégré ne demande ensuite plus Internet
+warmup_rag() {
+  log "Préchargement du modèle d'embeddings (RAG intégré)"
+  docker compose --profile rag-warmup run --rm rag-warmup >/dev/null
+}
+
 main() {
   check_prerequisites
   ensure_tokens
-  log "Construction de l'image"
-  docker compose build
+  log "Construction des images"
+  docker compose --profile rag-integre build
   warmup_models
+  warmup_rag
   log "Démarrage hors ligne"
   docker compose up -d --remove-orphans
   wait_healthy antares-s2s

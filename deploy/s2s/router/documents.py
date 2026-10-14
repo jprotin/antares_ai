@@ -112,8 +112,14 @@ def _clean(text: str) -> str:
     return re.sub(r"\n{3,}", "\n\n", text).strip()
 
 
-def extract(name: str, data: bytes) -> dict:
-    """Texte (ou image) d'un fichier envoyé ; lève DocumentError si inexploitable."""
+def extract(
+    name: str, data: bytes, max_tokens: int | None = WRITTEN_MAX_TOKENS
+) -> dict:
+    """Texte (ou image) d'un fichier envoyé ; lève DocumentError si inexploitable.
+
+    `max_tokens` : plafond d'un document lu en entier ; None pour un document découpé
+    (RAG intégré, cf. ragstore.py), qui a sa propre limite.
+    """
     if len(data) > MAX_UPLOAD_BYTES:
         raise DocumentError("fichier trop volumineux (15 Mo au maximum)")
     suffix = Path(name.lower()).suffix
@@ -146,10 +152,10 @@ def extract(name: str, data: bytes) -> dict:
     if not text:
         raise DocumentError("document vide")
     tokens = estimate_tokens(text)
-    if tokens > WRITTEN_MAX_TOKENS:
+    if max_tokens is not None and tokens > max_tokens:
         raise DocumentError(
             f"document trop long ({_number(tokens)} tokens estimés, "
-            f"{_number(WRITTEN_MAX_TOKENS)} au maximum) : il serait tronqué sans "
+            f"{_number(max_tokens)} au maximum) : il serait tronqué sans "
             "prévenir ; découpez-le"
         )
     return {"kind": kind, "text": text, "tokens": tokens}

@@ -255,10 +255,13 @@
           <legend>Projet</legend>
           <div class="settings__options" id="project-options"></div>
           <p class="settings__hint">
-            La documentation du projet choisi (RAG d'ai-to-boost) est ajoutée à
-            chaque question. Sans projet choisi, un projet cité par son nom est
-            consulté pour cette question.
+            La documentation du projet choisi (RAG d'ai-to-boost ou RAG intégré,
+            cf. Connexions) est ajoutée à chaque question. Sans projet choisi,
+            un projet cité par son nom est consulté pour cette question.
           </p>
+          <button type="button" class="button-ghost" id="open-rag-projects">
+            Projets du RAG intégré
+          </button>
         </fieldset>
 
         <p class="settings__error" id="settings-error" role="alert"></p>
@@ -528,6 +531,54 @@
 
         <footer class="settings__actions dialog__footer">
           <button type="button" class="button-primary" id="connections-close">
+            Fermer
+          </button>
+        </footer>
+      </div>
+    </dialog>
+
+    <dialog
+      class="settings agents"
+      id="rag-projects"
+      aria-labelledby="rag-projects-title"
+    >
+      <div class="settings__form">
+        <header class="settings__header dialog__header">
+          <h2 id="rag-projects-title">Projets du RAG intégré</h2>
+          <p>
+            Documentation de tes projets, consultée quand le projet est choisi
+            dans les Réglages ou cité dans la question. Markdown, texte, code,
+            PDF et Word ; redéposer un fichier du même nom le remplace.
+          </p>
+        </header>
+        <p class="settings__error" id="rag-projects-error" role="alert"></p>
+        <div class="agent-form__row">
+          <label class="fallback"
+            >Projet
+            <select id="rag-project"></select>
+          </label>
+          <label class="fallback"
+            >Ou nouveau projet
+            <input
+              id="rag-project-new"
+              maxlength="64"
+              placeholder="mon-appli"
+            />
+          </label>
+        </div>
+        <input type="file" id="rag-files" multiple hidden />
+        <div class="settings__actions">
+          <button type="button" class="button-ghost" id="rag-drop">
+            Supprimer le projet
+          </button>
+          <button type="button" class="button-primary" id="rag-add">
+            Ajouter des documents
+          </button>
+        </div>
+        <p class="settings__hint" id="rag-status" role="status"></p>
+        <div class="agents__list" id="rag-documents"></div>
+        <footer class="settings__actions dialog__footer">
+          <button type="button" class="button-primary" id="rag-projects-close">
             Fermer
           </button>
         </footer>

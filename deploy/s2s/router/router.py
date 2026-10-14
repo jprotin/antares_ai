@@ -23,6 +23,8 @@
 - /api/net       : connexion Internet, recherche web en cours (cf. web.py) et partage
                    actif. Hors ligne ou pendant un partage, les modèles Claude sont
                    indisponibles.
+- /api/rag/projects : projets et documents du RAG intégré (cf. ragstore.py) : dépôt
+                   (corps brut + X-Filename), liste, retrait d'un document ou d'un projet.
 - /api/knowledge : fiches de connaissance (cf. knowledge.py) : rédaction par le LLM,
                    fiches proches, indexation relue, obsolescence, suppression.
 - /healthz       : sonde de santé.
@@ -54,6 +56,7 @@ import mcp
 import modes
 import providers
 import rag
+import ragstore
 import voicecode
 import web
 
@@ -389,7 +392,7 @@ async def test_service(name: str, values: dict) -> dict:
     http = httpx.AsyncClient(timeout=httpx.Timeout(8))
     try:
         if name == "rag":
-            config = connections.Rag(**values)
+            config = connections.resolved(connections.Rag(**values))
             if config.mode == "none":
                 return {"ok": True, "detail": "pas de RAG"}
             health = (await http.get(f"{config.url}/health")).json()
@@ -437,6 +440,11 @@ async def test_service(name: str, values: dict) -> dict:
             )
     except (httpx.HTTPError, KeyError, ValueError) as exc:
         reason = str(exc).splitlines()[0] if str(exc) else type(exc).__name__
+        if name == "rag" and values.get("mode") == "integrated":
+            reason += (
+                " — RAG intégré non démarré : COMPOSE_PROFILES=rag-integre dans .env, "
+                "puis docker compose up -d"
+            )
         return {"ok": False, "error": reason[:300]}
     finally:
         await http.aclose()
@@ -575,6 +583,62 @@ async def update_settings(update: SettingsUpdate) -> Settings:
 @app.get("/api/projects")
 async def list_projects() -> list[dict]:
     return await rag.projects()
+
+
+# --- RAG intégré : projets et documents (cf. ragstore.py) ---------------------------
+
+
+@app.get("/api/rag/projects/{project}/documents")
+async def rag_documents(project: str) -> list[dict]:
+    try:
+        return await ragstore.list_documents(project)
+    except (ragstore.StoreError, httpx.HTTPError) as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+
+@app.post("/api/rag/projects/{project}/documents", status_code=201)
+async def rag_add_document(project: str, request: Request) -> dict:
+    """Corps brut du fichier ; nom dans l'en-tête X-Filename (encodé URL)."""
+    refuse_while_sharing()
+    name = unquote(request.headers.get("x-filename", "")).strip() or "document"
+    name = name.replace("/", "_").replace("\\", "_")[:120]
+    start = time.monotonic()
+    try:
+        doc = await ragstore.add_document(project, name, await request.body())
+    except ragstore.StoreError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    logger.info(
+        "RAG intégré : %s indexé dans %s (%d extraits, %.1f s)",
+        name,
+        project,
+        doc["chunks"],
+        time.monotonic() - start,
+    )
+    return doc
+
+
+@app.delete("/api/rag/projects/{project}/documents/{doc_id:path}", status_code=204)
+async def rag_remove_document(project: str, doc_id: str) -> Response:
+    refuse_while_sharing()
+    try:
+        await ragstore.remove_document(project, doc_id)
+    except ragstore.StoreError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    return Response(status_code=204)
+
+
+@app.delete("/api/rag/projects/{project}", status_code=204)
+async def rag_remove_project(project: str) -> Response:
+    refuse_while_sharing()
+    try:
+        await ragstore.remove_project(project)
+    except (ragstore.StoreError, httpx.HTTPError) as exc:
+        raise HTTPException(422, str(exc)) from exc
+    settings = load_settings()
+    if settings.project == project:
+        settings.project = ""
+        save_settings(settings)
+    return Response(status_code=204)
 
 
 @app.get("/api/turn/last")

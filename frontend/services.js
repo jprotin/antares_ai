@@ -89,7 +89,7 @@ function ragSection(rag, onSaved) {
   for (const [value, label, disabled] of [
     ["existing", "RAG existant", false],
     ["none", "Aucun (documentation masquée)", false],
-    ["integrated", "RAG intégré à antares (installation : lot suivant)", true],
+    ["integrated", "RAG intégré à antares (profil rag-integre)", false],
   ]) {
     const wrapper = element("label", "checkbox");
     const radio = element("input");
@@ -113,7 +113,23 @@ function ragSection(rag, onSaved) {
     placeholder: secretPlaceholder(rag.has_write_token),
     name: "token",
   });
-  section.append(modes, url, qdrant, token);
+  const managed = element(
+    "p",
+    "settings__hint",
+    "Adresses et jeton fixés par le déploiement (services antares-rag et " +
+      "antares-qdrant). Documents : Réglages → Projet → Projets du RAG intégré.",
+  );
+  // Mode intégré : adresses du déploiement ; celles du RAG existant restent enregistrées
+  const syncMode = () => {
+    const mode = section.querySelector('input[name="rag-mode"]:checked')?.value;
+    for (const field of [url, qdrant, token]) {
+      field.hidden = mode !== "existing";
+    }
+    managed.hidden = mode !== "integrated";
+  };
+  modes.addEventListener("change", syncMode);
+  section.append(modes, url, qdrant, token, managed);
+  syncMode();
   const read = () => ({
     mode:
       section.querySelector('input[name="rag-mode"]:checked')?.value ?? "none",

@@ -390,6 +390,10 @@ export function initSettingsDialog({ avatar, onApplied }) {
   return {
     refreshModels: () =>
       renderModels().catch((err) => (error.textContent = err.message)),
+    refreshProjects: () =>
+      renderProjects().catch(
+        () => (projectOptions.textContent = "RAG indisponible"),
+      ),
   };
 }
 
