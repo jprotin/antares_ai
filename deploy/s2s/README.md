@@ -68,6 +68,39 @@ Mesuré (gemma4:e4b, moteur vocal chargé) : 48 800 tokens lus en entier en 17,6
 (repères début / milieu / fin retrouvés). Fichiers : 15 Mo au maximum, images 5 Mo.
 Stockage : `/data/documents` (volume `antares-router-data`).
 
+## Répéter une présentation
+
+Bouton **Répéter une présentation** (icône tableau, en haut de l'écran d'appel) : titre,
+slides en **PDF** (export depuis PowerPoint, Keynote ou Google Slides ; 80 slides,
+15 Mo au plus), public (client exigeant, jury, conférence, comité de direction, ou un
+de vos agents), nombre de questions, objectif et durée visée facultatifs.
+
+1. **Discours** : la slide s'affiche en grand, l'avatar à côté ; flèches ← → (ou clic
+   sur la slide) pour avancer, chrono et durée visée. L'IA écoute sans répondre.
+2. **Questions** : l'IA joue le public et pose ses questions, une à la fois, à partir du
+   discours et des slides ; elle relance une fois si la réponse est vague.
+3. **Rapport** : note /20 (5 critères sur 4), points forts, à améliorer pas à pas
+   (rattaché aux slides), à ne pas dire (citations et reformulations), questions-réponses
+   (réponse possible), rythme (durée, débit, temps par slide). L'avatar le lit section par
+   section (bouton **Écouter** sur chaque section) ; **Imprimer / PDF** pour le garder.
+
+4. **Discuter de la note** (bouton du rapport) : volet à droite, à l'écrit ou avec
+   **Parler**. Expliquez un contexte que le coach ignorait ou signalez une erreur : il
+   peut revoir une note d'un point par critère (par rapport à la note d'origine), à la
+   hausse comme à la baisse ; une simple contestation ne change rien. Le rapport affiche
+   « Note révisée (initialement …) · Voir l'historique » ; l'impression ajoute les
+   révisions en annexe.
+
+**Micro pendant la répétition** : 3 s de silence au début pour mesurer le bruit de la
+pièce ; en dessous du seuil, rien n'est envoyé au moteur (indicateur « Voix captée /
+Bruit filtré » et réglage **Filtre du bruit** Léger / Normal / Fort, mémorisé dans le
+navigateur). Le micro est coupé tant que l'avatar parle : bouton **Interrompre** pour
+l'arrêter.
+
+Le rapport est rédigé par le modèle choisi dans les Réglages (Claude : le discours sort
+de la machine). Historique et progression des notes dans la même fenêtre ; stockage
+`/data/rehearsals` (volume `antares-router-data`). Détails : ADR 0011.
+
 ## Partager avec un collègue (ngrok)
 
 Accès distant temporaire, en HTTPS (le micro exige une page sécurisée), par un tunnel

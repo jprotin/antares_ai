@@ -25,6 +25,11 @@
                    indisponibles.
 - /api/rag/projects : projets et documents du RAG intégré (cf. ragstore.py) : dépôt
                    (corps brut + X-Filename), liste, retrait d'un document ou d'un projet.
+- /api/rehearsals : répétitions de présentation (cf. rehearsal.py) : création, slides
+                   (PDF), discours, questions-réponses, rapport noté, discussion du
+                   rapport (note révisable), historique ;
+                   /api/rehearsals/live : phase en cours (discours muet, questions du
+                   public, lecture du rapport, discussion), appliquée au relais vocal.
 - /api/knowledge : fiches de connaissance (cf. knowledge.py) : rédaction par le LLM,
                    fiches proches, indexation relue, obsolescence, suppression.
 - /healthz       : sonde de santé.
@@ -43,7 +48,7 @@ import uvicorn
 from urllib.parse import unquote
 
 from fastapi import FastAPI, HTTPException, Request, Response
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from pydantic import BaseModel, Field
 from starlette.background import BackgroundTask
 
@@ -57,6 +62,7 @@ import modes
 import providers
 import rag
 import ragstore
+import rehearsal
 import voicecode
 import web
 
@@ -958,6 +964,176 @@ async def knowledge_delete(card_id: str) -> Response:
     return Response(status_code=204)
 
 
+# --- Répétitions de présentation ------------------------------------------------------
+
+
+def rehearsal_or_404(rehearsal_id: str) -> dict:
+    try:
+        return rehearsal.load(rehearsal_id)
+    except rehearsal.RehearsalError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+
+@app.get("/api/rehearsals")
+async def rehearsals_list() -> dict:
+    return {
+        "audiences": [
+            {"id": key, "name": value["name"]}
+            for key, value in rehearsal.AUDIENCES.items()
+        ],
+        "history": rehearsal.history(),
+    }
+
+
+@app.post("/api/rehearsals", status_code=201)
+async def rehearsal_create(draft: rehearsal.RehearsalDraft) -> dict:
+    agent = agents.find(draft.agent) if draft.agent else None
+    if draft.agent and not agent:
+        raise HTTPException(422, f"Agent inconnu : {draft.agent}")
+    try:
+        return rehearsal.create(draft, agent.name if agent else None)
+    except rehearsal.RehearsalError as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+
+class LivePhase(BaseModel):
+    id: str
+    phase: str
+
+
+@app.put("/api/rehearsals/live")
+async def rehearsal_live(request: LivePhase) -> dict:
+    """Phase appliquée au relais vocal jusqu'à la suivante ou à DELETE."""
+    current = rehearsal_or_404(request.id)
+    agent = agents.find(current["agent"]) if current["agent"] else None
+    persona = (
+        "Tu joues le public, avec le rôle et l'expertise de l'agent "
+        f"« {agent.name} » :\n{agent.instructions}"
+        if agent
+        else ""
+    )
+    try:
+        rehearsal.start(request.id, request.phase, persona)
+    except rehearsal.RehearsalError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    logger.info("Répétition %s : phase %s", request.id, request.phase)
+    return {"id": request.id, "phase": request.phase}
+
+
+@app.delete("/api/rehearsals/live", status_code=204)
+async def rehearsal_live_stop() -> Response:
+    rehearsal.stop()
+    return Response(status_code=204)
+
+
+@app.get("/api/rehearsals/{rehearsal_id}")
+async def rehearsal_get(rehearsal_id: str) -> dict:
+    return rehearsal_or_404(rehearsal_id)
+
+
+@app.delete("/api/rehearsals/{rehearsal_id}", status_code=204)
+async def rehearsal_delete(rehearsal_id: str) -> Response:
+    rehearsal_or_404(rehearsal_id)
+    rehearsal.delete(rehearsal_id)
+    return Response(status_code=204)
+
+
+@app.post("/api/rehearsals/{rehearsal_id}/slides")
+async def rehearsal_slides(rehearsal_id: str, request: Request) -> dict:
+    """Corps brut du PDF."""
+    rehearsal_or_404(rehearsal_id)
+    try:
+        return rehearsal.add_slides(rehearsal_id, await request.body())
+    except rehearsal.RehearsalError as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+
+@app.get("/api/rehearsals/{rehearsal_id}/slides/{number}")
+async def rehearsal_slide(rehearsal_id: str, number: int) -> FileResponse:
+    try:
+        path = rehearsal.slide_path(rehearsal_id, number)
+    except rehearsal.RehearsalError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    return FileResponse(path, media_type="image/jpeg")
+
+
+@app.put("/api/rehearsals/{rehearsal_id}/talk")
+async def rehearsal_talk(rehearsal_id: str, talk: rehearsal.Talk) -> dict:
+    rehearsal_or_404(rehearsal_id)
+    return rehearsal.save_talk(rehearsal_id, talk)
+
+
+@app.put("/api/rehearsals/{rehearsal_id}/qa")
+async def rehearsal_qa(rehearsal_id: str, qa: rehearsal.QuestionsAndAnswers) -> dict:
+    rehearsal_or_404(rehearsal_id)
+    return rehearsal.save_qa(rehearsal_id, qa)
+
+
+@app.post("/api/rehearsals/{rehearsal_id}/report")
+async def rehearsal_report(rehearsal_id: str) -> dict:
+    """Rapport rédigé par le modèle actif (Claude si choisi), noté et mesuré."""
+    current = rehearsal_or_404(rehearsal_id)
+    if not (current.get("talk") or {}).get("segments"):
+        raise HTTPException(422, "aucun discours enregistré pour cette répétition")
+    start = time.monotonic()
+    try:
+        prompt = rehearsal.report_prompt(current)
+        answer = await ask_llm(rehearsal.REPORT_RULES, prompt)
+        current["report"] = rehearsal.build_report(current, answer)
+    except rehearsal.RehearsalError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    logger.info(
+        "Rapport de répétition %s : %s/%s en %.1f s",
+        rehearsal_id,
+        current["report"]["score"],
+        current["report"]["out_of"],
+        time.monotonic() - start,
+    )
+    return rehearsal.save(current)
+
+
+async def discuss_report(rehearsal_id: str, text: str, via: str) -> dict:
+    """Message de l'orateur sur le rapport -> réponse du coach, notes révisées."""
+    current = rehearsal_or_404(rehearsal_id)
+    if not current.get("report"):
+        raise rehearsal.RehearsalError("le rapport n'est pas encore rédigé")
+    answer = await ask_llm(
+        rehearsal.DISCUSSION_RULES, rehearsal.discussion_prompt(current, text)
+    )
+    entry = rehearsal.discuss(current, text, answer, via)
+    rehearsal.save(current)
+    logger.info(
+        "Discussion du rapport %s : %d révision(s), note %s",
+        rehearsal_id,
+        len(entry["revisions"]),
+        current["report"]["score"],
+    )
+    return {"reply": entry, "rehearsal": current}
+
+
+@app.post("/api/rehearsals/{rehearsal_id}/discussion")
+async def rehearsal_discussion(
+    rehearsal_id: str, message: rehearsal.DiscussionMessage
+) -> dict:
+    try:
+        return await discuss_report(rehearsal_id, message.text, "text")
+    except rehearsal.RehearsalError as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+
+async def spoken_discussion(messages: list[dict]) -> str:
+    """Discussion du rapport à la voix : réponse lue par l'avatar."""
+    said = rehearsal.last_said(messages)
+    if not said:
+        return ""
+    try:
+        done = await discuss_report(rehearsal.live["id"], said, "voice")
+    except (rehearsal.RehearsalError, HTTPException) as exc:
+        logger.warning("Discussion du rapport impossible : %s", exc)
+        return "Je n'ai pas pu traiter votre remarque. Pouvez-vous la reformuler ?"
+    return done["reply"]["text"]
+
+
 def to_native(messages: list[dict]) -> list[dict]:
     """Messages OpenAI -> API native d'Ollama (images à part, en base64)."""
     native = []
@@ -1043,7 +1219,24 @@ async def relay(path: str, request: Request) -> StreamingResponse:
         body and request.headers.get("content-type", "").startswith("application/json")
     ):
         payload = json.loads(body)
-    if chat and "messages" in payload:
+    rehearsing = chat and "messages" in payload and rehearsal.phase()
+    if rehearsing in ("speech", "report"):
+        # Discours : l'IA se tait ; rapport : l'avatar lit la partie demandée
+        text = (
+            "" if rehearsing == "speech" else rehearsal.report_part(payload["messages"])
+        )
+        return StreamingResponse(
+            rehearsal.scripted(model, text), media_type="text/event-stream"
+        )
+    if rehearsing == "discussion":
+        return StreamingResponse(
+            rehearsal.scripted(model, await spoken_discussion(payload["messages"])),
+            media_type="text/event-stream",
+        )
+    if rehearsing == "qa":
+        payload["messages"] = rehearsal.qa_messages(payload["messages"])
+        model = await usable_model(settings.model, settings)
+    elif chat and "messages" in payload:
         # Voix : l'historique du moteur ne contient que le texte prononcé
         messages = voicecode.restore(payload["messages"])
         payload["messages"], model, usage = await prepare(messages, settings)
