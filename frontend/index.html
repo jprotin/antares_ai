@@ -48,6 +48,19 @@
             </button>
             <button
               class="settings-button"
+              id="open-rehearsal"
+              type="button"
+              aria-label="Répéter une présentation"
+              title="Répéter une présentation"
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path
+                  d="M3 3h18a1 1 0 0 1 0 2h-1v10a2 2 0 0 1-2 2h-5v1.6l3.2 2.6a1 1 0 1 1-1.3 1.6L12 20.3l-2.9 2.5a1 1 0 0 1-1.3-1.6l3.2-2.6V17H6a2 2 0 0 1-2-2V5H3a1 1 0 0 1 0-2Zm3 2v10h12V5H6Zm2 7.5 3-3 2 2 3-3.5 1.5 1.3-4.4 5.1-2.1-2.1-1.6 1.6L8 12.5Z"
+                />
+              </svg>
+            </button>
+            <button
+              class="settings-button"
               id="open-settings"
               type="button"
               aria-label="Réglages"
@@ -151,6 +164,132 @@
             </button>
           </div>
         </form>
+      </section>
+      <section
+        class="rehearsal"
+        id="rehearsal"
+        aria-label="Répétition de la présentation"
+        hidden
+      >
+        <header class="rehearsal__bar">
+          <ol class="rehearsal__steps">
+            <li data-step="speech">Discours</li>
+            <li data-step="qa">Questions</li>
+            <li data-step="report">Rapport</li>
+          </ol>
+          <span class="rehearsal__clock" id="rehearsal-clock" role="timer"
+            >0:00</span
+          >
+          <div class="rehearsal__mic">
+            <span
+              class="mic-meter"
+              id="rehearsal-mic"
+              title="Niveau du micro ; le trait marque le seuil sous lequel le son est ignoré"
+              aria-hidden="true"
+            ></span>
+            <span class="rehearsal__mic-state" id="rehearsal-mic-state"
+              >Micro inactif</span
+            >
+            <label class="rehearsal__noise"
+              >Filtre du bruit
+              <select id="rehearsal-noise">
+                <option value="light">Léger</option>
+                <option value="normal">Normal</option>
+                <option value="strong">Fort</option>
+              </select>
+            </label>
+          </div>
+          <div class="rehearsal__actions">
+            <button
+              type="button"
+              class="button-ghost"
+              id="rehearsal-interrupt"
+              hidden
+            >
+              Interrompre
+            </button>
+            <button type="button" class="link-button" id="rehearsal-quit">
+              Quitter
+            </button>
+            <button type="button" class="button-primary" id="rehearsal-next">
+              J'ai terminé mon discours
+            </button>
+          </div>
+        </header>
+        <figure class="rehearsal__slide" id="rehearsal-slide-box">
+          <img id="rehearsal-slide" alt="" />
+          <figcaption class="rehearsal__nav">
+            <button
+              type="button"
+              class="preview-button"
+              id="rehearsal-prev"
+              aria-label="Slide précédente"
+            >
+              ‹
+            </button>
+            <span id="rehearsal-count">1 / 1</span>
+            <button
+              type="button"
+              class="preview-button"
+              id="rehearsal-forward"
+              aria-label="Slide suivante"
+            >
+              ›
+            </button>
+            <span class="rehearsal__hint" id="rehearsal-hint"></span>
+          </figcaption>
+        </figure>
+        <div class="report" id="rehearsal-report" hidden></div>
+        <aside
+          class="discussion"
+          id="rehearsal-discussion"
+          aria-labelledby="discussion-title"
+          hidden
+        >
+          <header class="discussion__head">
+            <div>
+              <h3 id="discussion-title">Discuter de la note</h3>
+              <p class="discussion__score" id="discussion-score"></p>
+            </div>
+            <button
+              type="button"
+              class="preview-button"
+              id="discussion-close"
+              aria-label="Fermer la discussion"
+            >
+              ×
+            </button>
+          </header>
+          <div class="discussion__thread" id="discussion-thread"></div>
+          <form class="discussion__form" id="discussion-form">
+            <textarea
+              id="discussion-text"
+              rows="3"
+              maxlength="4000"
+              placeholder="Ex. : j'ai survolé la slide 3 volontairement, le client la connaît déjà."
+              aria-label="Votre message au coach"
+            ></textarea>
+            <p class="settings__error" id="discussion-error" role="alert"></p>
+            <div class="discussion__actions">
+              <button
+                type="button"
+                class="button-ghost"
+                id="discussion-talk"
+                aria-pressed="false"
+              >
+                Parler
+              </button>
+              <button type="submit" class="button-primary" id="discussion-send">
+                Envoyer
+              </button>
+            </div>
+          </form>
+        </aside>
+        <p
+          class="rehearsal__caption"
+          id="rehearsal-caption"
+          aria-live="polite"
+        ></p>
       </section>
     </main>
 
@@ -535,6 +674,95 @@
           </button>
         </footer>
       </div>
+    </dialog>
+
+    <dialog
+      class="settings agents rehearsal-setup"
+      id="rehearsal-setup"
+      aria-labelledby="rehearsal-setup-title"
+    >
+      <form class="settings__form" id="rehearsal-form" method="dialog">
+        <header class="settings__header dialog__header">
+          <h2 id="rehearsal-setup-title">Répéter une présentation</h2>
+          <p>
+            Déroulez votre discours en faisant défiler vos slides : l'IA écoute
+            sans rien dire. Elle joue ensuite votre public pour les questions,
+            puis vous présente son rapport noté.
+          </p>
+        </header>
+        <p class="settings__error" id="rehearsal-error" role="alert"></p>
+        <div class="rehearsal-form">
+          <label
+            >Titre
+            <input
+              id="rehearsal-title"
+              maxlength="120"
+              placeholder="Soutenance migration cloud"
+              required
+            />
+          </label>
+          <label
+            >Slides (PDF)
+            <input
+              type="file"
+              id="rehearsal-pdf"
+              accept="application/pdf,.pdf"
+              required
+            />
+          </label>
+          <div class="agent-form__row">
+            <label
+              >Public
+              <select id="rehearsal-audience"></select>
+            </label>
+            <label
+              >Questions du public
+              <select id="rehearsal-questions">
+                <option>1</option>
+                <option>2</option>
+                <option selected>3</option>
+                <option>4</option>
+                <option>5</option>
+              </select>
+            </label>
+          </div>
+          <div class="agent-form__row">
+            <label
+              >Objectif (facultatif)
+              <input
+                id="rehearsal-goal"
+                maxlength="600"
+                placeholder="Convaincre de signer le lot 2"
+              />
+            </label>
+            <label
+              >Durée visée en minutes (facultatif)
+              <input id="rehearsal-target" type="number" min="0" max="240" />
+            </label>
+          </div>
+          <p class="settings__hint">
+            Exportez vos slides en PDF depuis PowerPoint, Keynote ou Google
+            Slides. Pendant le discours : flèches ← → ou clic sur la slide pour
+            avancer. Le rapport est rédigé par le modèle choisi dans les
+            Réglages.
+          </p>
+        </div>
+        <section
+          class="rehearsal-history"
+          aria-labelledby="rehearsal-history-title"
+        >
+          <h3 id="rehearsal-history-title">Mes répétitions</h3>
+          <div class="agents__list" id="rehearsal-history"></div>
+        </section>
+        <footer class="settings__actions dialog__footer">
+          <button type="button" class="button-ghost" id="rehearsal-cancel">
+            Fermer
+          </button>
+          <button type="submit" class="button-primary" id="rehearsal-start">
+            Commencer
+          </button>
+        </footer>
+      </form>
     </dialog>
 
     <dialog

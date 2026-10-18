@@ -68,6 +68,15 @@ server {
         client_max_body_size 15m;
     }
 
+    # Répétitions : slides en PDF (15 Mo), discours transcrit, rapport rédigé par le
+    # modèle (jusqu'à quelques minutes sur un long discours)
+    location ~ ^/api/rehearsals/.+ {
+        proxy_pass $router_upstream;
+        proxy_set_header Host $host;
+        proxy_read_timeout 300s;
+        client_max_body_size 16m;
+    }
+
     # Réglages (modèle, voix, agent, mode…) et agents : routeur LLM
     location /api/ {
         proxy_pass $router_upstream;

@@ -6,6 +6,7 @@ import { initConnections } from "./connections.js";
 import { initAttachments } from "./attachments.js";
 import { initKnowledge } from "./knowledge.js";
 import { initRagProjects } from "./ragprojects.js";
+import { initRehearsal } from "./rehearsal.js";
 import { Avatar } from "./avatar.js";
 import { createPicker } from "./picker.js";
 import { enableCodeCopy, renderInto, renderMarkdown } from "./render.js";
@@ -92,6 +93,18 @@ const theme = initTheme({
   orb,
 });
 let call = null;
+// Micro coupé côté envoi (lecture du rapport de répétition)
+let micMuted = false;
+// Répétition de présentation (cf. rehearsal.js), créée en fin de chargement
+let rehearsalUI = null;
+// Filtre appliqué au son du micro avant envoi (bruit ambiant pendant une répétition)
+let inputFilter = null;
+// Seuil de détection de parole du moteur (son défaut, 0,6), relevé pendant une
+// répétition ; envoyé à chaque appel pour ne pas garder celui d'une répétition
+const DEFAULT_VAD_THRESHOLD = 0.6;
+let vadThreshold = DEFAULT_VAD_THRESHOLD;
+// Écho de la fin d'une réponse, encore capté par le micro après la lecture
+const ECHO_TAIL_MS = 300;
 
 // Recherche web pendant la réflexion : le statut l'indique (sans phrase parlée)
 let stopSearchWatch = null;
@@ -349,6 +362,8 @@ function enqueuePlayback(samples) {
   call.sources.add(source);
   source.onended = () => {
     call?.sources.delete(source);
+    if (call && !call.sources.size)
+      call.quietUntil = performance.now() + ECHO_TAIL_MS;
     maybeBackToListening();
   };
 }
@@ -360,6 +375,7 @@ function stopPlayback() {
   }
   call.sources.clear();
   call.playhead = 0;
+  call.quietUntil = performance.now() + ECHO_TAIL_MS;
 }
 
 function maybeBackToListening() {
@@ -376,6 +392,9 @@ function maybeBackToListening() {
 // --- Événements serveur --------------------------------------------------------
 
 function onServerEvent(event) {
+  rehearsalUI?.onEvent(event);
+  // Répétition : discours, questions et rapport s'affichent dans son panneau
+  const rehearsing = rehearsalUI?.active();
   switch (event.type) {
     case "input_audio_buffer.speech_started":
       // La réponse à la parole tiendra compte du message écrit en attente
@@ -389,12 +408,14 @@ function onServerEvent(event) {
     case "input_audio_buffer.speech_stopped":
       call.speechStoppedAt = performance.now();
       call.speechStoppedEpoch = Date.now();
-      setState("thinking");
+      setState(rehearsalUI?.silent() ? "listening" : "thinking");
       break;
     case "conversation.item.input_audio_transcription.delta":
+      if (rehearsing) break;
       writeSubtitle(event.item_id, "user", event.delta, { append: true });
       break;
     case "conversation.item.input_audio_transcription.completed":
+      if (rehearsing) break;
       writeSubtitle(event.item_id, "user", event.transcript, { final: true });
       remember("user", event.transcript);
       break;
@@ -411,6 +432,7 @@ function onServerEvent(event) {
       setState("speaking");
       break;
     case "response.output_audio_transcript.delta":
+      if (rehearsing) break;
       call.lastAssistantLine = writeSubtitle(
         event.item_id,
         "assistant",
@@ -419,6 +441,7 @@ function onServerEvent(event) {
       );
       break;
     case "response.output_audio_transcript.done":
+      if (rehearsing) break;
       call.lastAssistantLine = writeSubtitle(
         event.item_id,
         "assistant",
@@ -475,7 +498,8 @@ function animateOrb() {
 
 // --- Appel ---------------------------------------------------------------------
 
-async function startCall() {
+// `replay` : reprise de la conversation en cours ; `onOpen` : appelé une fois connecté
+async function startCall({ replay = true, onOpen } = {}) {
   ui.button.disabled = true;
   setState("connecting");
   try {
@@ -523,18 +547,25 @@ async function startCall() {
       playhead: 0,
       state: "connecting",
       responseDone: true,
+      quietUntil: 0,
       levelData: new Float32Array(micAnalyser.fftSize),
     };
 
     capture.port.onmessage = ({ data }) => {
-      if (ws.readyState !== WebSocket.OPEN) return;
+      if (ws.readyState !== WebSocket.OPEN || micMuted) return;
       if (ui.halfDuplex.checked && call.state === "speaking") return;
-      ws.send(
-        JSON.stringify({
-          type: "input_audio_buffer.append",
-          audio: base64FromPcm(data),
-        }),
-      );
+      // Répétition : micro coupé tant que l'avatar parle, et l'écho qui suit
+      const avatarHeard =
+        call.sources.size > 0 || performance.now() < call.quietUntil;
+      if (avatarHeard && rehearsalUI?.holdMic()) return;
+      for (const block of inputFilter ? inputFilter(data) : [data]) {
+        ws.send(
+          JSON.stringify({
+            type: "input_audio_buffer.append",
+            audio: base64FromPcm(block),
+          }),
+        );
+      }
     };
 
     ws.onopen = () => {
@@ -551,6 +582,7 @@ async function startCall() {
                 turn_detection: {
                   type: "server_vad",
                   interrupt_response: true,
+                  threshold: vadThreshold,
                 },
               },
               output: {
@@ -561,12 +593,13 @@ async function startCall() {
           },
         }),
       );
-      replayConversation(ws);
+      if (replay) replayConversation(ws);
       setState("listening");
       ui.newConversation.disabled = true;
       ui.button.textContent = "Raccrocher";
       ui.button.disabled = false;
       animateOrb();
+      onOpen?.();
     };
     ws.onmessage = ({ data }) => onServerEvent(JSON.parse(data));
     ws.onclose = () => {
@@ -581,6 +614,7 @@ async function startCall() {
 }
 
 function hangUp(message) {
+  rehearsalUI?.onCallEnded();
   if (call) {
     const { ws, mic, ctx, frame } = call;
     call = null;
@@ -943,6 +977,49 @@ initConnections({
   },
 });
 initRagProjects({ onChanged: () => settingsDialog.refreshProjects() });
+
+rehearsalUI = initRehearsal({
+  agents: () => profile.agents ?? [],
+  voice: {
+    start: (options) => startCall(options),
+    stop: (message) => hangUp(message),
+    inCall: () => call?.ws.readyState === WebSocket.OPEN,
+    send: (event) => call?.ws.send(JSON.stringify(event)),
+    setMuted: (muted) => {
+      micMuted = muted;
+    },
+    playing: () => Boolean(call?.sources.size),
+    setInputFilter: (filter) => {
+      inputFilter = filter;
+    },
+    // Seuil de détection de parole ; null : celui par défaut
+    setVadThreshold: (threshold) => {
+      vadThreshold = threshold ?? DEFAULT_VAD_THRESHOLD;
+      if (call?.ws.readyState !== WebSocket.OPEN) return;
+      call.ws.send(
+        JSON.stringify({
+          type: "session.update",
+          session: {
+            type: "realtime",
+            audio: {
+              input: {
+                turn_detection: {
+                  type: "server_vad",
+                  interrupt_response: true,
+                  threshold: vadThreshold,
+                },
+              },
+            },
+          },
+        }),
+      );
+    },
+    stopPlayback: () => call && stopPlayback(),
+    setStatus: (text) => {
+      ui.status.textContent = text;
+    },
+  },
+});
 
 initAgentsDialog({
   onChanged: async () => {
