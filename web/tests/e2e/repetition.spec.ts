@@ -477,4 +477,39 @@ test.describe("répétition @mock @repetition @lot6", () => {
     expect(pages, "pages du PDF").toBe(reference.pages);
     await page.emulateMedia({ media: "screen" });
   });
+
+  test("RE-4b : impression avec la visionneuse ouverte, le rapport seul", async ({
+    page,
+    ui,
+    browserName,
+  }) => {
+    test.skip(browserName !== "chromium", "page.pdf() : Chromium seulement");
+    await rehearsalApi(page);
+    await ui.goto();
+    await page.locator("#open-rehearsal").click();
+    await page
+      .locator("#rehearsal-history .agent-card")
+      .filter({ hasText: "Répétition de test 3" })
+      .getByRole("button", { name: "Rapport" })
+      .click();
+    await expect(page.locator("#rehearsal-report")).toContainText(
+      "Répétition de test 3",
+    );
+    await page.locator(".report__chip").first().click();
+    const viewer = page.locator(".report__viewer");
+    await expect(viewer).toBeVisible();
+
+    await page.emulateMedia({ media: "print" });
+    await expect(viewer).toBeHidden();
+    const file = test.info().outputPath("rapport-visionneuse.pdf");
+    await page.pdf({ path: file, format: "A4", printBackground: true });
+    const pages = Number(
+      /Pages:\s+(\d+)/.exec(
+        execFileSync("pdfinfo", [file], { encoding: "utf8" }),
+      )?.[1],
+    );
+    const reference = JSON.parse(readFileSync(PDF_BASELINE, "utf8"));
+    expect(pages, "pages du PDF").toBe(reference.pages);
+    await page.emulateMedia({ media: "screen" });
+  });
 });

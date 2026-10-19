@@ -21,6 +21,9 @@ export default defineConfig({
         "src/engines/net/**",
         "src/engines/realtime/protocol.ts",
         "src/engines/realtime/plugins.ts",
+        // Répétition : logique pure (les composants relèvent de Playwright)
+        "src/features/rehearsal/rehearsalMachine.ts",
+        "src/features/rehearsal/audio/**",
       ],
       thresholds: { lines: 85 },
     },

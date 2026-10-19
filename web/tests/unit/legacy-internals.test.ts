@@ -14,7 +14,20 @@ import {
 
 import { base64FromPcm, floatFromBase64Pcm } from "@/lib/pcm";
 import { readChatStream } from "@/lib/sse";
+import {
+  clock,
+  initialScores,
+  longClock,
+  newPart,
+} from "@/features/rehearsal/rehearsalMachine";
 import { recentHistory } from "@/state/slices/conversation";
+
+const nextRehearsal = {
+  clock,
+  longClock,
+  newPart,
+  initialScores: (report: never) => initialScores(report),
+};
 
 const nextApp = {
   base64FromPcm,
@@ -43,8 +56,7 @@ const cases = [
     rehearsal: legacyRehearsal,
     sse: legacySse,
   },
-  // Fonctions de la Répétition : nouvelle implémentation au lot 6
-  { name: "next", app: nextApp, rehearsal: legacyRehearsal, sse: nextSse },
+  { name: "next", app: nextApp, rehearsal: nextRehearsal, sse: nextSse },
 ];
 
 type SseCase = {

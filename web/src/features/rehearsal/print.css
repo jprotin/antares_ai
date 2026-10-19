@@ -1,0 +1,49 @@
+/* Impression du rapport : le rapport seul, sur fond blanc (frontend/style.css, lignes
+   2102-2163 et 2405-2413). Fenêtres (portails dans body) et visionneuse (#feature-portal,
+   dans #root hors de .app) masquées ; !important repris de l'ancienne feuille. */
+@media print {
+  @layer components {
+    body:has(.app[data-rehearsal="report"]) .app > :not(.rehearsal),
+    body:has(.app[data-rehearsal="report"]) > :not(#root),
+    body:has(.app[data-rehearsal="report"]) #feature-portal,
+    .app[data-rehearsal="report"] .rehearsal__bar,
+    .app[data-rehearsal="report"] .rehearsal__caption,
+    .app[data-rehearsal="report"] .report__controls {
+      display: none !important;
+    }
+    .app[data-rehearsal="report"] {
+      display: block;
+      height: auto;
+      padding: 0;
+    }
+    .app[data-rehearsal="report"] .rehearsal,
+    .app[data-rehearsal="report"] .report {
+      display: block;
+      overflow: visible;
+      border: 0;
+      background: #fff;
+      color: #111;
+    }
+    .report__section {
+      break-inside: avoid;
+      background: #fff;
+      box-shadow: none !important;
+    }
+
+    .report__play {
+      display: none;
+    }
+
+    .report__section.is-reading {
+      border-color: var(--panel-border);
+    }
+
+    .discussion,
+    .rehearsal__mic {
+      display: none !important;
+    }
+    .report__annex {
+      display: block;
+    }
+  }
+}

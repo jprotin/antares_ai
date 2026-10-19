@@ -8,6 +8,10 @@ import * as legacySettings from "../../../frontend/settings.js";
 import * as legacyTheme from "../../../frontend/theme.js";
 
 import { hueFor } from "@/engines/theme/theme";
+import {
+  createNoiseGate,
+  storedFilter,
+} from "@/features/rehearsal/audio/noiseGate";
 import { instructionsFor, writtenInstructionsFor } from "@/lib/persona";
 
 export type NoiseGate = {
@@ -47,7 +51,7 @@ export const implementations: Implementation[] = [
   },
 ];
 
-// Filtre de bruit : la nouvelle implémentation rejoint la table au lot 6
+// Filtre de bruit : ancien module et port de la Répétition (lot 6)
 export type NoiseGateImplementation = {
   name: string;
   createNoiseGate(): NoiseGate;
@@ -60,4 +64,5 @@ export const noiseGateImplementations: NoiseGateImplementation[] = [
     createNoiseGate: legacyGate.createNoiseGate,
     storedFilter: legacyGate.storedFilter,
   },
+  { name: "next", createNoiseGate, storedFilter },
 ];
