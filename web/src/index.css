@@ -1,0 +1,134 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "./styles/shadcn.css";
+@import "./shims/remove-scroll-bar/scroll-lock.css";
+
+/* Thème posé sur <html data-theme> par public/theme-init.js (avant le premier rendu) */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* Couleurs antares (frontend/style.css) : seule la teinte --hue varie selon l'agent.
+   Les noms shadcn (--background, --primary…) sont dérivés de ces valeurs ; l'accent
+   vif d'antares s'appelle --brand, car --accent désigne chez shadcn un fond de survol. */
+@property --hue {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 222;
+}
+
+@layer base {
+  :root,
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --radius: 0.75rem;
+    --danger: #e0565b;
+    --on-accent: #fff;
+    --bg: hsl(var(--hue) 38% 4%);
+    --bg-glow: hsl(var(--hue) 45% 12%);
+    --panel: hsl(var(--hue) 42% 9%);
+    --panel-border: hsl(var(--hue) 34% 16%);
+    --text: hsl(var(--hue) 40% 93%);
+    --muted-text: hsl(var(--hue) 14% 59%);
+    --field: hsl(var(--hue) 38% 5%);
+    --brand: hsl(var(--hue) 100% 68%);
+    --brand-strong: hsl(var(--hue) 100% 74%);
+    --brand-2: hsl(calc(var(--hue) + 31) 100% 68%);
+    --overlay: #ffffff0a;
+    --overlay-strong: #ffffff14;
+    --backdrop: hsl(var(--hue) 40% 2% / 0.8);
+    --code-bg: hsl(var(--hue) 40% 6%);
+    --code-text: hsl(var(--hue) 30% 88%);
+  }
+
+  :root[data-theme="light"] {
+    color-scheme: light;
+    --bg: hsl(var(--hue) 30% 96%);
+    --bg-glow: hsl(var(--hue) 80% 90%);
+    --panel: hsl(var(--hue) 40% 99%);
+    --panel-border: hsl(var(--hue) 25% 86%);
+    --text: hsl(var(--hue) 30% 14%);
+    --muted-text: hsl(var(--hue) 12% 40%);
+    --field: hsl(var(--hue) 30% 98%);
+    --brand: hsl(var(--hue) 72% 52%);
+    --brand-strong: hsl(var(--hue) 70% 44%);
+    --brand-2: hsl(calc(var(--hue) + 31) 70% 55%);
+    --overlay: #0000000a;
+    --overlay-strong: #00000012;
+    --backdrop: hsl(var(--hue) 25% 20% / 0.45);
+    --code-bg: hsl(var(--hue) 30% 96%);
+    --code-text: hsl(var(--hue) 30% 18%);
+  }
+
+  :root {
+    --background: var(--bg);
+    --foreground: var(--text);
+    --card: var(--panel);
+    --card-foreground: var(--text);
+    --popover: var(--panel);
+    --popover-foreground: var(--text);
+    --primary: var(--brand);
+    --primary-foreground: var(--on-accent);
+    --secondary: var(--overlay-strong);
+    --secondary-foreground: var(--text);
+    --muted: var(--overlay);
+    --muted-foreground: var(--muted-text);
+    --accent: var(--overlay-strong);
+    --accent-foreground: var(--text);
+    --destructive: var(--danger);
+    --border: var(--panel-border);
+    --input: var(--panel-border);
+    --ring: var(--brand);
+  }
+}
+
+@theme inline {
+  --font-sans: system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-heading: var(--font-sans);
+  --font-mono: ui-monospace, "JetBrains Mono", "Fira Code", Menlo, monospace;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-brand: var(--brand);
+  --color-brand-2: var(--brand-2);
+  --color-field: var(--field);
+  --color-panel: var(--panel);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+  body {
+    margin: 0;
+    background:
+      radial-gradient(60rem 40rem at 20% 30%, var(--bg-glow), transparent 70%),
+      var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+}
