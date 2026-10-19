@@ -1,6 +1,6 @@
 # 0012 — Interface web en Vite + React + shadcn/ui
 
-- **Status** : proposed (accepted au merge de `feature/interface-vite-react`)
+- **Status** : accepted (2026-10-19, merge de `feature/interface-vite-react` dans develop)
 - **Date** : 2026-10-19
 - **Auteur(s)** : jprotin
 - **Tags** : interface, frontend, CSP, build, tests
@@ -51,10 +51,14 @@ WebGL), contrats `/v1/realtime`, `/api/*`, `/voices/`, `/config.json` inchangés
    contrôles, puces, interligne) sont rétablies. Résultat : rendu identique à l'ancienne
    interface (captures comparées à chaque lot ; PDF du rapport identique au pixel près).
 5. **Build** : image Docker multi-stage (Node puis nginx, épinglés par digest,
-   `npm ci --ignore-scripts`, lockfile versionné). Avant la bascule, la nouvelle interface
-   est servie à côté de l'ancienne (`web-next`, 127.0.0.1:8766). La bascule du service `web`
-   et le retour arrière en une commande (`ui.sh`) font l'objet d'étapes à part, chacune
-   soumise à l'accord de l'utilisateur ; ce document sera complété à ce moment-là.
+   `npm ci --ignore-scripts`, lockfile versionné). Le service `web` de `compose.yaml`
+   construit `web/` (image `antares/web`, empreinte `git rev-parse HEAD:web` dans
+   `version.json`) ; CSP complétée par `frame-ancestors 'none'`, `base-uri 'none'`,
+   `object-src 'none'`, `form-action 'self'` et `X-Frame-Options DENY`.
+   Retour arrière en une commande : `./ui.sh legacy` sert `frontend/` par `nginx:1.29-alpine`
+   sans construction (fonctionne sans l'image `antares/web`), `./ui.sh new` revient à la
+   nouvelle interface et la reconstruit si elle est périmée. Le choix persiste dans `.env`
+   (`COMPOSE_FILE`). Bascule faite le 2026-10-19, huit cas de retour arrière vérifiés.
 6. **Parité prouvée par les tests** : la même suite Playwright vise l'ancienne interface
    (oracle) et la nouvelle, via un adaptateur par interface (`web/tests/adapters`), avec
    des gardes automatiques (aucune requête hors origine, aucune violation CSP, aucune
