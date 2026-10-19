@@ -1,8 +1,11 @@
 // Projet smoke : interface servie, chargement propre, CSP attendue, une fenêtre.
 import { expect, isLegacy, test } from "../support/test";
 
-const EXPECTED_CSP =
+// Base de la CSP, inchangée depuis l'ancienne interface (décision du spike)
+const BASE_CSP =
   "default-src 'self'; connect-src 'self'; media-src 'self' blob:; style-src 'self'; script-src 'self'";
+// Ajouts de l'audit de sécurité (lot 7) : jamais intégrée dans une page tierce
+const HARDENED_CSP = `${BASE_CSP}; frame-ancestors 'none'; base-uri 'none'; object-src 'none'; form-action 'self'`;
 
 test("smoke : la page se charge sans violation CSP ni erreur JS @smoke", async ({
   ui,
@@ -23,7 +26,11 @@ test("smoke : en-tête Content-Security-Policy inchangé @smoke", async ({
   page,
 }) => {
   const response = await page.request.get("./");
-  expect(response.headers()["content-security-policy"]).toBe(EXPECTED_CSP);
+  const csp = response.headers()["content-security-policy"];
+  // L'ancienne interface en service garde la CSP de base jusqu'à son redémarrage
+  if (isLegacy() && csp === BASE_CSP) return;
+  expect(csp).toBe(HARDENED_CSP);
+  expect(response.headers()["x-frame-options"]).toBe("DENY");
 });
 
 test("smoke : ouverture et fermeture d'une fenêtre @smoke", async ({ ui }) => {

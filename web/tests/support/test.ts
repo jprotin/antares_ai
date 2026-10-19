@@ -34,6 +34,9 @@ export type GuardOptions = {
   allowConsoleErrors: string[];
   // Violations CSP tolérées sur l'ancienne interface (ligne « amélioration » en KO attendu)
   allowLegacyCsp: boolean;
+  // Écritures refusées attendues (« METHODE /api/chemin ») : toujours bloquées, mais
+  // sans faire échouer le test (ex. alignement de la voix au chargement)
+  expectedRefusals: string[];
 };
 
 type Fixtures = GuardOptions & {
@@ -59,6 +62,9 @@ export class Guards {
 
 // Projets qui parlent à la vraie API (pas à l'API simulée) : la garde d'écriture s'applique
 const REAL_API_PROJECTS = new Set(["chromium-live", "smoke", "perf"]);
+// Au chargement, l'interface aligne la voix sur l'avatar du navigateur de test (vierge) et
+// tente PUT /api/settings : toujours bloqué sur la vraie API, et attendu
+const REAL_API_EXPECTED_REFUSALS = ["PUT /api/settings"];
 
 // Garde d'écriture au niveau du contexte (toutes ses pages, popups comprises) : seules les
 // écritures tolérées atteignent la vraie API ; les autres sont refusées et notées
@@ -108,13 +114,19 @@ function sameOrigin(url: string, origin: string): boolean {
 export const test = base.extend<Fixtures>({
   allowConsoleErrors: [[], { option: true }],
   allowLegacyCsp: [false, { option: true }],
+  expectedRefusals: [[], { option: true }],
 
   guards: [
     async (
-      { page, baseURL, allowConsoleErrors, allowLegacyCsp },
+      { page, baseURL, allowConsoleErrors, allowLegacyCsp, expectedRefusals },
       use,
       testInfo: TestInfo,
     ) => {
+      const realApi = REAL_API_PROJECTS.has(testInfo.project.name);
+      const expected = [
+        ...expectedRefusals,
+        ...(realApi ? REAL_API_EXPECTED_REFUSALS : []),
+      ];
       const origin = new URL(baseURL ?? "http://127.0.0.1:8765/").origin;
       const guards = new Guards(page);
       await installCspCollector(page);
@@ -135,6 +147,8 @@ export const test = base.extend<Fixtures>({
         if (/Content.Security.Policy/i.test(text)) return;
         if (allowConsoleErrors.some((allowed) => text.includes(allowed)))
           return;
+        // Écriture bloquée par la garde (refus vérifié plus bas)
+        if (realApi && text.includes("ERR_ACCESS_DENIED")) return;
         guards.consoleErrors.push(text);
       });
 
@@ -145,8 +159,7 @@ export const test = base.extend<Fixtures>({
             : route.abort("blockedbyclient"),
         );
       }
-      if (REAL_API_PROJECTS.has(testInfo.project.name))
-        await guardWrites(page.context(), guards.refusedWrites);
+      if (realApi) await guardWrites(page.context(), guards.refusedWrites);
 
       await use(guards);
 
@@ -158,7 +171,10 @@ export const test = base.extend<Fixtures>({
         .soft(guards.consoleErrors, "console.error non attendus")
         .toEqual([]);
       expect
-        .soft(guards.refusedWrites, "écritures refusées par la garde")
+        .soft(
+          guards.refusedWrites.filter((key) => !expected.includes(key)),
+          "écritures refusées par la garde",
+        )
         .toEqual([]);
       if (!tolerated) expect.soft(csp, "violations CSP").toEqual([]);
     },

@@ -17,10 +17,14 @@ server {
     root /usr/share/nginx/html;
     index index.html;
 
+    # En-têtes de sécurité. Un add_header dans une location annule ceux du server : les
+    # locations qui en ajoutent un (Cache-Control) les répètent.
+    # frame-ancestors et X-Frame-Options : jamais intégrée dans une page tierce (partage ngrok)
     add_header X-Content-Type-Options nosniff always;
     add_header Referrer-Policy no-referrer always;
     add_header Permissions-Policy "microphone=(self), camera=(), geolocation=()" always;
-    add_header Content-Security-Policy "default-src 'self'; connect-src 'self'; media-src 'self' blob:; style-src 'self'; script-src 'self'" always;
+    add_header Content-Security-Policy "default-src 'self'; connect-src 'self'; media-src 'self' blob:; style-src 'self'; script-src 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'; form-action 'self'" always;
+    add_header X-Frame-Options DENY always;
 
     location /v1/ {
         proxy_pass $s2s_upstream;
@@ -36,6 +40,11 @@ server {
     location = /config.json {
         default_type application/json;
         add_header Cache-Control no-store;
+        add_header X-Content-Type-Options nosniff always;
+        add_header Referrer-Policy no-referrer always;
+        add_header Permissions-Policy "microphone=(self), camera=(), geolocation=()" always;
+        add_header Content-Security-Policy "default-src 'self'; connect-src 'self'; media-src 'self' blob:; style-src 'self'; script-src 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'; form-action 'self'" always;
+        add_header X-Frame-Options DENY always;
         return 200 '{"stt":"${ANTARES_STT}","tts":"${ANTARES_TTS}","ttsQuantization":"${ANTARES_TTS_QUANTIZATION}"}';
     }
 
@@ -89,6 +98,11 @@ server {
     location /voices/ {
         alias /srv/voices/;
         add_header Cache-Control no-store;
+        add_header X-Content-Type-Options nosniff always;
+        add_header Referrer-Policy no-referrer always;
+        add_header Permissions-Policy "microphone=(self), camera=(), geolocation=()" always;
+        add_header Content-Security-Policy "default-src 'self'; connect-src 'self'; media-src 'self' blob:; style-src 'self'; script-src 'self'; frame-ancestors 'none'; base-uri 'none'; object-src 'none'; form-action 'self'" always;
+        add_header X-Frame-Options DENY always;
     }
 
     location / {
