@@ -8,7 +8,8 @@ COPY package.json package-lock.json .npmrc ./
 RUN --mount=type=cache,target=/root/.npm npm ci --ignore-scripts --no-audit --no-fund
 COPY . .
 ARG ANTARES_COMMIT=dev
-ENV ANTARES_COMMIT=${ANTARES_COMMIT}
+ARG ANTARES_WEB_REV=inconnu
+ENV ANTARES_COMMIT=${ANTARES_COMMIT} ANTARES_WEB_REV=${ANTARES_WEB_REV}
 # Sans les tests (hors contexte : ils lisent frontend/) ; tsc -b complet en pre-commit
 RUN npm run build:app
 

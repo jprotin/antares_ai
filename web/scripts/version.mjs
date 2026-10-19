@@ -8,5 +8,16 @@ const { name, version } = JSON.parse(
 );
 writeFileSync(
   `${web}/dist/version.json`,
-  `${JSON.stringify({ name, version, commit: process.env.ANTARES_COMMIT ?? "dev", ui: "next" }, null, 2)}\n`,
+  `${JSON.stringify(
+    {
+      name,
+      version,
+      commit: process.env.ANTARES_COMMIT ?? "dev",
+      // Empreinte de web/ au commit (git rev-parse HEAD:web) : ui.sh détecte une image périmée
+      rev: process.env.ANTARES_WEB_REV ?? "inconnu",
+      ui: "next",
+    },
+    null,
+    2,
+  )}\n`,
 );
