@@ -1,0 +1,7 @@
+dist
+node_modules
+test-results
+package-lock.json
+tests/fixtures/api
+src/styles/shadcn.css
+coverage

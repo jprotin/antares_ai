@@ -12,6 +12,27 @@ import {
   type Message,
 } from "./legacy-internals";
 
+import { base64FromPcm, floatFromBase64Pcm } from "@/lib/pcm";
+import { readChatStream } from "@/lib/sse";
+import { recentHistory } from "@/state/slices/conversation";
+
+const nextApp = {
+  base64FromPcm,
+  floatFromBase64Pcm,
+  recentHistory: (messages: Message[]) => recentHistory(messages),
+};
+
+// Même lecteur que legacySse : morceaux servis un à un
+function nextSse(chunks: Uint8Array[]): Promise<string> {
+  let index = 0;
+  return readChatStream({
+    read: async () =>
+      index < chunks.length
+        ? { done: false, value: chunks[index++] }
+        : { done: true },
+  });
+}
+
 type Pcm = { samples: number[]; floats: number[] };
 type History = { role: string; length: number; char: string }[];
 
@@ -22,6 +43,8 @@ const cases = [
     rehearsal: legacyRehearsal,
     sse: legacySse,
   },
+  // Fonctions de la Répétition : nouvelle implémentation au lot 6
+  { name: "next", app: nextApp, rehearsal: legacyRehearsal, sse: nextSse },
 ];
 
 type SseCase = {

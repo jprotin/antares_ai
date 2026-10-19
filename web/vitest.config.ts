@@ -9,5 +9,10 @@ export default defineConfig({
   test: {
     include: ["tests/unit/**/*.test.ts"],
     environment: "node",
+    coverage: {
+      provider: "v8",
+      include: ["src/lib/**", "src/engines/**", "src/state/**"],
+      thresholds: { lines: 85 },
+    },
   },
 });

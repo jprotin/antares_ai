@@ -1,6 +1,7 @@
 # Nouvelle interface (web/) servie à côté de l'actuelle, sur 127.0.0.1:8766, pendant
 # la migration. Lancement sans toucher aux autres services :
-#   docker compose -f compose.yaml -f compose.web-next.yaml up -d --no-deps --build web-next
+#   ANTARES_COMMIT=$(git rev-parse --short HEAD) docker compose --env-file .env \
+#     -f compose.yaml -f compose.web-next.yaml up -d --no-deps --build web-next
 ---
 services:
   web-next:
@@ -10,6 +11,8 @@ services:
     image: antares/web-next:dev
     build:
       context: ../../web
+      args:
+        ANTARES_COMMIT: ${ANTARES_COMMIT:-dev}
     container_name: antares-web-next
     ports: !override
       - "127.0.0.1:8766:8765"

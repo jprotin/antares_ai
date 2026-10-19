@@ -7,6 +7,9 @@ import * as legacySettings from "../../../frontend/settings.js";
 // @ts-expect-error idem
 import * as legacyTheme from "../../../frontend/theme.js";
 
+import { hueFor } from "@/engines/theme/theme";
+import { instructionsFor, writtenInstructionsFor } from "@/lib/persona";
+
 export type NoiseGate = {
   name: string;
   calibrated: boolean;
@@ -24,8 +27,6 @@ export type Voice = { name: string; gender?: string; persona?: string };
 
 export type Implementation = {
   name: string;
-  createNoiseGate(): NoiseGate;
-  storedFilter(): string;
   hueFor(domain?: string): number;
   instructionsFor(voice: Voice): string;
   writtenInstructionsFor(voice: Voice): string;
@@ -34,10 +35,29 @@ export type Implementation = {
 export const implementations: Implementation[] = [
   {
     name: "legacy",
-    createNoiseGate: legacyGate.createNoiseGate,
-    storedFilter: legacyGate.storedFilter,
     hueFor: legacyTheme.hueFor,
     instructionsFor: legacySettings.instructionsFor,
     writtenInstructionsFor: legacySettings.writtenInstructionsFor,
+  },
+  {
+    name: "next",
+    hueFor,
+    instructionsFor,
+    writtenInstructionsFor,
+  },
+];
+
+// Filtre de bruit : la nouvelle implémentation rejoint la table au lot 6
+export type NoiseGateImplementation = {
+  name: string;
+  createNoiseGate(): NoiseGate;
+  storedFilter(): string;
+};
+
+export const noiseGateImplementations: NoiseGateImplementation[] = [
+  {
+    name: "legacy",
+    createNoiseGate: legacyGate.createNoiseGate,
+    storedFilter: legacyGate.storedFilter,
   },
 ];

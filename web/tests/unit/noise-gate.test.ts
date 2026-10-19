@@ -1,7 +1,7 @@
 // Filtre du bruit (stratégie de tests, 3.2) : même table pour l'ancien et le nouveau module.
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
-import { implementations } from "./implementations";
+import { noiseGateImplementations } from "./implementations";
 import { installWindow, MemoryStorage } from "./setup-window";
 
 // Bloc PCM16 de 20 ms à 24 kHz (480 échantillons) d'amplitude constante
@@ -14,7 +14,7 @@ function isSilence(buffer: ArrayBuffer): boolean {
   return new Int16Array(buffer).every((sample) => sample === 0);
 }
 
-describe.each(implementations)("noise gate ($name)", (impl) => {
+describe.each(noiseGateImplementations)("noise gate ($name)", (impl) => {
   let storage: MemoryStorage;
   beforeEach(() => {
     storage = installWindow() as MemoryStorage;

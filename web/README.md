@@ -35,4 +35,15 @@ L'accent vif d'antares s'appelle `--brand` (`--accent` est un fond de survol che
   Menus déroulants : `ui/native-select.tsx` ; confirmations : `window.confirm`.
 - Popover en mode non modal uniquement.
 - `src/styles/shadcn.css` est une copie du CSS de `shadcn@4.22.1` (MIT), pour ne pas
-  embarquer le CLI comme dépendance.
+  embarquer le CLI comme dépendance. Une seule retouche : la règle `.shimmer` placée dans
+  `@layer utilities` (à refaire si le fichier est régénéré).
+
+## Qualité
+
+- `npm run lint` : règles CSP (pas d'injection de HTML hors `MarkdownView.tsx`, pas d'attribut
+  `style` par `setAttribute`) et frontières (moteurs sans React, une fonctionnalité n'en
+  importe une autre que par son `index.ts`).
+- `npm run build` : contrôle de `dist/` (`scripts/check-dist.mjs` : ni script ni style en ligne,
+  pas d'URL `data:`, URL absolues listées dans `scripts/url-allowlist.txt`), inventaire des
+  licences et `version.json`.
+- Hooks pre-commit `web-*` : prérequis `npm --prefix web ci --ignore-scripts`.

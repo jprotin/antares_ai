@@ -5,15 +5,21 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b && npm run build:app",
+    "build:app": "tsc -p tsconfig.app.json && vite build && node scripts/licenses-inventory.mjs && node scripts/version.mjs && node scripts/check-dist.mjs",
     "preview": "vite preview",
+    "preview:nginx": "ANTARES_COMMIT=$(git rev-parse --short HEAD) docker compose --env-file ../deploy/s2s/.env -f ../deploy/s2s/compose.yaml -f ../deploy/s2s/compose.web-next.yaml up -d --no-deps --build web-next",
     "typecheck": "tsc -b",
+    "lint": "eslint --max-warnings=0 .",
+    "format": "prettier --write .",
     "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "test:e2e:mock": "playwright test --project=chromium-mock",
     "test:e2e:live": "playwright test --project=chromium-live --project=smoke",
     "test:offline": "playwright test --project=offline-strict",
     "test:perf": "playwright test --project=perf",
-    "test:smoke": "playwright test --project=smoke"
+    "test:smoke": "playwright test --project=smoke",
+    "audit": "npm audit --audit-level=high"
   },
   "dependencies": {
     "class-variance-authority": "0.7.1",
@@ -27,9 +33,11 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "three": "0.160.1",
-    "tw-animate-css": "1.4.0"
+    "tw-animate-css": "1.4.0",
+    "zustand": "5.0.15"
   },
   "devDependencies": {
+    "@eslint/js": "10.0.1",
     "@playwright/test": "1.64.1",
     "@tailwindcss/vite": "4.3.3",
     "@types/node": "24.13.3",
@@ -37,10 +45,20 @@
     "@types/react-dom": "19.2.7",
     "@types/three": "0.160.0",
     "@vitejs/plugin-react": "6.1.1",
+    "@vitest/coverage-v8": "5.0.5",
+    "eslint": "10.12.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "eslint-plugin-react-refresh": "0.5.7",
+    "globals": "17.13.0",
     "jsdom": "30.1.3",
+    "prettier": "3.9.9",
     "tailwindcss": "4.3.3",
     "typescript": "6.0.2",
+    "typescript-eslint": "8.71.0",
     "vite": "8.3.4",
     "vitest": "5.0.5"
+  },
+  "engines": {
+    "node": ">=24"
   }
 }

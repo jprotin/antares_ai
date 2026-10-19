@@ -1,6 +1,6 @@
-// Rendu des réponses écrites : Markdown → HTML nettoyé, code coloré (port de
-// frontend/render.js). FORBID_ATTR style : la CSP bloque déjà l'attribut, on évite
-// ainsi la violation remontée.
+// Rendu des réponses écrites : Markdown → HTML nettoyé, code coloré avec bouton Copier,
+// liens externes signalés « à vérifier » (port de frontend/render.js). FORBID_ATTR
+// style : la CSP bloque déjà l'attribut, on évite ainsi la violation remontée.
 import DOMPurify from "dompurify";
 import hljs from "highlight.js/lib/common";
 import dockerfile from "highlight.js/lib/languages/dockerfile";
@@ -12,12 +12,32 @@ hljs.registerLanguage("dockerfile", dockerfile);
 hljs.registerLanguage("nginx", nginx);
 hljs.registerLanguage("powershell", powershell);
 
+const EXTERNAL_TITLE =
+  "Lien cité de mémoire par l'IA (sans accès à Internet) : à vérifier";
+
 function escapeHtml(text: string): string {
   return text
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;");
+}
+
+export function tagsHtml(text: string): string {
+  const tags = [
+    ...new Set(
+      text
+        .split(/[,\n]/)
+        .map((t) => t.trim().replace(/^#/, ""))
+        .filter(Boolean),
+    ),
+  ].slice(0, 8);
+  const buttons = tags.map(
+    (tag) =>
+      `<button type="button" class="tag" data-tag="${escapeHtml(tag)}" ` +
+      `title="Chercher « ${escapeHtml(tag)} » sur internet">#${escapeHtml(tag)}</button>`,
+  );
+  return `<div class="tags"><span class="tags__label">Mots-clés</span>${buttons.join("")}</div>`;
 }
 
 // Attributs style et gestionnaires on* du HTML brut retirés avant DOMPurify : Chromium
@@ -34,17 +54,32 @@ const marked = new Marked({
     },
     code({ text, lang }) {
       const language = (lang ?? "").trim().split(/\s+/)[0]?.toLowerCase() ?? "";
+      // Mots-clés d'une réponse issue d'une recherche web : cliquables
+      if (language === "tags") return tagsHtml(text);
       const known = language ? hljs.getLanguage(language) : undefined;
       const body = known
         ? hljs.highlight(text, { language, ignoreIllegals: true }).value
         : escapeHtml(text);
       const label = known?.name ?? (language || "texte");
       return (
-        `<div class="code"><div class="code__head"><span>${escapeHtml(label)}</span></div>` +
+        `<div class="code"><div class="code__head"><span>${escapeHtml(label)}</span>` +
+        `<button type="button" class="code__copy">Copier</button></div>` +
         `<pre><code class="hljs">${body}</code></pre></div>`
       );
     },
   },
+});
+
+// Liens : nouvel onglet, sans référent ; les liens Internet sont signalés « à vérifier »
+DOMPurify.addHook("afterSanitizeAttributes", (node) => {
+  if (node.tagName !== "A") return;
+  const href = node.getAttribute("href") ?? "";
+  if (/^https?:\/\//i.test(href)) {
+    node.setAttribute("target", "_blank");
+    node.setAttribute("rel", "noopener noreferrer");
+    node.classList.add("link--external");
+    node.setAttribute("title", EXTERNAL_TITLE);
+  }
 });
 
 export function renderMarkdown(text: string): string {
