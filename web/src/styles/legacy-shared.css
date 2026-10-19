@@ -1,5 +1,5 @@
 /* Classes partagées de frontend/style.css (boutons, badges), transposées telles quelles
-   (lignes 739-775, 864-883, 921-943, 1086-1094) ; variables renommées. */
+   (lignes 739-775, 864-883, 921-947, 1086-1094) ; variables renommées. */
 @layer components {
   .stage {
     position: relative;
@@ -90,5 +90,11 @@
     font: inherit;
     text-decoration: underline;
     cursor: pointer;
+  }
+
+  /* Badge « hors local » et « web » (frontend/style.css, lignes 944-947) */
+  .badge--cloud {
+    background: var(--cloud-bg);
+    color: var(--cloud-text);
   }
 }

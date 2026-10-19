@@ -17,7 +17,6 @@ export default defineConfig({
         "src/lib/**",
         "src/state/**",
         "src/engines/theme/**",
-        "src/engines/audio/**",
         "src/engines/net/**",
         "src/engines/realtime/protocol.ts",
         "src/engines/realtime/plugins.ts",

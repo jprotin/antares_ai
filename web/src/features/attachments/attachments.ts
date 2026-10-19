@@ -2,6 +2,8 @@
 // gardé par le routeur (documents.py), qui l'ajoute à chaque question.
 import { createStore } from "zustand/vanilla";
 
+import { detailMessage } from "@/lib/api";
+
 import { store } from "@/state/store";
 import type { AttachedDocument } from "@/types/api";
 
@@ -60,10 +62,10 @@ async function upload(file: File) {
       body: file,
     });
     const body = (await response.json().catch(() => ({}))) as
-      AttachedDocument | { detail?: string };
+      AttachedDocument | { detail?: unknown };
     if (!response.ok) {
       throw new Error(
-        ("detail" in body && body.detail) ||
+        ("detail" in body ? detailMessage(body.detail) : undefined) ??
           (response.status === 413
             ? `${file.name} : fichier trop volumineux (15 Mo au maximum)`
             : `${file.name} : envoi impossible (HTTP ${response.status})`),

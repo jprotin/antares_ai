@@ -39,21 +39,24 @@ async function upload(
   project: string,
   file: File,
 ): Promise<{ chunks: number }> {
-  const response = await fetch(`api/rag/projects/${project}/documents`, {
-    method: "POST",
-    headers: {
-      "Content-Type": file.type || "application/octet-stream",
-      "X-Filename": encodeURIComponent(file.name),
+  const response = await fetch(
+    `api/rag/projects/${encodeURIComponent(project)}/documents`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": file.type || "application/octet-stream",
+        "X-Filename": encodeURIComponent(file.name),
+      },
+      body: file,
     },
-    body: file,
-  });
+  );
   const body = (await response.json().catch(() => ({}))) as {
-    detail?: string;
+    detail?: unknown;
     chunks?: number;
   };
   if (!response.ok) {
     throw new Error(
-      body.detail ??
+      detailMessage(body.detail) ??
         (response.status === 413
           ? `${file.name} : fichier trop volumineux (15 Mo au maximum)`
           : `${file.name} : HTTP ${response.status}`),
@@ -83,7 +86,9 @@ export function RagProjectsDialog() {
   const loadDocuments = useCallback(async (project: string) => {
     setDocuments(
       project
-        ? await getJson<RagDocument[]>(`api/rag/projects/${project}/documents`)
+        ? await getJson<RagDocument[]>(
+            `api/rag/projects/${encodeURIComponent(project)}/documents`,
+          )
         : [],
     );
   }, []);
@@ -158,7 +163,7 @@ export function RagProjectsDialog() {
     const project = selected;
     if (!window.confirm(`Retirer « ${doc.source} » de ${project} ?`)) return;
     const response = await fetch(
-      `api/rag/projects/${project}/documents/${encodeURIComponent(doc.id)}`,
+      `api/rag/projects/${encodeURIComponent(project)}/documents/${encodeURIComponent(doc.id)}`,
       { method: "DELETE" },
     );
     if (!response.ok) {
@@ -178,9 +183,12 @@ export function RagProjectsDialog() {
       )
     )
       return;
-    const response = await fetch(`api/rag/projects/${project}`, {
-      method: "DELETE",
-    });
+    const response = await fetch(
+      `api/rag/projects/${encodeURIComponent(project)}`,
+      {
+        method: "DELETE",
+      },
+    );
     if (!response.ok) {
       setStatus(await failure(response), true);
       return;

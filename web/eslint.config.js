@@ -36,7 +36,6 @@ export default tseslint.config(
       "test-results",
       "playwright-report",
       "coverage",
-      "tests/spike",
       "src/components/ui",
     ],
   },
@@ -135,6 +134,25 @@ export default tseslint.config(
               regex: "^\\.\\./[^./][^/]*/(?!index$).+",
               message:
                 "Importer une autre fonctionnalité par @/features/<nom>.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // Specs : `test` vient de tests/support/test.ts (gardes hors ligne, CSP, écritures)
+    files: ["tests/e2e/**/*.ts", "tests/perf/**/*.ts"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          paths: [
+            {
+              name: "@playwright/test",
+              importNames: ["test"],
+              message:
+                "Importer test depuis ../support/test (gardes automatiques).",
             },
           ],
         },

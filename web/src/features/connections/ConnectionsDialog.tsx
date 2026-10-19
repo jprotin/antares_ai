@@ -19,21 +19,12 @@ import { Services } from "./Services";
 import type { Connections, Provider, ProviderTest } from "./types";
 import "@/styles/legacy-dialogs.css";
 import "./connections.css";
+import { slug } from "./slug";
 
 const PLACEHOLDERS: Record<string, string> = {
   ollama: "http://ollama:11434",
   openai: "https://api.exemple.com/v1 (l'adresse inclut /v1)",
 };
-
-function slug(text: string): string {
-  return text
-    .normalize("NFKD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 32);
-}
 
 // Premier mot : révèle un raisonnement silencieux ou un modèle trop lourd
 function firstTokenText(test: ProviderTest): string {
@@ -207,7 +198,7 @@ function ProviderForm({
         <input
           id="provider-key"
           type="password"
-          autoComplete="off"
+          autoComplete="new-password"
           maxLength={400}
           placeholder={
             editing?.has_key

@@ -181,7 +181,7 @@ repos:
         files: ^web/
       - id: web-eslint
         name: eslint (web/)
-        entry: bash -c 'cd web && npx --no-install eslint --max-warnings=0 --fix "${@#web/}"' --
+        entry: bash -c 'cd web && npx --no-install eslint --max-warnings=0 --no-warn-ignored --fix "${@#web/}"' --
         language: system
         files: ^web/.*\.(ts|tsx|js|mjs)$
       - id: web-typecheck

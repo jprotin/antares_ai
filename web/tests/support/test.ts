@@ -6,6 +6,7 @@
 import {
   test as base,
   expect,
+  type BrowserContext,
   type Page,
   type TestInfo,
 } from "@playwright/test";
@@ -54,6 +55,24 @@ export class Guards {
       () => (window as unknown as { __csp?: CspViolation[] }).__csp ?? [],
     );
   }
+}
+
+// Projets qui parlent à la vraie API (pas à l'API simulée) : la garde d'écriture s'applique
+const REAL_API_PROJECTS = new Set(["chromium-live", "smoke", "perf"]);
+
+// Garde d'écriture au niveau du contexte (toutes ses pages, popups comprises) : seules les
+// écritures tolérées atteignent la vraie API ; les autres sont refusées et notées
+export async function guardWrites(context: BrowserContext, refused: string[]) {
+  await context.route("**/api/**", (route) => {
+    const request = route.request();
+    if (request.method() === "GET" || request.method() === "HEAD")
+      return route.fallback();
+    const key = `${request.method()} ${new URL(request.url()).pathname}`;
+    if (ALLOWED_WRITES.some((pattern) => pattern.test(key)))
+      return route.fallback();
+    refused.push(key);
+    return route.abort("accessdenied");
+  });
 }
 
 export function isLegacy(): boolean {
@@ -126,18 +145,8 @@ export const test = base.extend<Fixtures>({
             : route.abort("blockedbyclient"),
         );
       }
-      if (testInfo.project.name === "chromium-live") {
-        await page.route("**/api/**", (route) => {
-          const request = route.request();
-          if (request.method() === "GET" || request.method() === "HEAD")
-            return route.fallback();
-          const key = `${request.method()} ${new URL(request.url()).pathname}`;
-          if (ALLOWED_WRITES.some((pattern) => pattern.test(key)))
-            return route.fallback();
-          guards.refusedWrites.push(key);
-          return route.abort("accessdenied");
-        });
-      }
+      if (REAL_API_PROJECTS.has(testInfo.project.name))
+        await guardWrites(page.context(), guards.refusedWrites);
 
       await use(guards);
 

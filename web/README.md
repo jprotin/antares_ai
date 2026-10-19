@@ -10,16 +10,16 @@ npm ci --ignore-scripts
 npm run dev     # http://127.0.0.1:5173, appels relayés vers la pile (ANTARES_URL, défaut 127.0.0.1:8765)
 npm run build
 # Sous le vrai nginx, sur 127.0.0.1:8766, sans toucher aux autres services :
-docker compose -f ../deploy/s2s/compose.yaml -f ../deploy/s2s/compose.web-next.yaml up -d --no-deps --build web-next
+npm run preview:nginx   # web-next, avec ANTARES_COMMIT et deploy/s2s/.env
 ```
 
 ## Règles CSS
 
-| Cas                                                                                     | Traitement                                                                                 |
-| --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| Mise en page et habillage simples                                                       | Utilitaires Tailwind dans le JSX, jetons shadcn                                            |
-| CSS propre à une fonctionnalité (orbe, états de l'appel, rapport, animations, `:has()`) | `*.module.css` dans le répertoire de la fonctionnalité, enveloppé dans `@layer components` |
-| Règles globales (jetons de thème, `@property --hue`, `body`)                            | `src/index.css`, dans `@layer base` ou les jetons                                          |
+| Cas                                                                                     | Traitement                                                                                                                                                                |
+| --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mise en page et habillage simples                                                       | Utilitaires Tailwind dans le JSX, jetons shadcn                                                                                                                           |
+| CSS propre à une fonctionnalité (orbe, états de l'appel, rapport, animations, `:has()`) | `*.css` dans le répertoire de la fonctionnalité (classes de `frontend/style.css` reprises), enveloppé dans `@layer components` ; `*.module.css` possible pour du CSS neuf |
+| Règles globales (jetons de thème, `@property --hue`, `body`)                            | `src/index.css`, dans `@layer base` ou les jetons                                                                                                                         |
 
 Aucun CSS hors `@layer` : dans Tailwind v4, il l'emporterait sur tous les utilitaires.
 L'accent vif d'antares s'appelle `--brand` (`--accent` est un fond de survol chez shadcn).
@@ -32,7 +32,10 @@ L'accent vif d'antares s'appelle `--brand` (`--accent` est un fond de survol che
   `vite.config.ts`).
 - Composants shadcn exclus (injectent des styles ou non retenus) : `select`,
   `alert-dialog`, `sonner`, `toast`, `scroll-area`, `drawer`, `sheet`, `chart`.
-  Menus déroulants : `ui/native-select.tsx` ; confirmations : `window.confirm`.
+  Menus déroulants : `<select>` natifs ; confirmations : `window.confirm`.
+- `src/components/ui/` : composants shadcn/ui (base Radix + Tailwind) gardés pour les
+  fonctionnalités à venir ; les écrans portés reprennent les primitives Radix (`radix-ui`,
+  `cmdk`) habillées des classes de l'ancienne interface, pour la parité visuelle.
 - Popover en mode non modal uniquement.
 - `src/styles/shadcn.css` est une copie du CSS de `shadcn@4.22.1` (MIT), pour ne pas
   embarquer le CLI comme dépendance. Une seule retouche : la règle `.shimmer` placée dans

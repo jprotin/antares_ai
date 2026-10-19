@@ -5,6 +5,7 @@ import { useState, type ReactNode } from "react";
 import { deleteResource, sendJson } from "@/lib/api";
 
 import type { McpServer, ServicesState } from "./types";
+import { slug } from "./slug";
 
 type Outcome = {
   ok: boolean;
@@ -12,16 +13,6 @@ type Outcome = {
   seconds?: number;
   error?: string;
 };
-
-function slug(text: string): string {
-  return text
-    .normalize("NFKD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 32);
-}
 
 function secretPlaceholder(defined: boolean): string {
   return defined ? "••• défini (laisser vide pour le garder)" : "aucun";

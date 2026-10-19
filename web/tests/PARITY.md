@@ -1,6 +1,6 @@
 # Grille de parité — ancienne interface (`frontend/`) contre nouvelle (`web/`)
 
-Référence : `.claude/features/migration-nextjs-shadcn/tasks/test-strategy.md` §5. L'ancienne
+Référence : stratégie de tests de la migration, §5 (notes locales du pipeline `/feature`, non versionnées). L'ancienne
 interface est l'oracle : une ligne « parité » doit être verte sur `legacy` avant d'être
 exigée sur `next`. Une ligne « amélioration » est en KO attendu sur `legacy`.
 
@@ -34,7 +34,7 @@ Statuts : **V** vert, **KO-att** KO attendu (amélioration), **—** non exécut
 | PJ-1 | Pièces jointes : ajout, retrait, tout retirer                       | parité       | auto-mock                | 3   | `POST` et `DELETE` `api/documents` ; « Nouvelle conversation » vide la liste ; trop gros refusé    | identique      | Chromium   | V                   | V                           |                                                 |
 | RS-1 | Indicateur réseau et transitions                                    | parité       | auto-mock (`page.clock`) | 3   | libellés, titre, ligne système à la transition                                                     | « Hors ligne » | Chromium   | V                   | V                           |                                                 |
 | RS-2 | Partage ngrok actif                                                 | parité       | auto-mock + manuel       | 3   | « Internet · partagé », Claude et écriture RAG coupés                                              | identique      | Chromium   | V + M (3)           | V (interface)               |                                                 |
-| RS-3 | Recherche web et Claude hors ligne                                  | parité       | offline                  | 7   | indicateur « Hors ligne », message explicite                                                       | attendu propre | Chromium   | —                   | fixme                       |                                                 |
+| RS-3 | Recherche web et Claude hors ligne                                  | parité       | offline                  | 7   | indicateur « Hors ligne », message explicite                                                       | attendu propre | Chromium   | V                   | V                           |                                                 |
 | AG-1 | Sélecteur d'agent et de mode, teinte                                | parité       | auto-mock                | 3   | `--hue` = 246 pour un agent Sécurité                                                               | identique      | Chromium   | V                   | V                           |                                                 |
 | TH-1 | Thème : bascule, persistance, OS                                    | parité       | auto-mock                | 2   | auto → sombre → clair, rechargement, suivi de l'OS                                                 | identique      | Chromium   | V                   | V                           |                                                 |
 | TH-2 | Pas de flash du thème clair                                         | amélioration | auto-mock                | 2   | thème posé avant le premier rendu                                                                  | identique      | Chromium   | KO-att              | V                           |                                                 |
@@ -101,7 +101,7 @@ le 2026-10-19 (« go » sur la recommandation).
 plus 1 contexte vivant après 10 changements (l'ancienne en garde plusieurs, KO attendu
 vérifié). AV-4 sous swiftshader : 60 images par seconde pour chaque avatar ; temps de calcul
 par image 0,15 à 0,17 ms en 3D (ancienne : 0,15), orbe 0,33 ms (0,32). Contrôle visuel des
-quatre avatars en sombre et en clair : `validation/lot4/compare-*.png`. La fenêtre Réglages
+quatre avatars en sombre et en clair : notes locales (`validation/lot4/`). La fenêtre Réglages
 (TASK-50a et 50b) est livrée avec ce lot, AV-1 en dépendant.
 
 (10) Lot 5 (2026-10-19) : Connexions et services, Agents, Fiches, Projets du RAG intégré portés
@@ -117,8 +117,8 @@ dossier, seul `app/features.ts` change, 2 lignes, plus les tests). Porte G5 : PD
 produit par la nouvelle interface identique au pixel près à la référence (2 pages, texte
 identique), après deux correctifs du socle commités à part : titres h1-h6, police des
 contrôles et marges des cases rendus au navigateur (le preflight de Tailwind les changeait) ;
-`#feature-portal` sorti de la grille `.app` (il y créait une rangée). Comparaisons :
-`validation/lot6/`.
+`#feature-portal` sorti de la grille `.app` (il y créait une rangée). Comparaisons : notes
+locales (`validation/lot6/`).
 
 ## Latence (référence, `tests/baseline/legacy.json`)
 
@@ -143,13 +143,13 @@ Décision de l'utilisateur (2026-10-19) : seuil navigateur seul, pas de série g
 
 ## Unitaire (Vitest, `tests/unit/`)
 
-| Module                                                                                                    | Ancienne | Nouvelle      |
-| --------------------------------------------------------------------------------------------------------- | -------- | ------------- |
-| `noise-gate` (13 cas)                                                                                     | V        | fixme (lot 6) |
-| `hueFor`, `instructionsFor`, `writtenInstructionsFor` (15 cas, vecteurs dorés)                            | V        | V (lot 2)     |
-| Vecteurs dorés : `base64FromPcm`, `floatFromBase64Pcm`, `recentHistory`, lecture SSE (`legacy-internals`) | V        | V (lot 2)     |
-| Vecteurs dorés : `clock`, `longClock`, `initialScores`, `newPart`                                         | V        | fixme (lot 6) |
-| `lib/` (`api`, `markdown`, `storage`), `theme-init`, store, couches CSS, `check-dist`, règles eslint      | —        | V (lot 2)     |
+| Module                                                                                                    | Ancienne | Nouvelle  |
+| --------------------------------------------------------------------------------------------------------- | -------- | --------- |
+| `noise-gate` (13 cas)                                                                                     | V        | V (lot 6) |
+| `hueFor`, `instructionsFor`, `writtenInstructionsFor` (15 cas, vecteurs dorés)                            | V        | V (lot 2) |
+| Vecteurs dorés : `base64FromPcm`, `floatFromBase64Pcm`, `recentHistory`, lecture SSE (`legacy-internals`) | V        | V (lot 2) |
+| Vecteurs dorés : `clock`, `longClock`, `initialScores`, `newPart`                                         | V        | V (lot 6) |
+| `lib/` (`api`, `markdown`, `storage`), `theme-init`, store, couches CSS, `check-dist`, règles eslint      | —        | V (lot 2) |
 
 ## Transposition de `style.css` (2 413 lignes, compté après le merge de la Répétition)
 
@@ -175,9 +175,14 @@ Décision de l'utilisateur (2026-10-19) : seuil navigateur seul, pas de série g
 
 Défaut corrigé au passage : `--overlay` cyclique en thème sombre (lignes 45-46).
 
+Clôture (TASK-68, 2026-10-19) : contrôle automatique des 235 classes et des identifiants de
+`style.css` dans `web/src/**/*.css`. Tous présents, sauf `.is-active` (obsolète : option active
+du sélecteur, remplacée par `[data-selected]` de cmdk dans `pickers.css`). `.badge--cloud`
+(lignes 944-947), oubliée au lot 2, ajoutée à `styles/legacy-shared.css`.
+
 Lot 3 : jetons de `style.css` (lignes 1-88) repris en entier dans `src/index.css` ; interligne
 du navigateur rétabli sur `body` (Tailwind impose 1.5). Comparaison visuelle (sombre et clair,
-sélecteur ouvert) : `.claude/features/migration-nextjs-shadcn/validation/lot3/`. Écarts
+sélecteur ouvert) : notes locales (`validation/lot3/`, non versionnées). Écarts
 attendus : avatar 3D (lot 4), « Proposer au RAG » (lot 5), bouton Répétition (lot 6).
 
 ## Poids servi (référence)
@@ -187,5 +192,6 @@ attendus : avatar 3D (lot 4), « Proposer au RAG » (lot 5), bouton Répétition
 | `frontend/` (HTML, CSS, JS, `vendor/`, `avatars3d/`) | 1 221 Ko | 335 Ko  |
 | `web/` socle (fin du spike, sans écrans)             | 236 Ko   | 66 Ko   |
 | `web/` fin du lot 2 (coquille, thème, Réglages vide) | 323 Ko   | 95 Ko   |
+| `web/` complet (lot 7, three.js compris)             | 1 390 Ko | 388 Ko  |
 
-Relevé le 2026-10-19. three.js est chargé au démarrage par l'ancienne interface ; `web/` ne l'importe qu'au lot 4 (parité attendue alors).
+Relevé le 2026-10-19. three.js est chargé au démarrage dans les deux interfaces (parité). Nouvelle interface : +14 % brut, +16 % gzip (React, Radix, cmdk, Zustand ; highlight.js en lot commun).

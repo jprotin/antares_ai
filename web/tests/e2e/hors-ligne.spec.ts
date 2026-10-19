@@ -17,4 +17,45 @@ test.describe("hors ligne @offline", () => {
     await ui.closeDialog("settings", "escape");
     await expect.poll(() => ui.isDialogOpen("settings")).toBe(false);
   });
+
+  test("RS-3 : Internet coupé, indicateur et réponse annotée sans recherche web", async ({
+    page,
+    ui,
+  }) => {
+    const api = new MockApi(page)
+      .on(/^POST \/api\/chat$/, (route) =>
+        route.fulfill({
+          contentType: "text/event-stream",
+          body: `data: ${JSON.stringify({ choices: [{ delta: { content: "Réponse locale." } }] })}\n\ndata: [DONE]\n\n`,
+        }),
+      )
+      .on(/^GET \/api\/turn\/last$/, (route) =>
+        route.fulfill({
+          json: {
+            at: Date.now() / 1000 + 60,
+            projects: [],
+            sources: [],
+            web: { offline: true },
+          },
+        }),
+      );
+    api.set("net", {
+      online: false,
+      search: false,
+      searching: false,
+      sharing: false,
+    });
+    await api.install();
+    await ui.goto();
+    await expect(ui.netIndicator()).toHaveText("Hors ligne");
+    await expect(ui.netIndicator()).toHaveAttribute(
+      "title",
+      "Pas de connexion à Internet : pas de recherche web, modèles locaux seulement",
+    );
+    await ui.sendText("Quelles sont les nouveautés de nginx ?");
+    await expect(ui.lastAssistantLine()).toContainText("Réponse locale.");
+    await expect(ui.lastAssistantLine()).toContainText(
+      "hors ligne : réponse sans recherche web",
+    );
+  });
 });

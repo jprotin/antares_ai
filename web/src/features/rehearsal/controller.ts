@@ -11,7 +11,7 @@ import { createStore } from "zustand/vanilla";
 import type { CallEngine } from "@/engines/realtime/CallEngine";
 import type { CallPlugin } from "@/engines/realtime/plugins";
 import type { ServerEvent } from "@/engines/realtime/protocol";
-import { deleteResource, getJson } from "@/lib/api";
+import { deleteResource, detailMessage, getJson } from "@/lib/api";
 import { store } from "@/state/store";
 
 import { createNoiseGate } from "./audio/noiseGate";
@@ -103,9 +103,10 @@ async function send<T = Record<string, unknown>>(
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   const data = (await response.json().catch(() => ({}))) as T & {
-    detail?: string;
+    detail?: unknown;
   };
-  if (!response.ok) throw new Error(data.detail ?? `HTTP ${response.status}`);
+  if (!response.ok)
+    throw new Error(detailMessage(data.detail) ?? `HTTP ${response.status}`);
   return data;
 }
 
@@ -242,11 +243,13 @@ export class RehearsalController {
       const data = (await response
         .json()
         .catch(() => ({}))) as RehearsalData & {
-        detail?: string;
+        detail?: unknown;
       };
       if (!response.ok) {
         await fetch(`api/rehearsals/${created.id}`, { method: "DELETE" });
-        throw new Error(data.detail ?? `HTTP ${response.status}`);
+        throw new Error(
+          detailMessage(data.detail) ?? `HTTP ${response.status}`,
+        );
       }
       store.getState().closeDialog("rehearsal-setup");
       void this.begin(data);
