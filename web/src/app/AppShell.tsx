@@ -26,28 +26,31 @@ export function AppShell() {
     Object.entries(rootData).map(([key, value]) => [`data-${key}`, value]),
   );
   return (
-    <main
-      className="app"
-      data-testid="app"
-      data-state={callState}
-      {...dataAttributes}
-    >
-      <section className="stage" aria-label="Appel">
-        <div className="stage__bar">
-          <Pickers />
-          <div className="stage__tools">
-            <NetIndicator />
-            <Toolbar />
+    <>
+      <main
+        className="app"
+        data-testid="app"
+        data-state={callState}
+        {...dataAttributes}
+      >
+        <section className="stage" aria-label="Appel">
+          <div className="stage__bar">
+            <Pickers />
+            <div className="stage__tools">
+              <NetIndicator />
+              <Toolbar />
+            </div>
           </div>
-        </div>
-        <CallStage />
-      </section>
-      <ConversationPanel />
-      {panels.map(({ id, Panel }) => (
-        <Panel key={id} />
-      ))}
-      <DialogHost />
+          <CallStage />
+        </section>
+        <ConversationPanel />
+        {panels.map(({ id, Panel }) => (
+          <Panel key={id} />
+        ))}
+        <DialogHost />
+      </main>
+      {/* Hors de la grille de .app (une rangée de plus sinon), mais dans #root */}
       <div id={FEATURE_PORTAL_ID} />
-    </main>
+    </>
   );
 }

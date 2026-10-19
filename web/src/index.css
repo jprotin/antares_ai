@@ -187,4 +187,30 @@
     line-height: normal;
     -webkit-font-smoothing: antialiased;
   }
+  /* Titres : valeurs du navigateur (graisse, taille, marges), sur lesquelles reposait
+     l'ancienne feuille ; le preflight de Tailwind les remet à inherit et à 0 */
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-size: revert;
+    font-weight: revert;
+    margin: revert;
+  }
+  /* Contrôles de formulaire : police du navigateur, comme l'ancienne interface (le
+     preflight leur fait hériter de celle de la page) ; les classes fixent tailles et
+     graisses */
+  button,
+  input,
+  select,
+  optgroup,
+  textarea {
+    font: revert;
+  }
+  input[type="checkbox"],
+  input[type="radio"] {
+    margin: revert;
+  }
 }
