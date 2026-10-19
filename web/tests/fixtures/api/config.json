@@ -1,0 +1,5 @@
+{
+  "stt": "parakeet-tdt",
+  "tts": "qwen3",
+  "ttsQuantization": "Q8_0"
+}

@@ -1,0 +1,128 @@
+[
+  {
+    "model": "gemma4:12b",
+    "loaded": true,
+    "name": "litellm-ai-to-boost/gemma4:12b",
+    "label": "gemma4:12b",
+    "provider": "openai",
+    "providerId": "litellm-ai-to-boost",
+    "providerName": "LiteLLM ai-to-boost",
+    "local": true,
+    "available": true,
+    "observed": {
+      "ttft": 4.34,
+      "speed": 8.8
+    }
+  },
+  {
+    "model": "gemma4:26b",
+    "loaded": true,
+    "name": "litellm-ai-to-boost/gemma4:26b",
+    "label": "gemma4:26b",
+    "provider": "openai",
+    "providerId": "litellm-ai-to-boost",
+    "providerName": "LiteLLM ai-to-boost",
+    "local": true,
+    "available": true,
+    "observed": {
+      "ttft": 0.39,
+      "speed": 35.6
+    }
+  },
+  {
+    "model": "gemma4:e4b",
+    "loaded": true,
+    "name": "litellm-ai-to-boost/gemma4:e4b",
+    "label": "gemma4:e4b",
+    "provider": "openai",
+    "providerId": "litellm-ai-to-boost",
+    "providerName": "LiteLLM ai-to-boost",
+    "local": true,
+    "available": true,
+    "observed": {
+      "ttft": 2.0,
+      "speed": 74.1
+    }
+  },
+  {
+    "model": "gemma4:e4b-long",
+    "loaded": true,
+    "name": "litellm-ai-to-boost/gemma4:e4b-long",
+    "label": "gemma4:e4b-long",
+    "provider": "openai",
+    "providerId": "litellm-ai-to-boost",
+    "providerName": "LiteLLM ai-to-boost",
+    "local": true,
+    "available": true,
+    "observed": {
+      "ttft": 2.25,
+      "speed": 24.6
+    }
+  },
+  {
+    "model": "local-gemma",
+    "loaded": true,
+    "name": "litellm-ai-to-boost/local-gemma",
+    "label": "local-gemma",
+    "provider": "openai",
+    "providerId": "litellm-ai-to-boost",
+    "providerName": "LiteLLM ai-to-boost",
+    "local": true,
+    "available": true,
+    "observed": {
+      "ttft": 0.35,
+      "speed": 84.1
+    }
+  },
+  {
+    "model": "qwen3.5:9b",
+    "loaded": true,
+    "name": "litellm-ai-to-boost/qwen3.5:9b",
+    "label": "qwen3.5:9b",
+    "provider": "openai",
+    "providerId": "litellm-ai-to-boost",
+    "providerName": "LiteLLM ai-to-boost",
+    "local": true,
+    "available": true,
+    "observed": {
+      "ttft": 13.7,
+      "speed": 13.7
+    }
+  },
+  {
+    "model": "qwen3.5:9b-long",
+    "loaded": true,
+    "name": "litellm-ai-to-boost/qwen3.5:9b-long",
+    "label": "qwen3.5:9b-long",
+    "provider": "openai",
+    "providerId": "litellm-ai-to-boost",
+    "providerName": "LiteLLM ai-to-boost",
+    "local": true,
+    "available": true,
+    "observed": {
+      "ttft": 10.82,
+      "speed": 10.2
+    }
+  },
+  {
+    "name": "claude:opus",
+    "label": "Claude Opus",
+    "provider": "claude",
+    "local": false,
+    "loaded": true,
+    "observed": null,
+    "available": true
+  },
+  {
+    "name": "claude:sonnet",
+    "label": "Claude Sonnet",
+    "provider": "claude",
+    "local": false,
+    "loaded": true,
+    "observed": {
+      "ttft": 5.98,
+      "speed": null
+    },
+    "available": true
+  }
+]

@@ -1,0 +1,20 @@
+{
+  "domains": [
+    "Infra & DevOps",
+    "Développement",
+    "Sécurité",
+    "Exploitation / SRE",
+    "Données",
+    "Gestion de projet",
+    "Rédaction",
+    "Perso"
+  ],
+  "usages": [
+    "Diagnostic",
+    "Rédaction",
+    "Revue",
+    "Synthèse",
+    "Apprentissage",
+    "Planification"
+  ]
+}

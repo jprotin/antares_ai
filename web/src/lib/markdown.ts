@@ -20,16 +20,17 @@ function escapeHtml(text: string): string {
     .replaceAll('"', "&quot;");
 }
 
-// Attributs style du HTML brut retirés avant DOMPurify : Chromium signale sinon une
-// violation CSP dès l'analyse, même si l'attribut est ensuite supprimé.
-const STYLE_ATTRIBUTE = /\sstyle\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi;
+// Attributs style et gestionnaires on* du HTML brut retirés avant DOMPurify : Chromium
+// signale sinon une violation CSP dès l'analyse, même si l'attribut est ensuite supprimé.
+const INLINE_ATTRIBUTE =
+  /\s(?:style|on[a-z]+)\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi;
 
 const marked = new Marked({
   gfm: true,
   breaks: true,
   renderer: {
     html({ text }) {
-      return text.replace(STYLE_ATTRIBUTE, "");
+      return text.replace(INLINE_ATTRIBUTE, "");
     },
     code({ text, lang }) {
       const language = (lang ?? "").trim().split(/\s+/)[0]?.toLowerCase() ?? "";

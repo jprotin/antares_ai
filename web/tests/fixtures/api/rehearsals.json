@@ -1,0 +1,52 @@
+{
+  "audiences": [
+    {
+      "id": "client",
+      "name": "Client exigeant"
+    },
+    {
+      "id": "jury",
+      "name": "Jury de soutenance"
+    },
+    {
+      "id": "conference",
+      "name": "Public de conférence"
+    },
+    {
+      "id": "codir",
+      "name": "Comité de direction"
+    }
+  ],
+  "history": [
+    {
+      "id": "repetition-test-1",
+      "created": 1791999517.7755167,
+      "title": "Répétition de test 1",
+      "audience_name": "Comité de direction",
+      "slides": 13,
+      "duration": 48.82839999999851,
+      "score": 5,
+      "initial_score": null
+    },
+    {
+      "id": "repetition-test-2",
+      "created": 1791993497.229147,
+      "title": "Répétition de test 2",
+      "audience_name": "Client exigeant",
+      "slides": 17,
+      "duration": null,
+      "score": null,
+      "initial_score": null
+    },
+    {
+      "id": "repetition-test-3",
+      "created": 1791986585.526748,
+      "title": "Répétition de test 3",
+      "audience_name": "Client exigeant",
+      "slides": 5,
+      "duration": 59.23760000000149,
+      "score": 7,
+      "initial_score": 9
+    }
+  ]
+}

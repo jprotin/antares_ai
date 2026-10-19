@@ -1,0 +1,60 @@
+{
+  "providers": [
+    {
+      "id": "ollama",
+      "name": "Ollama",
+      "type": "ollama",
+      "url": "http://ollama:11434",
+      "local": true,
+      "enabled": false,
+      "no_reasoning": true,
+      "has_key": false
+    },
+    {
+      "id": "litellm-ai-to-boost",
+      "name": "LiteLLM ai-to-boost",
+      "type": "openai",
+      "url": "http://litellm:4000/v1",
+      "local": true,
+      "enabled": true,
+      "no_reasoning": true,
+      "has_key": true
+    }
+  ],
+  "status": {
+    "litellm-ai-to-boost": {
+      "error": null,
+      "count": 7
+    }
+  },
+  "services": {
+    "rag": {
+      "mode": "existing",
+      "url": "http://rag:8100",
+      "qdrant_url": "http://qdrant:6333",
+      "has_write_token": true
+    },
+    "claude": {
+      "enabled": true,
+      "url": "http://host.docker.internal:8088",
+      "models": ["opus", "sonnet"],
+      "has_token": true
+    },
+    "search": {
+      "enabled": true,
+      "url": "http://searxng:8080"
+    },
+    "mcp": [
+      {
+        "id": "demo-mcp",
+        "name": "Démo MCP",
+        "url": "http://mcp-demo-streamable:8000/mcp",
+        "transport": "http",
+        "enabled": true,
+        "has_token": false
+      }
+    ]
+  },
+  "fallbackModel": "litellm-ai-to-boost/gemma4:e4b",
+  "types": ["ollama", "openai"]
+}

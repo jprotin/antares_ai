@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-19",
+  "interface": "frontend (legacy)",
+  "modele": "claude:sonnet (bridge)",
+  "n": 40,
+  "aa": {
+    "endToEnd": {
+      "A": 2835.7,
+      "B": 3046.8
+    },
+    "client": {
+      "A": 0.6,
+      "B": 0.6
+    }
+  },
+  "endToEnd": {
+    "median": 3014.6,
+    "p90": 3449.4
+  },
+  "client": {
+    "median": 0.6,
+    "p90": 0.7
+  },
+  "conclusion": "Écart A/A bout en bout de 211 ms avec Claude : seuil +50 ms non discriminant. Segment client stable (0,6 ms) : seuil +5 ms retenu comme critère bloquant."
+}
