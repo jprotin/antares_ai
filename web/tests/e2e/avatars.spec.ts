@@ -119,4 +119,61 @@ test.describe("avatars @mock @avatars @lot4", () => {
       await page.evaluate(() => localStorage.getItem("antares-avatar")),
     ).toBe("orb");
   });
+
+  test("AV-3 : dix changements d'avatar, au plus un contexte WebGL vivant (amélioration)", async ({
+    page,
+    ui,
+  }) => {
+    // Chaque contexte WebGL créé est suivi ; isContextLost() dit s'il a été rendu
+    await page.addInitScript(() => {
+      const contexts: WebGLRenderingContext[] = [];
+      (window as unknown as { __gl: typeof contexts }).__gl = contexts;
+      const native = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function (
+        this: HTMLCanvasElement,
+        type: string,
+        ...rest: unknown[]
+      ) {
+        const context = (native as (...args: unknown[]) => unknown).call(
+          this,
+          type,
+          ...rest,
+        );
+        if (/webgl/i.test(type) && context)
+          contexts.push(context as WebGLRenderingContext);
+        return context;
+      } as typeof native;
+    });
+    await new MockApi(page).install();
+    await ui.goto();
+    const kinds = ["visor", "bender", "face3d", "orb", "visor"];
+    for (let i = 0; i < 10; i += 1) {
+      await ui.openDialog("settings");
+      const dialog = ui.dialog("settings");
+      await dialog
+        .locator(`input[name="avatar"][value="${kinds[i % kinds.length]}"]`)
+        .check();
+      await dialog.getByRole("button", { name: "Appliquer" }).click();
+      await expect.poll(() => ui.isDialogOpen("settings")).toBe(false);
+    }
+    // Les rendus 3D ont bien été créés (sinon le test ne prouverait rien)
+    expect(
+      await page.evaluate(
+        () => (window as unknown as { __gl: unknown[] }).__gl.length,
+      ),
+    ).toBeGreaterThan(2);
+    const alive = await page.evaluate(
+      () =>
+        (window as unknown as { __gl: WebGLRenderingContext[] }).__gl.filter(
+          (gl) => !gl.isContextLost(),
+        ).length,
+    );
+    test.info().annotations.push({
+      type: "contextes WebGL vivants",
+      description: String(alive),
+    });
+    if (process.env.ANTARES_UI === "next") expect(alive).toBeLessThanOrEqual(1);
+    else
+      expect(alive, "KO attendu sur l'ancienne interface").toBeGreaterThan(1);
+  });
 });

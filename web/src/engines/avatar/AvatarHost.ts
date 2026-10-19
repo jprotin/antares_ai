@@ -1,10 +1,11 @@
 // Avatar de l'assistant (port de avatar.js) : un rendu à la fois dans un conteneur, même
 // interface pour tous, choix mémorisé dans le navigateur (antares-avatar). Animé hors de
 // React : l'état, le niveau audio, la teinte et le thème passent par des appels directs.
-// Lot 3 : seule l'orbe est portée ; les avatars three.js (lot 4) s'affichent en orbe en
-// attendant, sans changer le choix mémorisé ni la voix associée.
 import { readPreference, STORAGE_KEYS, writePreference } from "@/lib/storage";
 
+import { Bender } from "./renderers/avatars3d/bender.js";
+import { VisorRobot } from "./renderers/avatars3d/visor.js";
+import { Face3D } from "./renderers/face3d.js";
 import { Orb } from "./renderers/orb.js";
 import type { AvatarRenderer, RendererClass } from "./renderers/types";
 
@@ -13,14 +14,26 @@ export type AvatarKind = (typeof AVATAR_KINDS)[number];
 const WEBGL = new Set<AvatarKind>(["face3d", "visor", "bender"]);
 const DEFAULT: AvatarKind = "face3d";
 
-const RENDERERS: Partial<Record<AvatarKind, RendererClass>> = { orb: Orb };
+const RENDERERS: Record<AvatarKind, RendererClass> = {
+  face3d: Face3D,
+  visor: VisorRobot,
+  bender: Bender,
+  orb: Orb,
+};
 
+// Sondé une fois ; le contexte de la sonde est rendu aussitôt (pas de contexte orphelin)
+let webgl: boolean | undefined;
 export function webglAvailable(): boolean {
-  try {
-    return Boolean(document.createElement("canvas").getContext("webgl2"));
-  } catch {
-    return false;
+  if (webgl === undefined) {
+    try {
+      const gl = document.createElement("canvas").getContext("webgl2");
+      webgl = Boolean(gl);
+      gl?.getExtension("WEBGL_lose_context")?.loseContext();
+    } catch {
+      webgl = false;
+    }
   }
+  return webgl;
 }
 
 function isKind(value: string | null): value is AvatarKind {
@@ -93,7 +106,7 @@ export class AvatarHost {
     canvas.className = "orb";
     canvas.setAttribute("aria-hidden", "true");
     this.container.replaceChildren(canvas);
-    const Renderer = RENDERERS[this.kind] ?? Orb;
+    const Renderer = RENDERERS[this.kind];
     this.current = new Renderer(canvas);
     const { state, level, hue, theme } = this.settings;
     this.current.setState(state);

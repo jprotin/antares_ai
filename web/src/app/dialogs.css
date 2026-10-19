@@ -1,0 +1,90 @@
+/* Fenêtres : fond, centrage, en-tête et actions fixes, plein écran sur mobile
+   (frontend/style.css, lignes 1299-1377). */
+@layer components {
+  /* Fenêtres Radix habillées comme les <dialog> natifs de l'ancienne interface : fond
+     (::backdrop) et centrage de l'agent utilisateur reproduits */
+  .dialog-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    background: var(--backdrop);
+    backdrop-filter: blur(4px);
+  }
+
+  .dialog-panel {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    height: fit-content;
+    margin: auto;
+    overflow: auto;
+  }
+
+  /* --- Fenêtres : en-tête et actions fixes, plein écran sur mobile --------------- */
+
+  .settings[data-state="open"] {
+    animation: pop 0.18s ease-out;
+  }
+
+  .dialog__header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    margin: -1.5rem -1.5rem 0;
+    padding: 1.5rem 1.5rem 0.9rem;
+    border-bottom: 1px solid var(--panel-border);
+    background: var(--panel);
+  }
+
+  .dialog__footer {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    margin: 0 -1.5rem -1.5rem;
+    padding: 0.9rem 1.5rem 1.5rem;
+    border-top: 1px solid var(--panel-border);
+    background: var(--panel);
+  }
+
+  @media (max-width: 640px) {
+    .settings,
+    .agents {
+      width: 100vw;
+      max-width: 100vw;
+      height: 100dvh;
+      max-height: 100dvh;
+      margin: 0;
+      border: 0;
+      border-radius: 0;
+    }
+
+    .stage__bar {
+      flex-direction: column-reverse;
+      align-items: stretch;
+    }
+    .stage__tools {
+      justify-content: flex-end;
+    }
+    /* La liste s'ouvre sur toute la largeur, quel que soit le bouton */
+    .stage__pickers {
+      position: relative;
+    }
+    .picker {
+      position: static;
+    }
+    .picker__button {
+      max-width: 100%;
+    }
+    .picker__panel {
+      right: 0;
+      width: auto;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .settings[data-state="open"],
+    .picker__panel {
+      animation: none;
+    }
+  }
+}

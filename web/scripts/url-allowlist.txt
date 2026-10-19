@@ -11,3 +11,5 @@ https://tailwindcss.com
 # Liens de documentation dans les messages de highlight.js et marked (texte seulement)
 https://github.com/highlightjs/highlight.js/
 https://github.com/markedjs/marked
+# Lien dans un avertissement console de three.js (texte seulement)
+https://discourse.threejs.org/

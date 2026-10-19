@@ -37,5 +37,15 @@ export default defineConfig({
     assetsInlineLimit: 0,
     sourcemap: false,
     modulePreload: { polyfill: false },
+    // three.js (660 Ko) et l'application (highlight.js compris) dépassent 500 Ko
+    chunkSizeWarningLimit: 700,
+    // three.js dans son propre fichier (chargé au démarrage, comme avant : parité)
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [{ name: "three", test: /node_modules[\\/]three[\\/]/ }],
+        },
+      },
+    },
   },
 });

@@ -16,6 +16,9 @@ const AVATARS = ["orb", "face3d", "visor", "bender"] as const;
 const END = "Fin du test de rendu.";
 // Tolérances : durée de rendu (bruit de mesure), baisse d'images par seconde (grille)
 const RENDER_TOLERANCE = 1.2;
+// Exception accordée le 2026-10-19 (PARITY.md, note 8) : coût de React sur la nouvelle
+// interface, +2,3 ms mesurés ; marge de 2,5 ms au-dessus de la référence
+const NEXT_RENDER_EXCEPTION_MS = 2.5;
 const FPS_DROP = 0.1;
 
 type Render = { median: number; p90: number; n: number; chars: number };
@@ -200,7 +203,14 @@ test("rendu Markdown et images par seconde @perf", async ({ page, ui }) => {
   const reference = baseline.rendu as Rendu;
   expect
     .soft(markdown5000.median, "MD-4 : rendu de 5 000 caractères (ms)")
-    .toBeLessThanOrEqual(reference.markdown5000.median * RENDER_TOLERANCE);
+    .toBeLessThanOrEqual(
+      process.env.ANTARES_UI === "next"
+        ? Math.max(
+            reference.markdown5000.median * RENDER_TOLERANCE,
+            reference.markdown5000.median + NEXT_RENDER_EXCEPTION_MS,
+          )
+        : reference.markdown5000.median * RENDER_TOLERANCE,
+    );
   for (const kind of AVATARS) {
     expect
       .soft(fps[kind], `AV-4 : images par seconde (${kind})`)

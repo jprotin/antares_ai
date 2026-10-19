@@ -11,5 +11,5 @@ export const settingsFeature: FeatureDef = {
     label: "Réglages",
     icon: SettingsIcon,
   },
-  dialogs: [{ id: "settings", render: SettingsDialog }],
+  dialogs: [{ id: "settings", render: SettingsDialog, className: "settings" }],
 };

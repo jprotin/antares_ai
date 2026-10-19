@@ -1,7 +1,16 @@
 // Fenêtres CRUD (grille FE) en mock : méthode et corps des requêtes vérifiés, confirm
 // accepté et refusé. Aucune donnée réelle touchée.
+import { readFileSync } from "node:fs";
+
 import { MockApi } from "../support/mock-api";
-import { expect, test } from "../support/test";
+import { expect, isLegacy, test } from "../support/test";
+
+const SETTINGS = JSON.parse(
+  readFileSync(
+    new URL("../fixtures/api/settings.json", import.meta.url),
+    "utf8",
+  ),
+);
 
 test.describe("fenêtres @mock @fenetres @lot5", () => {
   test("FE-1 : Réglages, Appliquer envoie le modèle choisi", async ({
@@ -96,5 +105,34 @@ test.describe("fenêtres @mock @fenetres @lot5", () => {
     await expect
       .poll(() => api.writes().some((call) => call.method === "DELETE"))
       .toBe(true);
+  });
+
+  test("FE-1d : Réglages ouverts avant le profil, rien n'est effacé", async ({
+    page,
+    ui,
+  }) => {
+    // Amélioration (grille FE-9) : l'ancienne interface plante dans ce cas
+    test.fail(isLegacy(), "KO attendu sur l'ancienne interface");
+    let release: () => void = () => {};
+    const ready = new Promise<void>((resolve) => (release = resolve));
+    const api = await new MockApi(page)
+      .on(/^GET \/api\/settings$/, async (route) => {
+        await ready;
+        return route.fulfill({ json: SETTINGS });
+      })
+      .install();
+    await ui.goto();
+    await ui.openDialog("settings");
+    release();
+    const dialog = ui.dialog("settings");
+    await expect(dialog.locator('input[name="model"]:checked')).toHaveCount(1);
+    await dialog.getByRole("button", { name: "Appliquer" }).click();
+    await expect.poll(() => ui.isDialogOpen("settings")).toBe(false);
+    const put = api.writes().find((call) => call.path === "/api/settings");
+    expect(put?.body).toMatchObject({
+      model: "claude:sonnet",
+      voice: "terminator",
+      project: "",
+    });
   });
 });
