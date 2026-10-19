@@ -1,7 +1,6 @@
 // Latence ABAB (stratégie de tests, 7) : appels alternés entre deux interfaces servies en
-// même temps, une session à la fois. A = LATENCY_A, B = LATENCY_B (défauts : 8765 et 8766,
-// la seconde servie par une surcharge compose le temps de la mesure ; série A/A :
-// LATENCY_B=http://127.0.0.1:8765/).
+// même temps, une session à la fois. A = LATENCY_A, B = LATENCY_B (défaut des deux :
+// 8765, série A/A ; pour comparer deux interfaces, servir la seconde sur un autre port).
 // Résultat : tests/results/latency-<date>.json (comparé par scripts/compare-latency.mjs).
 import { mkdirSync, writeFileSync } from "node:fs";
 
@@ -9,7 +8,7 @@ import { installProbes, latencies, type Latency } from "../support/probes";
 import { expect, guardWrites, test } from "../support/test";
 
 const A = process.env.LATENCY_A ?? "http://127.0.0.1:8765/";
-const B = process.env.LATENCY_B ?? "http://127.0.0.1:8766/";
+const B = process.env.LATENCY_B ?? A;
 const N = Number(process.env.LATENCY_N ?? 20);
 const MAX_FAILURES = 2;
 

@@ -61,12 +61,17 @@ export default defineConfig({
       testMatch: /e2e\/smoke\.spec\.ts/,
       use: { ...common, browserName: "chromium" },
     },
-    {
-      name: "perf",
-      testMatch: /perf\/.*\.spec\.ts/,
-      timeout: 30 * 60_000,
-      use: { ...common, browserName: "chromium" },
-    },
+    // Mesures longues sur la vraie pile : seulement par npm run test:perf
+    ...(process.env.ANTARES_PERF
+      ? [
+          {
+            name: "perf",
+            testMatch: /perf\/.*\.spec\.ts/,
+            timeout: 30 * 60_000,
+            use: { ...common, browserName: "chromium" as const },
+          },
+        ]
+      : []),
   ],
   metadata: { ui },
 });
