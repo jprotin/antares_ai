@@ -147,12 +147,16 @@ repos:
       - id: prettier
         types_or:
           [javascript, jsx, ts, tsx, json, yaml, markdown, css, scss, html]
+        # web/ : prettier du lockfile de web/ (hook web-prettier)
+        exclude: ^web/
 
   - repo: https://github.com/pre-commit/mirrors-eslint
     rev: v9.14.0
     hooks:
       - id: eslint
-        files: \.[jt]sx?$
+        # Ancienne interface seulement (jusqu'à la suppression de frontend/) ; web/ a
+        # sa propre configuration (hook web-eslint)
+        files: ^frontend/.*\.js$
         types: [file]
         additional_dependencies:
           - eslint@9.14.0
@@ -169,6 +173,28 @@ repos:
   # ---------- Local custom hooks ----------
   - repo: local
     hooks:
+      # Interface web/ : outils du lockfile de web/ (prérequis : npm --prefix web ci --ignore-scripts)
+      - id: web-prettier
+        name: prettier (web/)
+        entry: bash -c 'cd web && npx --no-install prettier --write --ignore-unknown "${@#web/}"' --
+        language: system
+        files: ^web/
+      - id: web-eslint
+        name: eslint (web/)
+        entry: bash -c 'cd web && npx --no-install eslint --max-warnings=0 --fix "${@#web/}"' --
+        language: system
+        files: ^web/.*\.(ts|tsx|js|mjs)$
+      - id: web-typecheck
+        name: tsc (web/)
+        entry: bash -c '[ -d web/node_modules ] || { echo "web/node_modules absent, lancer npm --prefix web ci --ignore-scripts"; exit 1; }; npm --prefix web run typecheck'
+        language: system
+        files: ^web/.*\.(ts|tsx|json)$
+        pass_filenames: false
+      - id: web-vitest
+        name: vitest related (web/)
+        entry: bash -c 'cd web && npx --no-install vitest related --run --passWithNoTests "${@#web/}"' --
+        language: system
+        files: ^web/(src|tests/unit|scripts|public)/
       - id: no-todo-fixme-on-main
         name: Empêcher TODO/FIXME sans ticket
         # Cherche uniquement dans les langages de code, exclut les configs/docs qui décrivent la règle.

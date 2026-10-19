@@ -1,0 +1,196 @@
+{
+  "id": "repetition-test-3",
+  "created": 1791986585.5,
+  "title": "Répétition de test 3",
+  "audience": "client",
+  "agent": "",
+  "goal": "Obtenir l'accord",
+  "target_minutes": 1,
+  "questions": 1,
+  "audience_name": "Client exigeant",
+  "slides": [
+    {
+      "number": 1,
+      "text": "Slide de test 1"
+    },
+    {
+      "number": 2,
+      "text": "Slide de test 2"
+    },
+    {
+      "number": 3,
+      "text": "Slide de test 3"
+    }
+  ],
+  "talk": {
+    "duration": 59.2,
+    "segments": [
+      {
+        "slide": 1,
+        "start": 1.0,
+        "end": 4.0,
+        "text": "Bonjour à tous, voici le projet."
+      }
+    ],
+    "slide_times": [
+      {
+        "slide": 1,
+        "at": 0.0
+      }
+    ]
+  },
+  "qa": [
+    {
+      "role": "assistant",
+      "text": "Quel est le coût total ?"
+    },
+    {
+      "role": "user",
+      "text": "Environ cent mille euros."
+    }
+  ],
+  "report": {
+    "created": 1791986817.8,
+    "score": 7,
+    "out_of": 20,
+    "initial_score": 8,
+    "verdict": "Présentation claire sur le fond, à resserrer sur la forme.",
+    "criteria": [
+      {
+        "key": "structure",
+        "label": "Structure et fil conducteur",
+        "score": 2,
+        "max": 4,
+        "comment": "Plan annoncé mais transitions absentes."
+      },
+      {
+        "key": "pace",
+        "label": "Rythme et gestion du temps",
+        "score": 1,
+        "max": 4,
+        "comment": "Débit trop rapide sur la fin."
+      },
+      {
+        "key": "clarity",
+        "label": "Clarté du propos",
+        "score": 2,
+        "max": 4,
+        "comment": "Termes techniques non expliqués."
+      },
+      {
+        "key": "audience",
+        "label": "Adaptation au public",
+        "score": 1,
+        "max": 4,
+        "comment": "Peu d'exemples concrets."
+      },
+      {
+        "key": "answers",
+        "label": "Réponses aux questions",
+        "score": 1,
+        "max": 4,
+        "comment": "Réponses vagues."
+      }
+    ],
+    "strengths": [
+      "Introduction posée.",
+      "Chiffres clés cités."
+    ],
+    "improvements": [
+      {
+        "issue": "Ouverture hésitante.",
+        "slide": 1,
+        "advice": "Commencer par l'enjeu."
+      },
+      {
+        "issue": "Conclusion absente.",
+        "slide": 3,
+        "advice": "Résumer en une phrase."
+      }
+    ],
+    "avoid": [
+      {
+        "quote": "je ne suis pas spécialiste",
+        "why": "Mine la crédibilité.",
+        "instead": "J'ai mené cette analyse"
+      }
+    ],
+    "answers": [
+      {
+        "question": "Quel est le coût total ?",
+        "assessment": "Trop vague.",
+        "better": "Donner une fourchette chiffrée."
+      }
+    ],
+    "metrics": {
+      "duration": 59.2,
+      "target_seconds": 60,
+      "words": 150,
+      "words_per_minute": 152,
+      "per_slide": [
+        {
+          "slide": 1,
+          "seconds": 20.1,
+          "words": 50
+        },
+        {
+          "slide": 2,
+          "seconds": 25.0,
+          "words": 60
+        },
+        {
+          "slide": 3,
+          "seconds": 14.1,
+          "words": 40
+        }
+      ],
+      "skipped": [],
+      "fillers": {
+        "alors": 4,
+        "donc": 3
+      }
+    },
+    "script": [
+      {
+        "section": "score",
+        "text": "Votre note : 7 sur 20."
+      },
+      {
+        "section": "strengths",
+        "text": "Vos points forts."
+      }
+    ],
+    "revisions": [
+      {
+        "at": 1791987049.3,
+        "criterion": "pace",
+        "label": "Rythme et gestion du temps",
+        "before": 2,
+        "after": 1,
+        "reason": "Créneau réel plus court que prévu."
+      }
+    ]
+  },
+  "discussion": [
+    {
+      "role": "user",
+      "text": "Le créneau réel était de 30 secondes.",
+      "at": 1791987049.3,
+      "via": "text"
+    },
+    {
+      "role": "assistant",
+      "text": "Je revois le rythme d'un point.",
+      "at": 1791987050.0,
+      "via": "text",
+      "revisions": [
+        {
+          "criterion": "pace",
+          "label": "Rythme et gestion du temps",
+          "before": 2,
+          "after": 1
+        }
+      ]
+    }
+  ]
+}

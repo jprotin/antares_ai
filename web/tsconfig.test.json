@@ -11,7 +11,12 @@
     "noUncheckedIndexedAccess": true,
     "noEmit": true,
     "allowImportingTsExtensions": true,
-    "resolveJsonModule": true
+    "resolveJsonModule": true,
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "jsx": "react-jsx",
+    "verbatimModuleSyntax": true
   },
   "include": ["tests", "playwright.config.ts", "vitest.config.ts"]
 }

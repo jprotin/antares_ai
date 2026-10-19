@@ -22,7 +22,12 @@ const DIALOGS = {
 } satisfies Record<DialogName, string>;
 
 // Ouvreurs placés dans la fenêtre Réglages (pas sur l'écran d'appel)
-const INSIDE_SETTINGS: DialogName[] = ["connections", "agents", "rag-projects"];
+const INSIDE_SETTINGS: DialogName[] = [
+  "connections",
+  "agents",
+  "knowledge",
+  "rag-projects",
+];
 
 export class LegacyAdapter implements UiAdapter {
   constructor(readonly page: Page) {}
@@ -135,5 +140,23 @@ export class LegacyAdapter implements UiAdapter {
 
   lastAssistantLine(): Locator {
     return this.page.locator("#subtitles .line--assistant").last();
+  }
+
+  halfDuplex(): Locator {
+    return this.page.locator("#half-duplex");
+  }
+
+  netIndicator(): Locator {
+    return this.page.locator("#net");
+  }
+
+  attachInput(): Locator {
+    return this.page.locator("#attach-input");
+  }
+
+  attachments(): Locator {
+    return this.page.locator(
+      "#attachments .attachment:not(.attachment--pending)",
+    );
   }
 }

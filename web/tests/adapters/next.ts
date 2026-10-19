@@ -9,7 +9,7 @@ const TITLES: Record<DialogName, string> = {
   settings: "Réglages",
   connections: "Connexions",
   agents: "Agents",
-  knowledge: "Fiches",
+  knowledge: "Connaissances",
   "rag-projects": "Projets du RAG intégré",
   rehearsal: "Répéter une présentation",
 };
@@ -114,5 +114,23 @@ export class NextAdapter implements UiAdapter {
 
   lastAssistantLine(): Locator {
     return this.page.getByTestId("line-assistant").last();
+  }
+
+  halfDuplex(): Locator {
+    return this.page.getByRole("checkbox", {
+      name: /Couper mon micro pendant la réponse/,
+    });
+  }
+
+  netIndicator(): Locator {
+    return this.page.getByTestId("net");
+  }
+
+  attachInput(): Locator {
+    return this.page.getByTestId("attach-input");
+  }
+
+  attachments(): Locator {
+    return this.page.getByTestId("attachment");
   }
 }

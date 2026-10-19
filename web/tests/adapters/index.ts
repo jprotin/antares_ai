@@ -14,12 +14,7 @@ export type DialogName =
   | "rehearsal";
 export type CloseHow = "escape" | "outside" | "button";
 export type CallState =
-  | "idle"
-  | "connecting"
-  | "listening"
-  | "user"
-  | "thinking"
-  | "speaking";
+  "idle" | "connecting" | "listening" | "user" | "thinking" | "speaking";
 
 export interface UiAdapter {
   readonly page: Page;
@@ -41,6 +36,13 @@ export interface UiAdapter {
   addToContext(text: string): Promise<void>;
   subtitles(): Locator;
   lastAssistantLine(): Locator;
+  // Option « Couper mon micro pendant la réponse » (demi-duplex)
+  halfDuplex(): Locator;
+  // Indicateur de connexion Internet (libellé et titre)
+  netIndicator(): Locator;
+  // Champ fichier des pièces jointes (setInputFiles) et étiquettes affichées
+  attachInput(): Locator;
+  attachments(): Locator;
 }
 
 export function adapterFor(page: Page): UiAdapter {
