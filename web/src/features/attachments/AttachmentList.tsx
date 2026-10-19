@@ -1,6 +1,8 @@
 // Étiquettes des documents joints, avec la taille estimée et le retrait
 import { useStore } from "zustand";
 
+import { proposeFromDocument } from "@/features/knowledge";
+
 import {
   attachments,
   KIND_LABELS,
@@ -32,6 +34,16 @@ export function AttachmentList() {
             >
               écrit seulement
             </span>
+          )}
+          {doc.kind !== "image" && (
+            <button
+              type="button"
+              className="attachment__rag"
+              title={`Proposer une fiche de connaissance à partir de ${doc.name}`}
+              onClick={() => proposeFromDocument(doc.id)}
+            >
+              RAG
+            </button>
           )}
           <button
             type="button"

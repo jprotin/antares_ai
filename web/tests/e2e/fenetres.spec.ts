@@ -135,4 +135,17 @@ test.describe("fenêtres @mock @fenetres @lot5", () => {
       project: "",
     });
   });
+
+  test("FE-6b : fenêtre ouverte depuis Réglages, Échap rend le focus à son bouton", async ({
+    page,
+    ui,
+  }) => {
+    await new MockApi(page).install();
+    await ui.goto();
+    await ui.openDialog("agents");
+    await page.keyboard.press("Escape");
+    await expect.poll(() => ui.isDialogOpen("agents")).toBe(false);
+    expect(await ui.isDialogOpen("settings")).toBe(true);
+    await expect(page.locator("#open-agents")).toBeFocused();
+  });
 });

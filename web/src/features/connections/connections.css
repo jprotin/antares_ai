@@ -1,0 +1,78 @@
+/* Connexions : formulaire de fournisseur et services (RAG, recherche, Claude, MCP)
+   (frontend/style.css, lignes 1583-1657) ; listes et cartes : styles/legacy-dialogs.css. */
+@layer components {
+  .agent-form .checkbox {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+  }
+  .agent-form .checkbox input {
+    width: auto;
+    margin-top: 0.2rem;
+    accent-color: var(--brand);
+  }
+
+  .services {
+    display: grid;
+    gap: 0.8rem;
+    margin-top: 1rem;
+  }
+  .service {
+    display: grid;
+    gap: 0.55rem;
+  }
+  .service__title {
+    margin: 0;
+    font-size: 0.95rem;
+  }
+  .service__subtitle {
+    margin: 0.3rem 0 0;
+    color: var(--muted-text);
+    font-size: 0.8rem;
+  }
+  .service label:not(.checkbox) {
+    display: grid;
+    gap: 0.25rem;
+    font-size: 0.8rem;
+    color: var(--muted-text);
+  }
+
+  .service label[hidden],
+  .service p[hidden] {
+    display: none;
+  }
+  .service .checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.85rem;
+  }
+  .service input:not([type="checkbox"], [type="radio"]),
+  .service select {
+    width: 100%;
+    padding: 0.5rem 0.65rem;
+    border: 1px solid var(--panel-border);
+    border-radius: 0.6rem;
+    background: var(--overlay);
+    color: var(--text);
+    font: inherit;
+  }
+  .service input[type="checkbox"],
+  .service input[type="radio"] {
+    accent-color: var(--brand);
+  }
+  .service__modes,
+  .service__list,
+  .service__add {
+    display: grid;
+    gap: 0.4rem;
+  }
+  .service__row {
+    display: grid;
+    gap: 0.3rem;
+    padding: 0.5rem 0.6rem;
+    border: 1px dashed var(--panel-border);
+    border-radius: 0.6rem;
+  }
+}

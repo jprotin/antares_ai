@@ -1,0 +1,148 @@
+/* Fenêtres de la famille Agents (agents, connexions, fiches, projets du RAG) : listes,
+   cartes, formulaires (frontend/style.css, lignes 952-1084 et 1096-1101). */
+@layer components {
+  .settings {
+    overflow-y: auto;
+  }
+
+  .agents {
+    width: min(44rem, calc(100vw - 32px));
+  }
+
+  .agents__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .agents select,
+  .fallback input,
+  .agent-form input,
+  .agent-form textarea {
+    width: 100%;
+    padding: 0.5rem 0.7rem;
+    border: 1px solid var(--panel-border);
+    border-radius: 0.6rem;
+    background: var(--field);
+    color: var(--text);
+    font: inherit;
+  }
+
+  .agents__header select {
+    width: auto;
+    padding: 0.45rem 2.2rem 0.45rem 0.9rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    appearance: none;
+    background-image:
+      linear-gradient(45deg, transparent 50%, var(--muted-text) 50%),
+      linear-gradient(135deg, var(--muted-text) 50%, transparent 50%);
+    background-position:
+      right 1.05rem center,
+      right 0.75rem center;
+    background-size: 0.32rem 0.32rem;
+    background-repeat: no-repeat;
+    cursor: pointer;
+  }
+  .agents select:focus-visible,
+  .agent-form input:focus-visible,
+  .agent-form textarea:focus-visible {
+    outline: none;
+    border-color: var(--brand);
+  }
+
+  .agents__list {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .agents__group h3 {
+    margin: 0 0 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted-text);
+  }
+
+  .agents__empty {
+    color: var(--faint);
+  }
+
+  .agent-card {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 0.25rem 0.8rem;
+    margin-bottom: 0.5rem;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--panel-border);
+    border-radius: 0.8rem;
+    background: var(--overlay);
+  }
+
+  .agent-card__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  .agent-card .option__detail {
+    grid-column: 1 / -1;
+    margin: 0;
+  }
+
+  .agent-card__actions {
+    display: flex;
+    gap: 0.4rem;
+    grid-row: 1;
+    grid-column: 2;
+  }
+
+  .agent-form {
+    display: grid;
+    gap: 0.8rem;
+    padding: 1rem;
+    border: 1px solid var(--brand);
+    border-radius: 0.8rem;
+  }
+
+  .agent-form h3 {
+    margin: 0;
+    font-size: 1rem;
+  }
+
+  .agent-form label {
+    display: grid;
+    gap: 0.3rem;
+    font-size: 0.8rem;
+    color: var(--muted-text);
+  }
+
+  .fallback {
+    display: grid;
+    gap: 0.3rem;
+    font-size: 0.8rem;
+    color: var(--muted-text);
+  }
+
+  .agent-form__row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.8rem;
+  }
+
+  @media (max-width: 600px) {
+    .agent-form__row {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* FE-7 : un formulaire refermé reste masqué (display: grid l'emportait sur hidden) */
+  .agent-form[hidden] {
+    display: none;
+  }
+}

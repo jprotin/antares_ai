@@ -13,3 +13,7 @@ https://github.com/highlightjs/highlight.js/
 https://github.com/markedjs/marked
 # Lien dans un avertissement console de three.js (texte seulement)
 https://discourse.threejs.org/
+# Exemples d'adresses dans les textes d'aide des Connexions (jamais chargés)
+http://ollama:11434
+https://api.exemple.com/v1
+http://serveur:8000/mcp

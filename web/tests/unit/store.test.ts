@@ -34,13 +34,27 @@ describe("store", () => {
     expect(store.getState().status).toBe("Je cherche sur internet…");
   });
 
-  test("test_dialogue_une_fenetre_a_la_fois", () => {
+  test("test_fenetres_empilees_et_fermees_dans_l_ordre", () => {
     const store = createAppStore();
     store.getState().showDialog("settings");
     store.getState().showDialog("agents");
-    expect(store.getState().openDialog).toBe("agents");
+    expect(store.getState()).toMatchObject({
+      dialogs: ["settings", "agents"],
+      openDialog: "agents",
+    });
+    store.getState().closeDialog();
+    expect(store.getState().openDialog).toBe("settings");
+    store.getState().showDialog("connections");
+    store.getState().closeDialog("settings");
+    expect(store.getState().dialogs).toEqual(["connections"]);
     store.getState().closeDialog();
     expect(store.getState().openDialog).toBeNull();
+  });
+
+  test("test_catalogChanged_incremente", () => {
+    const store = createAppStore();
+    store.getState().catalogChanged();
+    expect(store.getState().catalogVersion).toBe(1);
   });
 
   test("test_currentVoice_reglage_sinon_premiere", () => {

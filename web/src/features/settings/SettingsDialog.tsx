@@ -12,6 +12,7 @@ import {
 
 import { avatar, engine } from "@/app/runtime";
 import { voicesFor } from "@/app/bootstrap";
+import { isDialogRegistered } from "@/app/registry";
 import type { AvatarKind } from "@/engines/avatar/AvatarHost";
 import { getJson, sendJson } from "@/lib/api";
 import { modelBadge, modelDetail, type ModelEntry } from "@/lib/labels";
@@ -94,9 +95,33 @@ function Option({
   );
 }
 
+// Ouvre une fenêtre par-dessus Réglages (seulement si elle est déclarée au registre)
+function OpenButton({
+  dialog,
+  id,
+  children,
+}: {
+  dialog: string;
+  id: string;
+  children: ReactNode;
+}) {
+  if (!isDialogRegistered(dialog)) return null;
+  return (
+    <button
+      type="button"
+      id={id}
+      className="button-ghost"
+      onClick={() => store.getState().showDialog(dialog)}
+    >
+      {children}
+    </button>
+  );
+}
+
 export function SettingsDialog() {
   const settings = useAppStore((state) => state.settings);
   const voices = useAppStore((state) => state.voices);
+  const catalogVersion = useAppStore((state) => state.catalogVersion);
   const [kind, setKind] = useState<AvatarKind>(avatar.kind);
   // Brouillons : sans changement de l'utilisateur, les valeurs viennent du profil (même
   // chargé après l'ouverture de la fenêtre)
@@ -135,7 +160,8 @@ export function SettingsDialog() {
     return () => {
       cancelled = true;
     };
-  }, []);
+    // Rechargées quand Connexions ou Projets changent les fournisseurs ou les projets
+  }, [catalogVersion]);
 
   function listen(choice: Voice) {
     const audio = preview.current;
@@ -176,7 +202,7 @@ export function SettingsDialog() {
       });
       store.getState().setProfile({ settings: saved });
       if (kind !== avatar.kind) avatar.use(kind);
-      store.getState().closeDialog();
+      store.getState().closeDialog("settings");
       engine.sendVoiceSession();
     } catch (reason) {
       setError((reason as Error).message);
@@ -287,6 +313,32 @@ export function SettingsDialog() {
           prendre quelques secondes de plus. Les modèles viennent des
           fournisseurs déclarés dans les Connexions.
         </p>
+        <OpenButton dialog="connections" id="open-connections">
+          Connexions (Ollama, LiteLLM, API…)
+        </OpenButton>
+      </fieldset>
+
+      <fieldset className="settings__group">
+        <legend>Agents</legend>
+        <p className="settings__hint">
+          L'agent et le mode se choisissent en haut de l'écran d'appel. Un agent
+          cité par son nom (« demande au relecteur ADR… ») répond à cette
+          question.
+        </p>
+        <OpenButton dialog="agents" id="open-agents">
+          Gérer les agents
+        </OpenButton>
+      </fieldset>
+
+      <fieldset className="settings__group">
+        <legend>Connaissances</legend>
+        <p className="settings__hint">
+          Fiches rédigées depuis vos conversations et documents, relues puis
+          indexées dans le RAG de vos projets.
+        </p>
+        <OpenButton dialog="knowledge-panel" id="open-knowledge">
+          Voir les fiches
+        </OpenButton>
       </fieldset>
 
       <fieldset className="settings__group">
@@ -319,6 +371,9 @@ export function SettingsDialog() {
           cf. Connexions) est ajoutée à chaque question. Sans projet choisi, un
           projet cité par son nom est consulté pour cette question.
         </p>
+        <OpenButton dialog="rag-projects" id="open-rag-projects">
+          Projets du RAG intégré
+        </OpenButton>
       </fieldset>
 
       <p className="settings__error" role="alert">

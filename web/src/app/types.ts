@@ -19,6 +19,8 @@ export type DialogDef = {
   render: ComponentType;
   // Classes du contenu (largeur propre à la fenêtre)
   className?: string;
+  // Identifiant du <dialog> hérité, repris sur le contenu (ciblé par les tests)
+  elementId?: string;
 };
 
 export type FeatureDef = {

@@ -9,6 +9,7 @@ import {
 
 import { engine } from "@/app/runtime";
 import { clearDocuments, uploadAll } from "@/features/attachments";
+import { proposeFromConversation } from "@/features/knowledge";
 import { useAppStore } from "@/state/hooks";
 import { store } from "@/state/store";
 
@@ -83,6 +84,15 @@ export function ConversationPanel() {
     >
       <header className="conversation__header">
         <h2>Conversation</h2>
+        <button
+          type="button"
+          className="link-button"
+          id="propose-knowledge"
+          title="Le modèle rédige une fiche de connaissance que vous relisez avant indexation dans le RAG"
+          onClick={proposeFromConversation}
+        >
+          Proposer au RAG
+        </button>
         <button
           type="button"
           className="link-button"

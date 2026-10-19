@@ -14,6 +14,14 @@ const TITLES: Record<DialogName, string> = {
   rehearsal: "Répéter une présentation",
 };
 
+// Ouvreurs placés dans la fenêtre Réglages (comme dans l'ancienne interface)
+const INSIDE_SETTINGS: Partial<Record<DialogName, string>> = {
+  connections: "Connexions (Ollama",
+  agents: "Gérer les agents",
+  knowledge: "Voir les fiches",
+  "rag-projects": "Projets du RAG intégré",
+};
+
 export class NextAdapter implements UiAdapter {
   constructor(readonly page: Page) {}
 
@@ -27,8 +35,26 @@ export class NextAdapter implements UiAdapter {
   }
 
   async openDialog(name: DialogName) {
-    await this.page.getByRole("button", { name: TITLES[name] }).first().click();
+    if (INSIDE_SETTINGS[name] && !(await this.isDialogOpen("settings")))
+      await this.openDialog("settings");
+    const opener = INSIDE_SETTINGS[name] ?? TITLES[name];
+    const scope = INSIDE_SETTINGS[name] ? this.dialog("settings") : this.page;
+    await scope.getByRole("button", { name: opener }).first().click();
     await this.dialog(name).waitFor();
+    // Fenêtre prête quand Radix y a déplacé le focus, puis deux images : le calque (Échap,
+    // clic extérieur) n'est inscrit qu'au rendu suivant. Un humain ne peut pas agir avant
+    await this.dialog(name).evaluate(
+      (dialog) =>
+        new Promise<void>((resolve) => {
+          const check = () =>
+            dialog.contains(document.activeElement)
+              ? requestAnimationFrame(() =>
+                  requestAnimationFrame(() => resolve()),
+                )
+              : requestAnimationFrame(check);
+          check();
+        }),
+    );
   }
 
   async closeDialog(name: DialogName, how: CloseHow) {

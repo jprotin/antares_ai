@@ -1,7 +1,13 @@
 // lib/api.ts : messages d'erreur identiques à settings.js et app.js
 import { afterEach, describe, expect, test, vi } from "vitest";
 
-import { failureReason, getJson, httpError, sendJson } from "@/lib/api";
+import {
+  deleteResource,
+  failureReason,
+  getJson,
+  httpError,
+  sendJson,
+} from "@/lib/api";
 
 function respond(status: number, body: unknown) {
   return vi.fn(async () => new Response(JSON.stringify(body), { status }));
@@ -70,5 +76,24 @@ describe("api", () => {
       headers: { "Content-Type": "application/json" },
       body: '{"model":"m"}',
     });
+  });
+
+  test("test_deleteResource_204_sans_corps_puis_erreur_du_serveur", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(null, { status: 204 })),
+    );
+    await expect(deleteResource("api/agents/a")).resolves.toBeUndefined();
+    vi.stubGlobal("fetch", respond(409, { detail: "agent utilisé" }));
+    await expect(deleteResource("api/agents/a")).rejects.toThrow(
+      "agent utilisé",
+    );
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response("", { status: 500 })),
+    );
+    await expect(deleteResource("api/agents/a")).rejects.toThrow(
+      "api/agents/a : HTTP 500",
+    );
   });
 });

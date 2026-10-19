@@ -30,6 +30,8 @@ export type Mode = {
 export type Settings = {
   voice?: string;
   model?: string;
+  // Modèle de repli (Connexions)
+  fallback?: string;
   project?: string;
   agent?: string | null;
   mode?: string | null;

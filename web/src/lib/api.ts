@@ -46,6 +46,17 @@ export function sendJson<T = unknown>(
   });
 }
 
+// Suppression : seul le statut compte (le corps d'un 204 est vide) ; message du serveur
+// en cas d'échec
+export async function deleteResource(url: string): Promise<void> {
+  const response = await fetch(url, { method: "DELETE" });
+  if (response.ok) return;
+  const { detail } = (await response.json().catch(() => ({}))) as {
+    detail?: unknown;
+  };
+  throw new Error(detailMessage(detail) ?? `${url} : HTTP ${response.status}`);
+}
+
 // Message d'une réponse HTTP en échec du flux écrit (/api/chat)
 export function httpError(status: number): Error {
   return new Error(HTTP_ERRORS[status] ?? `erreur HTTP ${status}`);
