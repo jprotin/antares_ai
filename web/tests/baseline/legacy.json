@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-19",
+  "interface": "frontend (legacy)",
+  "modele": "claude:sonnet (bridge)",
+  "n": 40,
+  "aa": {
+    "endToEnd": {
+      "A": 2835.7,
+      "B": 3046.8
+    },
+    "client": {
+      "A": 0.6,
+      "B": 0.6
+    }
+  },
+  "endToEnd": {
+    "median": 3014.6,
+    "p90": 3449.4
+  },
+  "client": {
+    "median": 0.6,
+    "p90": 0.7
+  },
+  "conclusion": "Écart A/A bout en bout de 211 ms avec Claude : seuil +50 ms non discriminant. Segment client stable (0,6 ms) : seuil +5 ms retenu comme critère bloquant.",
+  "rendu": {
+    "date": "2026-10-19",
+    "gpu": "swiftshader (sans GPU)",
+    "markdown5000": {
+      "median": 8.25,
+      "p90": 9.360000011324882,
+      "n": 10,
+      "chars": 5000
+    },
+    "fps": {
+      "orb": 60.127846583884306,
+      "face3d": 60.08943543907862,
+      "visor": 60.114637215011356,
+      "bender": 60.19277686670424
+    },
+    "frameMs": {
+      "orb": 0.3156146183362435,
+      "face3d": 0.14817275725725879,
+      "visor": 0.14883720894588584,
+      "bender": 0.15282392026578073
+    }
+  }
+}

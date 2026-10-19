@@ -1,0 +1,46 @@
+/* Indicateur de connexion Internet (frontend/style.css, lignes 1378-1416, 1551-1555). */
+@layer components {
+  .net {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.65rem 0.3rem 0.5rem;
+    border: 1px solid color-mix(in srgb, var(--ok-text) 45%, transparent);
+    border-radius: 999px;
+    background: var(--ok-bg);
+    color: var(--ok-text);
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .net svg {
+    width: 1rem;
+    height: 1rem;
+    fill: currentColor;
+  }
+  .net__slash {
+    display: none;
+    stroke: currentColor;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+  }
+  .net--offline {
+    border-color: var(--panel-border);
+    background: var(--overlay);
+    color: var(--muted-text);
+  }
+  .net--offline .net__slash {
+    display: inline;
+  }
+  .net--sharing {
+    border-color: color-mix(in srgb, var(--warn-text) 55%, transparent);
+    background: var(--warn-bg);
+    color: var(--warn-text);
+  }
+
+  @media (max-width: 640px) {
+    .net__label {
+      display: none;
+    }
+  }
+}

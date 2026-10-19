@@ -1,0 +1,21 @@
+{
+  "pages": 2,
+  "format": "A4",
+  "present": [
+    "Répétition de test 3",
+    "Points forts",
+    "À améliorer, pas à pas",
+    "À ne pas dire",
+    "Questions-réponses",
+    "Rythme et temps",
+    "Annexe · révisions de la note"
+  ],
+  "absent": [
+    "Filtre du bruit",
+    "Quitter",
+    "Imprimer / PDF",
+    "Discuter de la note",
+    "Écouter",
+    "Le créneau réel était de 30 secondes."
+  ]
+}

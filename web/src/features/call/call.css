@@ -1,0 +1,123 @@
+/* Scène de l'appel : identité, orbe, bouton, options, modèles (frontend/style.css,
+   lignes 127-246). */
+@layer components {
+  /* --- Colonne gauche : l'appel ------------------------------------------------ */
+
+  .stage {
+    display: grid;
+    grid-template-rows: auto auto 1fr auto auto;
+    justify-items: center;
+    gap: 1.25rem;
+    min-height: 0;
+    padding: 1rem 1.25rem 1.25rem;
+    border: 1px solid var(--panel-border);
+    border-radius: var(--panel-radius);
+    background: linear-gradient(180deg, var(--stage-top), var(--stage-bottom));
+  }
+
+  .stage__identity {
+    text-align: center;
+  }
+
+  .stage__name {
+    margin: 0;
+    font-size: clamp(1.8rem, 3vw, 2.4rem);
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+
+  .stage__status {
+    margin: 0.4rem 0 0;
+    min-height: 1.4em;
+    color: var(--muted-text);
+    transition: color 0.4s;
+  }
+
+  .app:not([data-state="idle"]) .stage__status {
+    color: var(--text);
+  }
+
+  .orb {
+    width: 100%;
+    max-width: 26rem;
+    height: 100%;
+    min-height: 14rem;
+  }
+
+  .stage__controls {
+    display: grid;
+    justify-items: center;
+    gap: 0.9rem;
+  }
+
+  .call-button {
+    min-width: 12rem;
+    padding: 0.95rem 2.2rem;
+    border: 0;
+    border-radius: 999px;
+    background: linear-gradient(135deg, var(--brand), var(--brand-2));
+    color: var(--on-accent);
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    box-shadow: 0 0.6rem 2rem -0.6rem
+      color-mix(in srgb, var(--brand) 60%, transparent);
+    transition:
+      transform 0.15s,
+      box-shadow 0.3s,
+      background 0.3s;
+  }
+
+  .call-button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0.8rem 2.4rem -0.6rem
+      color-mix(in srgb, var(--brand) 73%, transparent);
+  }
+  .call-button:focus-visible {
+    outline: 3px solid var(--brand-strong);
+    outline-offset: 4px;
+  }
+  .call-button:disabled {
+    opacity: 0.6;
+    cursor: wait;
+    transform: none;
+  }
+
+  .app:not([data-state="idle"]) .call-button {
+    background: linear-gradient(135deg, var(--danger), var(--danger-2));
+    box-shadow: 0 0.6rem 2rem -0.6rem
+      color-mix(in srgb, var(--danger) 60%, transparent);
+  }
+
+  .stage__option {
+    display: flex;
+    gap: 0.55rem;
+    align-items: flex-start;
+    max-width: 24rem;
+    font-size: 0.82rem;
+    line-height: 1.4;
+    color: var(--muted-text);
+    cursor: pointer;
+  }
+
+  .stage__option input {
+    accent-color: var(--brand);
+    margin-top: 0.15rem;
+  }
+
+  .stage__info {
+    width: 100%;
+    padding-top: 1rem;
+    border-top: 1px solid var(--panel-border);
+    text-align: center;
+    font-size: 0.78rem;
+    line-height: 1.7;
+    color: var(--faint);
+  }
+
+  .stage__info strong {
+    color: var(--muted-text);
+    font-weight: 500;
+  }
+}

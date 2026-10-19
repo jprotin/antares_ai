@@ -1,0 +1,26 @@
+/* Règles fixes de react-remove-scroll-bar (mode margin, !important), la largeur de
+   la barre masquée venant de --removed-body-scroll-bar-size posée en CSSOM. */
+@layer base {
+  body[data-scroll-locked] {
+    overflow: hidden !important;
+    overscroll-behavior: contain;
+    position: relative !important;
+    margin-right: var(--removed-body-scroll-bar-size, 0px) !important;
+  }
+  .with-scroll-bars-hidden {
+    overflow: hidden !important;
+    padding-right: var(--removed-body-scroll-bar-size, 0px) !important;
+  }
+  .right-scroll-bar-position {
+    right: var(--removed-body-scroll-bar-size, 0px) !important;
+  }
+  .width-before-scroll-bar {
+    margin-right: var(--removed-body-scroll-bar-size, 0px) !important;
+  }
+  .right-scroll-bar-position .right-scroll-bar-position {
+    right: 0 !important;
+  }
+  .width-before-scroll-bar .width-before-scroll-bar {
+    margin-right: 0 !important;
+  }
+}

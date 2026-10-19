@@ -119,8 +119,15 @@ services:
     networks: [antares-local, antares-download]
     depends_on: [llm-router]
 
+  # Interface (web/) construite en image : npm à l'étape en ligne (install.sh, ui.sh new),
+  # nginx ensuite. Retour à l'ancienne interface : ./ui.sh legacy (compose.legacy-ui.yaml).
   web:
-    image: nginx:1.29-alpine
+    image: antares/web:latest
+    build:
+      context: ../../web
+      args:
+        ANTARES_WEB_REV: ${ANTARES_WEB_REV:-inconnu}
+        ANTARES_COMMIT: ${ANTARES_COMMIT:-dev}
     container_name: antares-web
     restart: unless-stopped
     depends_on: [s2s, llm-router]
@@ -129,7 +136,6 @@ services:
       ANTARES_TTS: *tts
       ANTARES_TTS_QUANTIZATION: *tts-quantization
     volumes:
-      - ../../frontend:/usr/share/nginx/html:ro
       - ./voices:/srv/voices:ro
       - ./nginx.conf.template:/etc/nginx/templates/default.conf.template:ro
     ports:

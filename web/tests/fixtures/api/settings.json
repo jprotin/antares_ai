@@ -1,0 +1,9 @@
+{
+  "model": "claude:sonnet",
+  "voice": "terminator",
+  "fallback": "litellm-ai-to-boost/gemma4:e4b",
+  "project": "",
+  "agent": "",
+  "mode": "standard",
+  "documents": []
+}

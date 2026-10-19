@@ -1,0 +1,152 @@
+/* Fenêtre Réglages : options, voix de l'orbe, aide, erreurs (frontend/style.css, lignes
+   776-863, 884-920, 1418-1421, 1557-1568) ; fond de fenêtre dans app/dialogs.css. */
+@layer components {
+  .settings {
+    width: min(34rem, calc(100vw - 32px));
+    max-height: calc(100vh - 32px);
+    padding: 0;
+    border: 1px solid var(--panel-border);
+    border-radius: var(--panel-radius);
+    background: var(--panel);
+    color: var(--text);
+    box-shadow: 0 2rem 5rem -1rem var(--shadow);
+  }
+
+  .settings__form {
+    display: grid;
+    gap: 1.25rem;
+    padding: 1.5rem;
+  }
+
+  .settings__header h2 {
+    margin: 0;
+    font-size: 1.2rem;
+  }
+  .settings__header p {
+    margin: 0.3rem 0 0;
+    font-size: 0.85rem;
+    color: var(--muted-text);
+  }
+
+  .settings__group {
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .settings__group legend {
+    margin-bottom: 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted-text);
+  }
+
+  .settings__options {
+    display: grid;
+    gap: 0.5rem;
+  }
+
+  .option {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--panel-border);
+    border-radius: 0.8rem;
+    background: var(--overlay);
+    cursor: pointer;
+    transition:
+      border-color 0.2s,
+      background 0.2s;
+  }
+
+  .option:hover {
+    background: var(--overlay-strong);
+  }
+  .option:has(input:checked) {
+    border-color: var(--brand);
+    background: color-mix(in srgb, var(--brand) 8%, transparent);
+  }
+  .option input {
+    accent-color: var(--brand);
+    margin: 0;
+  }
+  .option__title {
+    font-weight: 600;
+  }
+  .option__detail {
+    display: block;
+    margin-top: 0.1rem;
+    font-size: 0.78rem;
+    color: var(--muted-text);
+  }
+
+  .preview-button {
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--panel-border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--muted-text);
+    font-size: 0.78rem;
+    cursor: pointer;
+  }
+
+  .preview-button:hover {
+    color: var(--text);
+    border-color: var(--muted-text);
+  }
+
+  .settings__hint {
+    margin: 0.6rem 0 0;
+    font-size: 0.78rem;
+    color: var(--faint);
+  }
+  .settings__error {
+    margin: 0;
+    min-height: 1em;
+    font-size: 0.85rem;
+    color: var(--danger);
+  }
+  .settings__error:empty {
+    display: none;
+  }
+
+  .settings__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.6rem;
+  }
+
+  .option--disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* Choix de la voix sous l'avatar Orbe Antares */
+  .option__voices {
+    display: grid;
+    gap: 0.4rem;
+    margin: -0.2rem 0 0 1.6rem;
+    padding-left: 0.8rem;
+    border-left: 2px solid var(--brand);
+  }
+  .option__voices[hidden] {
+    display: none;
+  }
+
+  /* Groupes de modèles par fournisseur (frontend/style.css, lignes 1571-1581) */
+  .option__group {
+    margin: 0.4rem 0 0;
+    color: var(--muted-text);
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .option__group:first-child {
+    margin-top: 0;
+  }
+}

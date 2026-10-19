@@ -1,0 +1,78 @@
+# Interface antares (Vite + React + shadcn/ui)
+
+Nouvelle interface en cours de migration depuis `frontend/` (ADR 0012). Fichiers
+statiques servis par nginx, avec la CSP actuelle (`script-src 'self'`, `style-src 'self'`).
+
+## Commandes
+
+```bash
+npm ci --ignore-scripts
+npm run dev     # http://127.0.0.1:5173, appels relayés vers la pile (ANTARES_URL, défaut 127.0.0.1:8765)
+npm run build
+# Sous le vrai nginx, sur 127.0.0.1:8766, sans toucher aux autres services :
+npm run preview:nginx   # web-next, avec ANTARES_COMMIT et deploy/s2s/.env
+```
+
+## Règles CSS
+
+| Cas                                                                                     | Traitement                                                                                                                                                                |
+| --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mise en page et habillage simples                                                       | Utilitaires Tailwind dans le JSX, jetons shadcn                                                                                                                           |
+| CSS propre à une fonctionnalité (orbe, états de l'appel, rapport, animations, `:has()`) | `*.css` dans le répertoire de la fonctionnalité (classes de `frontend/style.css` reprises), enveloppé dans `@layer components` ; `*.module.css` possible pour du CSS neuf |
+| Règles globales (jetons de thème, `@property --hue`, `body`)                            | `src/index.css`, dans `@layer base` ou les jetons                                                                                                                         |
+
+Aucun CSS hors `@layer` : dans Tailwind v4, il l'emporterait sur tous les utilitaires.
+L'accent vif d'antares s'appelle `--brand` (`--accent` est un fond de survol chez shadcn).
+
+## CSP
+
+- Jamais de `<style>` injecté ni d'attribut `style` posé par `setAttribute` : la prop
+  React `style={{…}}` et `el.style.setProperty` (CSSOM) sont autorisées.
+- `react-remove-scroll-bar` est remplacé par `src/shims/remove-scroll-bar/` (alias dans
+  `vite.config.ts`).
+- Composants shadcn exclus (injectent des styles ou non retenus) : `select`,
+  `alert-dialog`, `sonner`, `toast`, `scroll-area`, `drawer`, `sheet`, `chart`.
+  Menus déroulants : `<select>` natifs ; confirmations : `window.confirm`.
+- `src/components/ui/` : composants shadcn/ui (base Radix + Tailwind) gardés pour les
+  fonctionnalités à venir ; les écrans portés reprennent les primitives Radix (`radix-ui`,
+  `cmdk`) habillées des classes de l'ancienne interface, pour la parité visuelle.
+- Popover en mode non modal uniquement.
+- `src/styles/shadcn.css` est une copie du CSS de `shadcn@4.22.1` (MIT), pour ne pas
+  embarquer le CLI comme dépendance. Une seule retouche : la règle `.shimmer` placée dans
+  `@layer utilities` (à refaire si le fichier est régénéré).
+
+## Qualité
+
+- `npm run lint` : règles CSP (pas d'injection de HTML hors `MarkdownView.tsx`, pas d'attribut
+  `style` par `setAttribute`) et frontières (moteurs sans React, une fonctionnalité n'en
+  importe une autre que par son `index.ts`).
+- `npm run build` : contrôle de `dist/` (`scripts/check-dist.mjs` : ni script ni style en ligne,
+  pas d'URL `data:`, URL absolues listées dans `scripts/url-allowlist.txt`), inventaire des
+  licences et `version.json`.
+- Hooks pre-commit `web-*` : prérequis `npm --prefix web ci --ignore-scripts`.
+
+## Architecture
+
+- `src/engines/` : code impératif sans React (appel temps réel, avatar, réseau, thème).
+  `CallEngine` porte la logique de `frontend/app.js` ; il ne démarre que sur un clic.
+- `src/state/` : store Zustand unique (profil, conversation, lignes affichées, appel,
+  interface), lu par les moteurs hors de React.
+- `src/app/features.ts` : registre des fonctionnalités (bouton de barre, fenêtres,
+  panneau, plugin d'appel) ; seul fichier partagé à toucher pour en brancher une.
+- `src/features/*/` : une fonctionnalité par répertoire, importée par son `index.ts`.
+  Les feuilles `*.css` y reprennent les classes de `frontend/style.css` (mêmes noms,
+  variables renommées : `--accent*` devient `--brand*`, `--muted` devient `--muted-text`),
+  toujours dans `@layer components`.
+
+### Points d'extension pour la Répétition (lot 6)
+
+| Accroche de `rehearsal.js` hors de sa fonctionnalité | Point d'extension                                                                                 | Test                                   |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| `data-rehearsal` sur la racine (`.app`)              | `ui.setRootData(clé, valeur)`, rendu en `data-*` par `AppShell`                                   | `lot3.test.ts` (rootData)              |
+| Types d'API de la Répétition                         | `features/rehearsal/types.ts`, pas `src/types/api.ts`                                             | convention                             |
+| Détection « fenêtre ouverte » (RE-2)                 | sélecteur `isAnyDialogOpen` (tranche `ui`)                                                        | `lot3.test.ts`                         |
+| Cible du portail de la visionneuse                   | `#feature-portal` (`FEATURE_PORTAL_ID`), dans `#root`                                             | lot 6 (`print.css`)                    |
+| Arrêt de l'horloge sur coupure WS                    | `CallPlugin.onCallEnded(raison)`                                                                  | `lot3.test.ts` (PluginHost)            |
+| Retenue du micro, silence, seuil `vad`               | `CallPlugin.holdMic`, `silent`, `active` ; `engine.setVadThreshold`, `setInputFilter`, `setMuted` | `lot3.test.ts`                         |
+| Panneau de fonctionnalité                            | `FeatureDef.panel`, rendu par `AppShell`                                                          | `lot3.test.ts` (registre)              |
+| Branchement du plugin                                | `FeatureDef.callPlugin(engine)`, enregistré au démarrage                                          | `lot3.test.ts` (`registerCallPlugins`) |

@@ -1,0 +1,19 @@
+# URL absolues tolérées dans dist/ (préfixes) : espaces de noms XML et liens d'erreur
+# de React, jamais chargés par le navigateur
+http://www.w3.org/1999/xlink
+http://www.w3.org/2000/svg
+http://www.w3.org/1999/xhtml
+http://www.w3.org/XML/1998/namespace
+http://www.w3.org/1998/Math/MathML
+https://react.dev/errors/
+# Bannière de licence en commentaire dans le CSS de Tailwind
+https://tailwindcss.com
+# Liens de documentation dans les messages de highlight.js et marked (texte seulement)
+https://github.com/highlightjs/highlight.js/
+https://github.com/markedjs/marked
+# Lien dans un avertissement console de three.js (texte seulement)
+https://discourse.threejs.org/
+# Exemples d'adresses dans les textes d'aide des Connexions (jamais chargés)
+http://ollama:11434
+https://api.exemple.com/v1
+http://serveur:8000/mcp

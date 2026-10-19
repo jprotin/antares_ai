@@ -19,6 +19,34 @@ docker compose up -d    # ensuite, hors ligne
 
 Interface d'appel : <http://127.0.0.1:8765>
 
+### Interface : nouvelle (`web/`) ou ancienne (`frontend/`)
+
+L'interface servie est construite depuis `web/` (Vite + React, ADR 0012) dans l'image
+`antares/web`, par `install.sh` (étape en ligne, npm). L'ancienne interface (`frontend/`)
+reste disponible pendant la période d'observation :
+
+```bash
+./ui.sh legacy          # ancienne interface (1 s, sans construction, hors ligne)
+./ui.sh new             # nouvelle interface ; reconstruit l'image si elle est périmée
+./ui.sh new --build     # reconstruction forcée
+```
+
+- Le choix persiste dans `.env` (`COMPOSE_FILE`) : `docker compose up -d` et `install.sh`
+  le conservent.
+- Après un `git pull` qui touche `web/`, lancer `./ui.sh new` : `docker compose up -d`
+  seul ne reconstruit pas l'image. L'image servie porte l'empreinte de `web/` dans
+  `/version.json` (champ `rev`), et `ui.sh new` la compare à celle du dépôt.
+- Construction impossible (pas de réseau, registre npm injoignable) : `ui.sh new` échoue
+  sans rien changer (interface et `.env` en place) ; `install.sh` échoue avec un message
+  explicite, et `./ui.sh legacy` sert l'ancienne interface en attendant.
+- Machine sans registre npm : `docker image save antares/web:latest | gzip > web.tar.gz`
+  sur une machine en ligne, puis `docker image load < web.tar.gz`.
+- Retour arrière de niveau 2 (annuler la migration dans le dépôt) : `git revert -m 1` du
+  merge sur une branche `bugfix/*` ou `hotfix/*`, puis `./ui.sh legacy`. Pour reprendre
+  la migration ensuite, annuler d'abord ce revert (`git revert <commit du revert>`).
+- Tests de l'interface : `cd ../../web && npm run test:e2e:mock` (voir `web/README.md`) ;
+  `check-local.sh` et `smoke-test.sh` ne vérifient pas l'interface.
+
 Les dépendances Python de l'image sont figées dans `constraints.txt` (ensemble validé) :
 une reconstruction ne tire aucune nouvelle version. `qwentts-cpp-python` 0.4.2 plante sur
 le poste de dev (« Illegal instruction ») ; pour monter de version, reconstruire, passer
@@ -43,7 +71,8 @@ listes, tableaux, citations, code coloré avec bouton **Copier**, et un bloc
 **Références** listant les documents du RAG utilisés. Les liens Internet sont cités de
 mémoire par le LLM (il n'a pas accès au web) : ils s'ouvrent dans un nouvel onglet et
 sont marqués « à vérifier » (↗). Les réponses vocales restent du texte parlé.
-Bibliothèques servies localement : `frontend/vendor/` (cf. son README).
+Bibliothèques embarquées dans l'image de l'interface (versions exactes dans
+`web/package.json`, licences dans `/THIRD-PARTY-LICENSES.txt`).
 
 L'écrit et l'oral forment une seule conversation : au début d'un appel, les 30 derniers
 messages sont rejoués au moteur vocal ; ce qui se dit en appel reste dans le fil après
@@ -416,7 +445,7 @@ applique depuis `tts-temperature`, `tts-top-k`, `tts-repetition-penalty` et
 ## Architecture
 
 ```text
-Navigateur ──> web (nginx, 127.0.0.1:8765) ──> s2s (réseau antares-local, internal)
+Navigateur ──> web (nginx + interface web/, 127.0.0.1:8765) ──> s2s (réseau antares-local, internal)
                  │ page, /voices, /config.json      VAD Silero, STT Parakeet, TTS Qwen3
                  │                                  │
                  └── /api (réglages) ──────────> llm-router ──> ollama (ai-to-boost)

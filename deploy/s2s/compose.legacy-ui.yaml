@@ -1,0 +1,10 @@
+# Retour à l'ancienne interface (frontend/) : nginx officiel, déjà présent, sans
+# construction ; fonctionne sans l'image antares/web et hors ligne.
+# Activé par ./ui.sh legacy (COMPOSE_FILE dans .env), désactivé par ./ui.sh new.
+---
+services:
+  web:
+    image: nginx:1.29-alpine
+    build: !reset null
+    volumes:
+      - ../../frontend:/usr/share/nginx/html:ro
