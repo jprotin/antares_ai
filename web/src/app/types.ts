@@ -2,6 +2,9 @@
 // son bouton de barre, ses fenêtres et son panneau ; le socle les rend.
 import type { ComponentType, SVGProps } from "react";
 
+import type { CallEngine } from "@/engines/realtime/CallEngine";
+import type { CallPlugin } from "@/engines/realtime/plugins";
+
 export type ToolbarItem =
   | { order: number; render: ComponentType }
   | {
@@ -22,5 +25,8 @@ export type FeatureDef = {
   id: string;
   toolbar?: ToolbarItem;
   dialogs?: DialogDef[];
+  // Panneau rendu dans la grille, après la conversation (il gère sa visibilité)
   panel?: ComponentType;
+  // Branché sur l'appel au démarrage (Répétition : micro retenu, silence, coupure)
+  callPlugin?: (engine: CallEngine) => CallPlugin;
 };

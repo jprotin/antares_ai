@@ -53,7 +53,9 @@ export class NextAdapter implements UiAdapter {
       .getByRole("button", { name: new RegExp(label, "i") })
       .first()
       .click();
-    await this.page.getByRole("combobox").fill(name);
+    // Recherche seulement pour l'agent (comme l'ancienne interface)
+    const search = this.page.getByRole("combobox");
+    if (await search.count()) await search.fill(name);
     await this.page.getByRole("option", { name }).first().click();
   }
 

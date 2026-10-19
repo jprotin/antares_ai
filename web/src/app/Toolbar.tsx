@@ -1,31 +1,32 @@
 // Outils en haut à droite de la scène : boutons déclarés par le registre, par ordre
-import { Button } from "@/components/ui/button";
 import { store } from "@/state/store";
 
 import { features } from "./features";
 
 export function Toolbar() {
   const items = features
-    .flatMap((feature) => (feature.toolbar ? [feature.toolbar] : []))
-    .sort((a, b) => a.order - b.order);
+    .flatMap((feature) =>
+      feature.toolbar ? [{ id: feature.id, item: feature.toolbar }] : [],
+    )
+    .sort((a, b) => a.item.order - b.item.order);
   return (
-    <div className="flex items-center gap-1">
-      {items.map((item) => {
-        if ("render" in item) return <item.render key={item.order} />;
+    <>
+      {items.map(({ id, item }) => {
+        if ("render" in item) return <item.render key={id} />;
         const Icon = item.icon;
         return (
-          <Button
-            key={item.order}
-            variant="ghost"
-            size="icon"
+          <button
+            key={id}
+            type="button"
+            className="settings-button"
             aria-label={item.label}
             title={item.label}
             onClick={() => store.getState().showDialog(item.opens)}
           >
-            <Icon className="size-5" />
-          </Button>
+            <Icon />
+          </button>
         );
       })}
-    </div>
+    </>
   );
 }

@@ -59,7 +59,9 @@ export function checkDist(dist, { allowlist, worklet }) {
     if (DATA_URL.test(text)) problems.push(`${name} : URL data:`);
     for (const [found] of text.matchAll(PROTOCOL_RELATIVE))
       problems.push(`${name} : URL relative au protocole ${found}`);
-    for (const [url] of text.matchAll(ABSOLUTE_URL)) {
+    for (const [found] of text.matchAll(ABSOLUTE_URL)) {
+      // Ponctuation de fin de phrase (« …/marked. ») exclue de l'URL
+      const url = found.replace(/[.,;:!?]+$/, "");
       const listed = allowlist.some(
         (prefix) => url === prefix.slice(0, -1) || url.startsWith(prefix),
       );

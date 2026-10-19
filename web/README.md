@@ -47,3 +47,29 @@ L'accent vif d'antares s'appelle `--brand` (`--accent` est un fond de survol che
   pas d'URL `data:`, URL absolues listées dans `scripts/url-allowlist.txt`), inventaire des
   licences et `version.json`.
 - Hooks pre-commit `web-*` : prérequis `npm --prefix web ci --ignore-scripts`.
+
+## Architecture
+
+- `src/engines/` : code impératif sans React (appel temps réel, avatar, réseau, thème).
+  `CallEngine` porte la logique de `frontend/app.js` ; il ne démarre que sur un clic.
+- `src/state/` : store Zustand unique (profil, conversation, lignes affichées, appel,
+  interface), lu par les moteurs hors de React.
+- `src/app/features.ts` : registre des fonctionnalités (bouton de barre, fenêtres,
+  panneau, plugin d'appel) ; seul fichier partagé à toucher pour en brancher une.
+- `src/features/*/` : une fonctionnalité par répertoire, importée par son `index.ts`.
+  Les feuilles `*.css` y reprennent les classes de `frontend/style.css` (mêmes noms,
+  variables renommées : `--accent*` devient `--brand*`, `--muted` devient `--muted-text`),
+  toujours dans `@layer components`.
+
+### Points d'extension pour la Répétition (lot 6)
+
+| Accroche de `rehearsal.js` hors de sa fonctionnalité | Point d'extension                                                                                 | Test                                   |
+| ---------------------------------------------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| `data-rehearsal` sur la racine (`.app`)              | `ui.setRootData(clé, valeur)`, rendu en `data-*` par `AppShell`                                   | `lot3.test.ts` (rootData)              |
+| Types d'API de la Répétition                         | `features/rehearsal/types.ts`, pas `src/types/api.ts`                                             | convention                             |
+| Détection « fenêtre ouverte » (RE-2)                 | sélecteur `isAnyDialogOpen` (tranche `ui`)                                                        | `lot3.test.ts`                         |
+| Cible du portail de la visionneuse                   | `#feature-portal` (`FEATURE_PORTAL_ID`), dans `#root`                                             | lot 6 (`print.css`)                    |
+| Arrêt de l'horloge sur coupure WS                    | `CallPlugin.onCallEnded(raison)`                                                                  | `lot3.test.ts` (PluginHost)            |
+| Retenue du micro, silence, seuil `vad`               | `CallPlugin.holdMic`, `silent`, `active` ; `engine.setVadThreshold`, `setInputFilter`, `setMuted` | `lot3.test.ts`                         |
+| Panneau de fonctionnalité                            | `FeatureDef.panel`, rendu par `AppShell`                                                          | `lot3.test.ts` (registre)              |
+| Branchement du plugin                                | `FeatureDef.callPlugin(engine)`, enregistré au démarrage                                          | `lot3.test.ts` (`registerCallPlugins`) |

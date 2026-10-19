@@ -1,38 +1,53 @@
 // Grille de l'écran : la scène de l'appel à gauche, la conversation à droite (empilées
-// sur écran étroit). Le contenu de la scène et de la conversation arrive au lot 3.
-import { Button } from "@/components/ui/button";
+// sur écran étroit) ; fenêtres déclarées par le registre
+import { CallStage } from "@/features/call";
+import { ConversationPanel } from "@/features/conversation";
+import { NetIndicator } from "@/features/net";
+import { Pickers } from "@/features/pickers";
 import { useAppStore } from "@/state/hooks";
 
 import { DialogHost } from "./DialogHost";
+import { features } from "./features";
 import { Toolbar } from "./Toolbar";
+import "./shell.css";
+
+const panels = features.flatMap((feature) =>
+  feature.panel ? [{ id: feature.id, Panel: feature.panel }] : [],
+);
+
+// Identifiant du conteneur des portails propres à une fonctionnalité (visionneuse de
+// slides) : dans #root, donc soumis aux règles d'impression de la fonctionnalité
+export const FEATURE_PORTAL_ID = "feature-portal";
 
 export function AppShell() {
   const callState = useAppStore((state) => state.callState);
-  const status = useAppStore((state) => state.status);
+  const rootData = useAppStore((state) => state.rootData);
+  const dataAttributes = Object.fromEntries(
+    Object.entries(rootData).map(([key, value]) => [`data-${key}`, value]),
+  );
   return (
     <main
+      className="app"
       data-testid="app"
       data-state={callState}
-      className="grid min-h-full gap-4 p-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]"
+      {...dataAttributes}
     >
-      <section aria-label="Appel" className="flex flex-col gap-6">
-        <div className="flex items-center justify-end">
-          <Toolbar />
+      <section className="stage" aria-label="Appel">
+        <div className="stage__bar">
+          <Pickers />
+          <div className="stage__tools">
+            <NetIndicator />
+            <Toolbar />
+          </div>
         </div>
-        <header className="text-center">
-          <h1 className="text-2xl font-semibold">Antares</h1>
-          <p data-testid="status" role="status" aria-live="polite">
-            {status}
-          </p>
-        </header>
-        <div className="flex justify-center">
-          <Button data-testid="call" size="lg" disabled>
-            Appeler
-          </Button>
-        </div>
+        <CallStage />
       </section>
-      <section aria-label="Conversation écrite" />
+      <ConversationPanel />
+      {panels.map(({ id, Panel }) => (
+        <Panel key={id} />
+      ))}
       <DialogHost />
+      <div id={FEATURE_PORTAL_ID} />
     </main>
   );
 }

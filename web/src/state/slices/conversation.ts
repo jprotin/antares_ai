@@ -14,6 +14,9 @@ export type Message = {
 export type ConversationSlice = {
   messages: Message[];
   remember(role: Message["role"], content: string | undefined): void;
+  // Code dicté à l'oral : ajouté à la dernière réponse mémorisée
+  appendToLastAssistant(text: string): void;
+  clearMessages(): void;
 };
 
 export const createConversationSlice: StateCreator<ConversationSlice> = (
@@ -27,6 +30,18 @@ export const createConversationSlice: StateCreator<ConversationSlice> = (
         messages: [...state.messages, { role, content: text }],
       }));
   },
+  appendToLastAssistant: (text) =>
+    set((state) => {
+      const last = state.messages.at(-1);
+      if (last?.role !== "assistant") return {};
+      return {
+        messages: [
+          ...state.messages.slice(0, -1),
+          { ...last, content: `${last.content}${text}` },
+        ],
+      };
+    }),
+  clearMessages: () => set({ messages: [] }),
 });
 
 // Derniers messages dans la limite du nombre et du budget (le plus récent est gardé)

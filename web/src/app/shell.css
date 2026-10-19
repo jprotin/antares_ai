@@ -1,0 +1,64 @@
+/* Grille de l'écran et barre du haut (frontend/style.css, lignes 119-126, 720-737,
+   1102-1136). */
+@layer components {
+  .app {
+    display: grid;
+    grid-template-columns: minmax(20rem, 5fr) 7fr;
+    gap: 1.25rem;
+    height: 100vh;
+    padding: 1.25rem;
+  }
+
+  /* --- Écrans étroits : empilement --------------------------------------------- */
+
+  @media (max-width: 900px) {
+    .app {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto minmax(22rem, 1fr);
+      height: auto;
+      min-height: 100vh;
+      padding: 16px;
+    }
+
+    .orb {
+      max-width: 18rem;
+      min-height: 12rem;
+      height: 16rem;
+    }
+  }
+
+  /* --- Barre du haut : agent, mode, thème, réglages ------------------------------ */
+
+  .stage__bar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    width: 100%;
+  }
+
+  .stage__pickers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  .stage__tools {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .theme-button:hover {
+    transform: none;
+  }
+  .theme-button svg {
+    display: none;
+  }
+  .theme-button[data-choice="auto"] .icon-auto,
+  .theme-button[data-choice="dark"] .icon-dark,
+  .theme-button[data-choice="light"] .icon-light {
+    display: block;
+  }
+}

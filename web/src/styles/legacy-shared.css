@@ -1,0 +1,94 @@
+/* Classes partagées de frontend/style.css (boutons, badges), transposées telles quelles
+   (lignes 739-775, 864-883, 921-943, 1086-1094) ; variables renommées. */
+@layer components {
+  .stage {
+    position: relative;
+  }
+
+  .settings-button {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border: 1px solid var(--panel-border);
+    border-radius: 50%;
+    background: var(--overlay);
+    color: var(--muted-text);
+    cursor: pointer;
+    transition:
+      color 0.2s,
+      background 0.2s,
+      transform 0.4s;
+  }
+
+  .settings-button svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    fill: currentColor;
+  }
+  .settings-button:hover {
+    color: var(--text);
+    background: var(--overlay-strong);
+    transform: rotate(30deg);
+  }
+  .settings-button:focus-visible {
+    outline: 3px solid var(--brand-strong);
+    outline-offset: 3px;
+  }
+
+  .badge {
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .badge--gpu {
+    background: var(--ok-bg);
+    color: var(--ok-text);
+  }
+  .badge--slow {
+    background: var(--warn-bg);
+    color: var(--warn-text);
+  }
+  .badge--unknown {
+    background: var(--overlay-strong);
+    color: var(--muted-text);
+  }
+
+  .button-primary,
+  .button-ghost {
+    padding: 0.65rem 1.3rem;
+    border-radius: 999px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .button-primary {
+    border: 0;
+    background: linear-gradient(135deg, var(--brand), var(--brand-2));
+    color: var(--on-accent);
+  }
+  .button-ghost {
+    border: 1px solid var(--panel-border);
+    background: transparent;
+    color: var(--muted-text);
+  }
+  .button-primary:disabled {
+    opacity: 0.6;
+    cursor: wait;
+  }
+
+  .link-button {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--brand-strong);
+    font: inherit;
+    text-decoration: underline;
+    cursor: pointer;
+  }
+}

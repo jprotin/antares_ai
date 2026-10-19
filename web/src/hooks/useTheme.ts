@@ -2,6 +2,7 @@
 // repris ici, persisté à chaque bascule et recalculé quand l'OS change de préférence.
 import { useCallback, useEffect, useState } from "react";
 
+import { avatar } from "@/engines/avatar/AvatarHost";
 import {
   applyTheme,
   nextTheme,
@@ -14,9 +15,11 @@ import {
 export function useTheme() {
   const [choice, setChoice] = useState<ThemeChoice>(storedTheme);
 
+  // Thème résolu posé sur <html> et transmis à l'avatar (couleurs de l'orbe)
   useEffect(() => {
-    applyTheme(choice);
-    return watchSystemTheme(() => applyTheme(choice));
+    const apply = () => avatar.setTheme(applyTheme(choice));
+    apply();
+    return watchSystemTheme(apply);
   }, [choice]);
 
   const toggle = useCallback(() => {

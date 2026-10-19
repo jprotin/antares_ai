@@ -16,18 +16,50 @@
 }
 
 @layer base {
+  /* Jetons de frontend/style.css (lignes 1-88), renommés : --accent* -> --brand*,
+     --muted -> --muted-text ; --overlay du thème sombre corrigé (était cyclique) */
+  :root {
+    /* Teinte de base (bleu) ; décalée légèrement selon le domaine de l'agent (theme.js) */
+    --hue: 222;
+    --radius: 0.75rem;
+    /* Rayon des panneaux de l'ancienne interface (--radius y valait 1.1rem) */
+    --panel-radius: 1.1rem;
+    --danger: #e0565b;
+    --danger-2: #b8345f;
+    --on-accent: #fff;
+    --ok-bg: #2f9e7a26;
+    --ok-text: #6fd8b0;
+    --warn-bg: #e0a23c26;
+    --warn-text: #f0c070;
+    --cloud-bg: #c77dff22;
+    --cloud-text: #d9a8ff;
+    transition: --hue 0.6s;
+  }
+
+  /* Thème sombre (défaut) */
   :root,
   :root[data-theme="dark"] {
     color-scheme: dark;
-    --radius: 0.75rem;
-    --danger: #e0565b;
-    --on-accent: #fff;
+    --code-bg: hsl(var(--hue) 40% 6%);
+    --code-text: hsl(var(--hue) 30% 88%);
+    --tok-keyword: #c792ea;
+    --tok-string: #a5d6a7;
+    --tok-number: #f7b267;
+    --tok-comment: #6b7a99;
+    --tok-title: #82aaff;
+    --tok-attr: #ffcb8b;
+    --tok-builtin: #7fdbca;
     --bg: hsl(var(--hue) 38% 4%);
     --bg-glow: hsl(var(--hue) 45% 12%);
     --panel: hsl(var(--hue) 42% 9%);
     --panel-border: hsl(var(--hue) 34% 16%);
+    --stage-top: hsl(var(--hue) 45% 9% / 0.8);
+    --stage-bottom: hsl(var(--hue) 43% 6% / 0.8);
     --text: hsl(var(--hue) 40% 93%);
     --muted-text: hsl(var(--hue) 14% 59%);
+    --faint: hsl(var(--hue) 12% 41%);
+    --bubble-user: hsl(var(--hue) 44% 16%);
+    --bubble-assistant: hsl(var(--hue) 40% 12%);
     --field: hsl(var(--hue) 38% 5%);
     --brand: hsl(var(--hue) 100% 68%);
     --brand-strong: hsl(var(--hue) 100% 74%);
@@ -35,18 +67,32 @@
     --overlay: #ffffff0a;
     --overlay-strong: #ffffff14;
     --backdrop: hsl(var(--hue) 40% 2% / 0.8);
-    --code-bg: hsl(var(--hue) 40% 6%);
-    --code-text: hsl(var(--hue) 30% 88%);
+    --shadow: #000c;
   }
 
+  /* Thème clair */
   :root[data-theme="light"] {
     color-scheme: light;
+    --code-bg: hsl(var(--hue) 30% 96%);
+    --code-text: hsl(var(--hue) 30% 18%);
+    --tok-keyword: #a626a4;
+    --tok-string: #3f8a2e;
+    --tok-number: #b06a00;
+    --tok-comment: #8a93a3;
+    --tok-title: #2c5fd6;
+    --tok-attr: #b35a00;
+    --tok-builtin: #0f7c8c;
     --bg: hsl(var(--hue) 30% 96%);
     --bg-glow: hsl(var(--hue) 80% 90%);
     --panel: hsl(var(--hue) 40% 99%);
     --panel-border: hsl(var(--hue) 25% 86%);
+    --stage-top: hsl(var(--hue) 50% 99% / 0.85);
+    --stage-bottom: hsl(var(--hue) 40% 95% / 0.85);
     --text: hsl(var(--hue) 30% 14%);
     --muted-text: hsl(var(--hue) 12% 40%);
+    --faint: hsl(var(--hue) 10% 56%);
+    --bubble-user: hsl(var(--hue) 75% 92%);
+    --bubble-assistant: hsl(var(--hue) 30% 96%);
     --field: hsl(var(--hue) 30% 98%);
     --brand: hsl(var(--hue) 72% 52%);
     --brand-strong: hsl(var(--hue) 70% 44%);
@@ -54,10 +100,18 @@
     --overlay: #0000000a;
     --overlay-strong: #00000012;
     --backdrop: hsl(var(--hue) 25% 20% / 0.45);
-    --code-bg: hsl(var(--hue) 30% 96%);
-    --code-text: hsl(var(--hue) 30% 18%);
+    --shadow: #1a224040;
+    --ok-bg: #2f9e7a1f;
+    --ok-text: #1d7a5a;
+    --warn-bg: #e0a23c26;
+    --warn-text: #93600f;
+    --cloud-bg: #9b4dd81a;
+    --cloud-text: #7a2fb5;
   }
+}
 
+/* Noms shadcn dérivés des jetons antares */
+@layer base {
   :root {
     --background: var(--bg);
     --foreground: var(--text);
@@ -129,6 +183,8 @@
       var(--bg);
     color: var(--text);
     font-family: var(--font-sans);
+    /* Interligne du navigateur, comme l'ancienne interface (Tailwind impose 1.5) */
+    line-height: normal;
     -webkit-font-smoothing: antialiased;
   }
 }

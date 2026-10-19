@@ -7,15 +7,21 @@ import {
   createConversationSlice,
   type ConversationSlice,
 } from "./slices/conversation";
+import { createLinesSlice, type LinesSlice } from "./slices/lines";
 import { createProfileSlice, type ProfileSlice } from "./slices/profile";
 import { createUiSlice, type UiSlice } from "./slices/ui";
 
-export type AppState = ProfileSlice & ConversationSlice & CallSlice & UiSlice;
+export type AppState = ProfileSlice &
+  ConversationSlice &
+  LinesSlice &
+  CallSlice &
+  UiSlice;
 
 export function createAppStore() {
   return createStore<AppState>()((...args) => ({
     ...createProfileSlice(...args),
     ...createConversationSlice(...args),
+    ...createLinesSlice(...args),
     ...createCallSlice(...args),
     ...createUiSlice(...args),
   }));

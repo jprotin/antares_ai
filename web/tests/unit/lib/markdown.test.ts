@@ -2,7 +2,7 @@
 // lib/markdown.ts : mêmes protections que render.js, plus FORBID_ATTR style
 import { describe, expect, test } from "vitest";
 
-import { renderMarkdown } from "@/lib/markdown";
+import { renderAnswer, renderMarkdown } from "@/lib/markdown";
 
 function render(text: string): HTMLElement {
   const root = document.createElement("div");
@@ -61,5 +61,28 @@ describe("markdown", () => {
       "docker",
       "nginx",
     ]);
+  });
+
+  test("test_renderAnswer_renvois_lies_et_liste_sources_retiree", () => {
+    const root = document.createElement("div");
+    root.innerHTML = renderAnswer(
+      "Nginx [1] et Docker [2], pas [9]. `code [1]`\n\n---\n\nSources :\n\n- a\n- b",
+      { prefix: "src-l1", count: 2 },
+    );
+    const links = [...root.querySelectorAll("a.citation")];
+    expect(links.map((a) => a.getAttribute("href"))).toEqual([
+      "#src-l1-1",
+      "#src-l1-2",
+    ]);
+    expect(root.textContent).toContain("[9]");
+    expect(root.querySelector("code")?.textContent).toBe("code [1]");
+    expect(root.textContent).not.toContain("Sources");
+    expect(root.querySelector("hr")).toBeNull();
+  });
+
+  test("test_renderAnswer_sans_sources_identique", () => {
+    expect(renderAnswer("Texte [1]", { prefix: "p", count: 0 })).toBe(
+      renderMarkdown("Texte [1]"),
+    );
   });
 });

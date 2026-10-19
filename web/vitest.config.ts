@@ -11,7 +11,17 @@ export default defineConfig({
     environment: "node",
     coverage: {
       provider: "v8",
-      include: ["src/lib/**", "src/engines/**", "src/state/**"],
+      // Logique pure (stratégie de tests, §15) ; le moteur audio, l'avatar et le
+      // WebSocket (CallEngine, playback, voiceEffects, AvatarHost) relèvent de Playwright
+      include: [
+        "src/lib/**",
+        "src/state/**",
+        "src/engines/theme/**",
+        "src/engines/audio/**",
+        "src/engines/net/**",
+        "src/engines/realtime/protocol.ts",
+        "src/engines/realtime/plugins.ts",
+      ],
       thresholds: { lines: 85 },
     },
   },

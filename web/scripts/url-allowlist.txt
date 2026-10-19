@@ -8,3 +8,6 @@ http://www.w3.org/1998/Math/MathML
 https://react.dev/errors/
 # Bannière de licence en commentaire dans le CSS de Tailwind
 https://tailwindcss.com
+# Liens de documentation dans les messages de highlight.js et marked (texte seulement)
+https://github.com/highlightjs/highlight.js/
+https://github.com/markedjs/marked

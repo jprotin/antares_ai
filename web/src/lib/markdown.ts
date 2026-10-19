@@ -89,3 +89,71 @@ export function renderMarkdown(text: string): string {
     FORBID_ATTR: ["style"],
   });
 }
+
+// --- Réponse avec sources web (port de web.js) ----------------------------------
+
+// Liste « Sources : » écrite par le modèle malgré la consigne : doublon du bloc affiché
+function dropWrittenSources(root: ParentNode) {
+  const heading = [...root.children]
+    .reverse()
+    .find((node) =>
+      /^\s*(sources|références)\s*:?/i.test(node.textContent ?? ""),
+    );
+  if (!heading) return;
+  let node: Element | null = heading;
+  if (heading.previousElementSibling?.tagName === "HR")
+    node = heading.previousElementSibling;
+  while (node) {
+    const next: Element | null = node.nextElementSibling;
+    node.remove();
+    node = next;
+  }
+}
+
+// Renvois [1], [2] du texte -> liens vers la source correspondante
+function linkCitations(root: DocumentFragment, prefix: string, count: number) {
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
+    acceptNode: (node) =>
+      node.parentElement?.closest("pre, code, a")
+        ? NodeFilter.FILTER_REJECT
+        : NodeFilter.FILTER_ACCEPT,
+  });
+  const nodes: Text[] = [];
+  while (walker.nextNode()) nodes.push(walker.currentNode as Text);
+  for (const node of nodes) {
+    const parts = (node.textContent ?? "").split(/\[(\d{1,2})\]/);
+    if (parts.length === 1) continue;
+    const fragment = document.createDocumentFragment();
+    parts.forEach((part, index) => {
+      if (index % 2 === 0) {
+        if (part) fragment.append(part);
+        return;
+      }
+      const n = Number(part);
+      if (n < 1 || n > count) {
+        fragment.append(`[${part}]`);
+        return;
+      }
+      const link = document.createElement("a");
+      link.className = "citation";
+      link.textContent = String(n);
+      link.href = `#${prefix}-${n}`;
+      fragment.append(link);
+    });
+    node.replaceWith(fragment);
+  }
+}
+
+// Réponse rendue puis adaptée aux sources web : doublon retiré, renvois cliquables
+export function renderAnswer(
+  text: string,
+  web?: { prefix: string; count: number },
+): string {
+  const html = renderMarkdown(text);
+  if (!web?.count) return html;
+  const template = document.createElement("template");
+  template.innerHTML = html;
+  dropWrittenSources(template.content);
+  linkCitations(template.content, web.prefix, web.count);
+  return template.innerHTML;
+}

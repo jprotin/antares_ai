@@ -43,6 +43,7 @@ export default tseslint.config(
   {
     files: ["**/*.{js,mjs}"],
     extends: [js.configs.recommended],
+    languageOptions: { globals: globals.browser },
   },
   {
     files: ["**/*.{ts,tsx}"],
