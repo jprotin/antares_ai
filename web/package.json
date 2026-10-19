@@ -8,7 +8,7 @@
     "build": "tsc -b && npm run build:app",
     "build:app": "tsc -p tsconfig.app.json && vite build && node scripts/licenses-inventory.mjs && node scripts/version.mjs && node scripts/check-dist.mjs",
     "preview": "vite preview",
-    "preview:nginx": "ANTARES_COMMIT=$(git rev-parse --short HEAD) docker compose --env-file ../deploy/s2s/.env -f ../deploy/s2s/compose.yaml -f ../deploy/s2s/compose.web-next.yaml up -d --no-deps --build web-next",
+    "preview:nginx": "cd ../deploy/s2s && ./ui.sh new --build",
     "typecheck": "tsc -b",
     "lint": "eslint --max-warnings=0 .",
     "format": "prettier --write .",

@@ -1,6 +1,7 @@
-// Latence ABAB (stratégie de tests, 7) : appels alternés entre deux interfaces, une
-// session à la fois. A = LATENCY_A (défaut ancienne, 8765), B = LATENCY_B (défaut
-// nouvelle, 8766 ; série A/A : LATENCY_B=http://127.0.0.1:8765/).
+// Latence ABAB (stratégie de tests, 7) : appels alternés entre deux interfaces servies en
+// même temps, une session à la fois. A = LATENCY_A, B = LATENCY_B (défauts : 8765 et 8766,
+// la seconde servie par une surcharge compose le temps de la mesure ; série A/A :
+// LATENCY_B=http://127.0.0.1:8765/).
 // Résultat : tests/results/latency-<date>.json (comparé par scripts/compare-latency.mjs).
 import { mkdirSync, writeFileSync } from "node:fs";
 

@@ -1,13 +1,12 @@
-// Tests de bout en bout : la même suite vise l'ancienne interface (ANTARES_UI=legacy,
-// 8765) ou la nouvelle (ANTARES_UI=next, 8766). Une seule session s2s à la fois : workers 1.
+// Tests de bout en bout : la même suite vise l'ancienne interface (ANTARES_UI=legacy) ou
+// la nouvelle (ANTARES_UI=next), celle que sert 127.0.0.1:8765 (cd deploy/s2s && ./ui.sh
+// legacy | new). Une seule session s2s à la fois : workers 1.
 import { fileURLToPath } from "node:url";
 
 import { defineConfig } from "@playwright/test";
 
 const ui = process.env.ANTARES_UI === "next" ? "next" : "legacy";
-const baseURL =
-  process.env.ANTARES_URL ??
-  (ui === "next" ? "http://127.0.0.1:8766/" : "http://127.0.0.1:8765/");
+const baseURL = process.env.ANTARES_URL ?? "http://127.0.0.1:8765/";
 const question = fileURLToPath(
   new URL("./tests/fixtures/question-fr.wav", import.meta.url),
 );

@@ -68,7 +68,14 @@ image_rev() {
     grep -oE '"rev": *"[^"]*"' | cut -d'"' -f4 || true
 }
 
+warn_uncommitted() {
+  [[ -n "$(git status --porcelain -- ../../web 2>/dev/null)" ]] &&
+    warn "web/ contient des modifications non commitées : l'empreinte ne couvre que le commité"
+  return 0
+}
+
 legacy() {
+  warn_uncommitted
   log "Ancienne interface (frontend/)"
   set_compose_file "${LEGACY_FILES}"
   docker compose up -d --no-deps web
@@ -80,8 +87,7 @@ new() {
   local force="${1:-}" rev
   docker compose -f compose.yaml config web 2>/dev/null | grep -q "image: ${IMAGE}" ||
     die "compose.yaml ne construit pas encore la nouvelle interface (bascule non faite)"
-  [[ -n "$(git status --porcelain -- ../../web 2>/dev/null)" ]] &&
-    warn "web/ contient des modifications non commitées : l'empreinte ne couvre que le commité"
+  warn_uncommitted
   rev="$(git rev-parse HEAD:web)"
   if [[ "${force}" == "--build" || "$(image_rev)" != "${rev}" ]]; then
     log "Construction de l'interface (npm, en ligne)"
