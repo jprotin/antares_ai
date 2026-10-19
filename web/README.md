@@ -1,6 +1,7 @@
 # Interface antares (Vite + React + shadcn/ui)
 
-Nouvelle interface en cours de migration depuis `frontend/` (ADR 0012). Fichiers
+Interface servie sur 127.0.0.1:8765 depuis la bascule du 2026-10-19 (ADR 0012) ; l'ancienne,
+`frontend/`, reste disponible par `deploy/s2s/ui.sh legacy`. Fichiers
 statiques servis par nginx, avec la CSP actuelle (`script-src 'self'`, `style-src 'self'`).
 
 ## Commandes
@@ -9,8 +10,8 @@ statiques servis par nginx, avec la CSP actuelle (`script-src 'self'`, `style-sr
 npm ci --ignore-scripts
 npm run dev     # http://127.0.0.1:5173, appels relayés vers la pile (ANTARES_URL, défaut 127.0.0.1:8765)
 npm run build
-# Sous le vrai nginx, sur 127.0.0.1:8766, sans toucher aux autres services :
-npm run preview:nginx   # web-next, avec ANTARES_COMMIT et deploy/s2s/.env
+# Sous le vrai nginx (reconstruit l'image et la sert sur 127.0.0.1:8765) :
+npm run preview:nginx   # = cd ../deploy/s2s && ./ui.sh new --build
 ```
 
 ## Règles CSS

@@ -17,7 +17,7 @@
     "test:e2e:mock": "playwright test --project=chromium-mock",
     "test:e2e:live": "playwright test --project=chromium-live --project=smoke",
     "test:offline": "playwright test --project=offline-strict",
-    "test:perf": "playwright test --project=perf",
+    "test:perf": "ANTARES_PERF=1 playwright test --project=perf",
     "test:smoke": "playwright test --project=smoke",
     "audit": "npm audit --audit-level=high"
   },
