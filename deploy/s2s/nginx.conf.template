@@ -95,8 +95,20 @@ server {
         client_max_body_size 64k;
     }
 
+    # Catalogue fusionné par le routeur (voix versionnées + voix personnelles locales)
+    location = /voices/voices.json {
+        rewrite ^ /api/voices break;
+        proxy_pass $router_upstream;
+        proxy_set_header Host $host;
+    }
+
     location /voices/ {
         alias /srv/voices/;
+        # Voix personnelles (prises brutes, extraits clonés) : seuls les aperçus sont
+        # servis ; le moteur lit les extraits sur le disque. Exposé sinon par share.sh.
+        location ~ ^/voices/perso/(?!apercu/[^/]+\.wav$) {
+            return 404;
+        }
         add_header Cache-Control no-store;
         add_header X-Content-Type-Options nosniff always;
         add_header Referrer-Policy no-referrer always;
