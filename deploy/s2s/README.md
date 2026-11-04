@@ -228,6 +228,14 @@ phrase suivante, même en cours d'appel, et persisté par le routeur LLM.
   un extrait `.wav` propre (5 à 15 s, une seule voix) dans `voices/` et l'ajouter au
   catalogue (`id`, `name`, `gender`, `file`, `source`, `avatars`). Le nom et le genre servent à
   la consigne donnée au LLM (« Tu es Mr Antares, un assistant… »).
+- **Voix personnelles** (sa propre voix clonée, par exemple) : dans `voices/perso/`,
+  ignoré par git (donnée biométrique), avec un catalogue local `voices/perso/voices.json`
+  de même format. Une voix locale peut hériter d'une voix versionnée (`"base": "bender"` :
+  nom, genre, persona) et prend les avatars qu'elle déclare. Le routeur fusionne les deux
+  catalogues (`router/voices.py`, servi sous `/voices/voices.json`) ; une voix dont
+  l'extrait manque est ignorée, la voix versionnée reprend alors sa place. nginx ne sert
+  de `voices/perso/` que les aperçus (`voices/perso/apercu/*.wav`) : le moteur lit les
+  extraits sur le disque.
 
 ### Connexions : fournisseurs de modèles
 
@@ -431,6 +439,12 @@ en plus tout emballement résiduel.
 Le moteur n'exposant pas ces paramètres, `qwen3_sampling.py` (copié dans l'image) les
 applique depuis `tts-temperature`, `tts-top-k`, `tts-repetition-penalty` et
 `tts-max-frames-per-char` du bloc `x-profile`.
+
+Une voix peut imposer son propre tirage dans `voices/voices.json` ou le catalogue local
+(champ `sampling`,
+ex. `{"temperature": 0.6, "top_k": 30}`) : il ne vaut que pour elle, les autres gardent
+le réglage global. Le catalogue est relu quand il change, sans redémarrer le moteur.
+Tests : `test_qwen3_sampling.py` (commande en tête du fichier) et `router/test_voices.py`.
 
 ## Vérifications
 

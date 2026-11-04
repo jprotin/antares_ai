@@ -64,6 +64,7 @@ import rag
 import ragstore
 import rehearsal
 import voicecode
+import voices
 import web
 
 SETTINGS_PATH = Path(os.environ.get("SETTINGS_PATH", "/data/settings.json"))
@@ -74,6 +75,10 @@ SHARING_FLAG = SETTINGS_PATH.with_name("sharing")
 OBSERVED_PATH = SETTINGS_PATH.with_name("observed.json")
 SMOOTHING = 0.3
 VOICES_CATALOG = Path(os.environ.get("VOICES_CATALOG", "/voices/voices.json"))
+# Voix personnelles (hors git), cf. voices.py
+VOICES_LOCAL = Path(
+    os.environ.get("VOICES_LOCAL", str(VOICES_CATALOG.parent / "perso" / "voices.json"))
+)
 PORT = int(os.environ.get("PORT", "11434"))
 
 logging.basicConfig(
@@ -110,7 +115,7 @@ class SettingsUpdate(BaseModel):
 
 
 def voice_catalog() -> dict:
-    return json.loads(VOICES_CATALOG.read_text(encoding="utf-8"))
+    return voices.load(VOICES_CATALOG, VOICES_LOCAL)
 
 
 def load_settings() -> Settings:
@@ -519,6 +524,12 @@ async def test_provider(draft: ProviderDraft) -> dict:
         "firstToken": first,
         "firstModel": models[0]["model"] if models else None,
     }
+
+
+@app.get("/api/voices")
+async def get_voices() -> JSONResponse:
+    # Servi aussi sous /voices/voices.json (nginx) : catalogue versionné + voix locales
+    return JSONResponse(voice_catalog(), headers={"Cache-Control": "no-store"})
 
 
 @app.get("/api/settings")
