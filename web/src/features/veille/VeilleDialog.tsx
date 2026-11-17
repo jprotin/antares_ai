@@ -35,6 +35,7 @@ import type {
 } from "@/types/api";
 
 import {
+  loadAccess,
   loadFavorites,
   loadIdeaPrompt,
   loadOthers,
@@ -162,6 +163,8 @@ export function VeilleDialog() {
   const frame = useRef<HTMLDivElement>(null);
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const [statsOpen, setStatsOpen] = useState(false);
+  // Invité d'un partage : veille en lecture seule (actions masquées)
+  const [readOnly, setReadOnly] = useState(false);
   const header = useRef<HTMLElement>(null);
 
   // Ouverture et fermeture notées : la pastille s'éteint
@@ -187,6 +190,14 @@ export function VeilleDialog() {
       setLoading(false);
       markOpened();
       if (next) void fetchOthers(next.day);
+    })();
+    void (async () => {
+      try {
+        const access = await loadAccess();
+        if (mounted.current) setReadOnly(access.read_only);
+      } catch {
+        // Droits inconnus : le routeur refuse quand même les écritures d'un invité
+      }
     })();
     void (async () => {
       try {
@@ -450,17 +461,28 @@ export function VeilleDialog() {
             )}
           </div>
           <div className="veille__actions">
-            <button
-              type="button"
-              className="veille-pill veille-run"
-              data-busy={busy ? "true" : undefined}
-              disabled={busy}
-              title="Lancer une veille maintenant (météo, articles, idées)"
-              onClick={() => void startRun()}
-            >
-              <RefreshCw aria-hidden="true" />
-              {busy ? "En cours…" : "Nouveau passage"}
-            </button>
+            {readOnly && (
+              <span
+                className="veille-tag veille-readonly"
+                data-testid="veille-readonly"
+                title="Partage : votes, sources et nouveaux passages réservés au propriétaire"
+              >
+                Lecture seule
+              </span>
+            )}
+            {!readOnly && (
+              <button
+                type="button"
+                className="veille-pill veille-run"
+                data-busy={busy ? "true" : undefined}
+                disabled={busy}
+                title="Lancer une veille maintenant (météo, articles, idées)"
+                onClick={() => void startRun()}
+              >
+                <RefreshCw aria-hidden="true" />
+                {busy ? "En cours…" : "Nouveau passage"}
+              </button>
+            )}
             <button
               type="button"
               className="veille-pill"
@@ -469,14 +491,16 @@ export function VeilleDialog() {
               <ChartPie aria-hidden="true" />
               <span className="veille-pill__text">Statistiques</span>
             </button>
-            <button
-              type="button"
-              className="veille-pill"
-              onClick={() => setSourcesOpen(true)}
-            >
-              <Rss aria-hidden="true" />
-              <span className="veille-pill__text">Sources</span>
-            </button>
+            {!readOnly && (
+              <button
+                type="button"
+                className="veille-pill"
+                onClick={() => setSourcesOpen(true)}
+              >
+                <Rss aria-hidden="true" />
+                <span className="veille-pill__text">Sources</span>
+              </button>
+            )}
             <Dialog.Close asChild>
               <button type="button" className="veille-pill veille__close">
                 <X aria-hidden="true" />
@@ -656,6 +680,7 @@ export function VeilleDialog() {
                           now={now}
                           onVote={(value) => void vote("article", item, value)}
                           onOpen={() => setDetail(item)}
+                          readOnly={readOnly}
                         />
                       ))}
                     </ul>
@@ -686,6 +711,7 @@ export function VeilleDialog() {
                           vote={voteOf("idea", idea)}
                           onVote={(value) => void voteIdea(idea, value)}
                           onShowPrompt={() => void openPrompt(idea)}
+                          readOnly={readOnly}
                         />
                       ))}
                     </ul>
@@ -786,6 +812,7 @@ export function VeilleDialog() {
                         void vote("article", item, value)
                       }
                       onOpen={(item) => setDetail(item)}
+                      readOnly={readOnly}
                     />
                   )}
                 </section>
@@ -839,6 +866,7 @@ export function VeilleDialog() {
           onVote={(value) => void vote("article", detail, value)}
           onFavorite={() => void toggleFavorite(detail.source)}
           onClose={() => setDetail(null)}
+          readOnly={readOnly}
         />
       )}
 

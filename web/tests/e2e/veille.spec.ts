@@ -465,23 +465,56 @@ test.describe("veille IA et météo @mock @veille", () => {
   });
 
   test.describe("sécurité et partage public", () => {
-    test("E-20 : partage public, bouton absent et aucune requête", async ({
+    test("E-20 : partage public, invité en lecture seule", async ({
       page,
       ui,
     }) => {
-      const api = await new MockApi(page).install();
+      const api = await new MockApi(page)
+        .on(/^GET \/api\/veille\/access$/, (route) =>
+          route.fulfill({ json: { read_only: true, sharing: true } }),
+        )
+        .install();
       api.set("net", { ...NET, sharing: true });
       await ui.goto();
+      await openVeille(page);
+      const panel = dialog(page);
+      await expect(page.getByTestId("veille-readonly")).toHaveText(
+        "Lecture seule",
+      );
+      await expect(panel.getByTestId("veille-article")).toHaveCount(20);
+      // Actions masquées : passage, sources, votes, étoile
       await expect(
-        page.getByRole("button", { name: "Réglages" }),
+        panel.getByRole("button", { name: "Nouveau passage", exact: true }),
+      ).toHaveCount(0);
+      await expect(panel.getByRole("button", { name: "Sources" })).toHaveCount(
+        0,
+      );
+      await expect(panel.locator(".veille-vote")).toHaveCount(0);
+      await expect(
+        panel.getByRole("button", { name: /^Intéressé/ }),
+      ).toHaveCount(0);
+      await expect(
+        panel.getByRole("button", { name: "Statistiques" }),
       ).toBeVisible();
-      await expect(button(page)).toHaveCount(0);
+      await panel
+        .getByRole("button", { name: RUN.items[0].title, exact: true })
+        .click();
+      const sheet = page.getByTestId("veille-article-dialog");
+      await expect(sheet.getByRole("link")).toBeVisible();
+      await expect(sheet.locator(".veille-vote")).toHaveCount(0);
+      await expect(
+        sheet.getByRole("button", { name: "Privilégier cette source" }),
+      ).toHaveCount(0);
+      await page.keyboard.press("Escape");
+      await panel.getByRole("tab", { name: /Tous les articles/ }).click();
+      await expect(panel.getByTestId("veille-other")).toHaveCount(50);
+      await expect(panel.locator(".veille-other .veille-vote")).toHaveCount(0);
       expect(
-        api.calls.some((call) => call.path.startsWith("/api/veille")),
-      ).toBe(false);
+        api.writes().filter((c) => c.path.startsWith("/api/veille")),
+      ).toEqual([]);
     });
 
-    test("E-20b : partage ouvert en cours de session, bouton retiré", async ({
+    test("E-20b : partage ouvert en cours de session, bouton gardé", async ({
       page,
       ui,
     }) => {
@@ -491,15 +524,16 @@ test.describe("veille IA et météo @mock @veille", () => {
       await expect(button(page)).toBeVisible();
       api.set("net", { ...NET, sharing: true });
       await page.clock.fastForward(15_000);
-      await expect(button(page)).toHaveCount(0);
-      const before = api.calls.filter((c) =>
-        c.path.startsWith("/api/veille"),
-      ).length;
-      await page.clock.fastForward(5 * 60_000 + 1000);
-      await page.clock.fastForward(5 * 60_000 + 1000);
-      expect(
-        api.calls.filter((c) => c.path.startsWith("/api/veille")).length,
-      ).toBe(before);
+      await expect(button(page)).toBeVisible();
+      // Propriétaire (ou accès local) : tout reste disponible
+      await openVeille(page);
+      await expect(page.getByTestId("veille-readonly")).toHaveCount(0);
+      await expect(
+        dialog(page).getByRole("button", {
+          name: "Nouveau passage",
+          exact: true,
+        }),
+      ).toBeVisible();
     });
 
     test("E-21 : liens externes dans un nouvel onglet, sans référent", async ({

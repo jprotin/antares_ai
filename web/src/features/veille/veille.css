@@ -2437,4 +2437,11 @@
     font-size: 0.8rem;
     color: var(--danger);
   }
+
+  /* Invité d'un partage : veille en lecture seule */
+  .veille-readonly {
+    align-self: center;
+    border-color: var(--warn-text);
+    color: var(--warn-text);
+  }
 }

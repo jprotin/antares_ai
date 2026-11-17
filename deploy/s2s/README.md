@@ -145,7 +145,10 @@ ngrok dans un conteneur (`ngrok/ngrok`, version figée). Une fois, ajouter son j
 Le script affiche l'URL à envoyer ; Ctrl+C ferme le partage.
 
 - **Accès** : connexion Google obligatoire, puis refus de toute adresse non listée
-  (traffic policy ngrok, générée à chaque partage).
+  (traffic policy ngrok, générée à chaque partage). `SHARE_OWNER_EMAIL=ton@adresse`
+  dans `.env` t'ajoute d'office : par le tunnel, tu gardes la veille complète, les
+  autres invités la lisent seulement (ngrok transmet l'adresse Google de chacun dans
+  l'en-tête `x-antares-user`, après avoir retiré celui du navigateur).
 - **Pendant le partage** : Claude (ton abonnement) et l'écriture dans le RAG (fiches)
   sont désactivés pour tout le monde ; le pictogramme de connexion affiche
   « Internet · partagé ». Tout revient à la normale à la fermeture.
@@ -552,8 +555,12 @@ docker compose run --rm antares-tasks schedule          # prochains passages, ma
 - **Connexions** : le service lit `connections.json` (clés d'API comprises) dans le volume
   du routeur, avec la même image et le même code ; il ne l'écrit jamais. Routeur jamais
   démarré (fichier absent) ou configuration incomplète : passage en échec, message clair.
-- **Partage public** (`share.sh`) : le bouton disparaît et toutes les routes `/api/veille`
-  (lecture, votes, prompts) répondent 403.
+- **Partage public** (`share.sh`) : la veille reste visible. Les invités la lisent
+  (articles, fiches, idées, statistiques, traductions et prompts déjà faits) ; votes,
+  étoiles, sources, passage manuel, nouvelles traductions et nouveaux prompts leur
+  répondent 403 et sont masqués (mention « Lecture seule »). Accès complet pour
+  `SHARE_OWNER_EMAIL` (`.env`) par le tunnel, et pour l'accès local
+  (`GET /api/veille/access`, cf. `router/veille_access.py`).
 - **Ancienne interface** (`ui.sh legacy`) : pas de veille (nouvelle interface seulement).
 - `FEATURES.md` doit exister avant le premier `docker compose up` (sinon Docker crée un
   dossier à sa place) ; le tenir à jour à chaque fin de feature, sous 4 000 caractères :

@@ -43,6 +43,7 @@ export function ArticleDialog({
   onVote,
   onFavorite,
   onClose,
+  readOnly = false,
 }: {
   item: VeilleItem;
   categoryLabel: string;
@@ -52,6 +53,8 @@ export function ArticleDialog({
   onVote: (value: VeilleVoteValue) => void;
   onFavorite: () => void;
   onClose: () => void;
+  // Invité d'un partage : ni vote ni étoile ; traduction déjà faite seulement
+  readOnly?: boolean;
 }) {
   const href = safeHref(item.url);
   const when = item.published_at ? formatDateTime(item.published_at) : "";
@@ -188,7 +191,7 @@ export function ArticleDialog({
         </div>
 
         <footer className="veille-prompt__footer veille-article__footer">
-          {item.id && (
+          {item.id && !readOnly && (
             <div className="veille-votes">
               <button
                 type="button"
@@ -212,7 +215,7 @@ export function ArticleDialog({
               </button>
             </div>
           )}
-          {favorite !== null && item.source && (
+          {favorite !== null && !readOnly && item.source && (
             <button
               type="button"
               className="veille-pill veille-star"

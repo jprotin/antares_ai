@@ -24,6 +24,7 @@ export function OtherList({
   onOrder,
   onVote,
   onOpen,
+  readOnly = false,
 }: {
   items: readonly VeilleOther[];
   categories: readonly VeilleCategory[];
@@ -33,6 +34,8 @@ export function OtherList({
   onOrder: (order: OtherOrder) => void;
   onVote: (item: VeilleOther, value: VeilleVoteValue) => void;
   onOpen: (item: VeilleOther) => void;
+  // Invité d'un partage : pas de vote
+  readOnly?: boolean;
 }) {
   const [limit, setLimit] = useState(OTHERS_PAGE);
   const shown = items.slice(0, limit);
@@ -92,28 +95,30 @@ export function OtherList({
                   )}
                 </span>
               </button>
-              <div className="veille-votes veille-other__votes">
-                <button
-                  type="button"
-                  className="veille-vote veille-vote--like"
-                  aria-pressed={vote === "like"}
-                  aria-label={`J'aime : ${item.title}`}
-                  title="J'aime"
-                  onClick={() => onVote(item, "like")}
-                >
-                  <ThumbsUp aria-hidden="true" />
-                </button>
-                <button
-                  type="button"
-                  className="veille-vote veille-vote--dislike"
-                  aria-pressed={vote === "dislike"}
-                  aria-label={`Je n'aime pas : ${item.title}`}
-                  title="Je n'aime pas"
-                  onClick={() => onVote(item, "dislike")}
-                >
-                  <ThumbsDown aria-hidden="true" />
-                </button>
-              </div>
+              {!readOnly && (
+                <div className="veille-votes veille-other__votes">
+                  <button
+                    type="button"
+                    className="veille-vote veille-vote--like"
+                    aria-pressed={vote === "like"}
+                    aria-label={`J'aime : ${item.title}`}
+                    title="J'aime"
+                    onClick={() => onVote(item, "like")}
+                  >
+                    <ThumbsUp aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    className="veille-vote veille-vote--dislike"
+                    aria-pressed={vote === "dislike"}
+                    aria-label={`Je n'aime pas : ${item.title}`}
+                    title="Je n'aime pas"
+                    onClick={() => onVote(item, "dislike")}
+                  >
+                    <ThumbsDown aria-hidden="true" />
+                  </button>
+                </div>
+              )}
             </li>
           );
         })}

@@ -86,8 +86,11 @@ Nous retenons l'option 1.
   et les prompts des idées « Intéressé », fabriqués une fois par le routeur via
   `providers.py` puis mis en cache (`GET|POST /api/veille/idea/<id>/prompt`). Le service
   `antares-tasks` relit ces votes (lecture seule) pour orienter les passages suivants
-  (20 articles, 6 idées). Toutes ces routes répondent 403 pendant un partage public, et
-  le bouton de l'interface disparaît.
+  (20 articles, 6 idées). Révisé le 2026-11-17 : pendant un partage public, la veille
+  reste visible ; elle est en lecture seule pour les invités et complète pour le
+  propriétaire (`SHARE_OWNER_EMAIL`, adresse Google transmise par ngrok dans
+  `x-antares-user` après la connexion, en-tête de l'invité retiré d'abord) et l'accès
+  local (cf. `router/veille_access.py`).
 - L'interface web (`web/src/features/veille/`) les affiche dans une fenêtre plein écran
   avec une pastille de nouveauté. Le service rejoint `ai-assistant-net` et
   `antares-search`, jamais `antares-local` (`check-local.sh` le vérifie).

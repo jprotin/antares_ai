@@ -34,6 +34,8 @@ export class MockApi {
     "veille/sources": fixture("veille_sources"),
     "veille/others": fixture("veille_others"),
     "veille/stats": fixture("veille_stats"),
+    // Droits sur la veille : accès complet (invité d'un partage : read_only)
+    "veille/access": { read_only: false, sharing: false },
   };
   // Veille : prompts d'idées fabriqués pendant le test (POST), en plus de ceux que le
   // dernier passage annonce (`has_prompt`)

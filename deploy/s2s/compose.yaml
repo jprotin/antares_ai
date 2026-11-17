@@ -173,6 +173,9 @@ services:
       WEB_PROBE_URLS: ${WEB_PROBE_URLS:-https://www.wikipedia.org,https://duckduckgo.com}
       # Base des veilles, écrite par antares-tasks, lue seulement ici (cf. veille.py)
       TASKS_DB: /tasks-data/tasks.db
+      # Partage (share.sh) : adresse Google du propriétaire, seul invité à modifier la
+      # veille (cf. veille_access.py) ; vide = veille en lecture seule par le tunnel
+      SHARE_OWNER_EMAIL: ${SHARE_OWNER_EMAIL:-}
       # Votes de la veille et prompts des idées (base du routeur, lue par antares-tasks)
       VOTES_DB: /data/veille.db
       # Catégories et réglages des prompts d'idées ; fonctionnalités (contexte du prompt)

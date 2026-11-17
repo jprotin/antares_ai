@@ -17,6 +17,7 @@ export function ArticleCard({
   now,
   onVote,
   onOpen,
+  readOnly = false,
 }: {
   item: VeilleItem;
   categoryLabel: string;
@@ -25,6 +26,8 @@ export function ArticleCard({
   now: Date;
   onVote: (value: VeilleVoteValue) => void;
   onOpen: () => void;
+  // Invité d'un partage : pas de vote
+  readOnly?: boolean;
 }) {
   const when = relativeTime(item.published_at, now);
   const rejected = vote === "dislike";
@@ -82,6 +85,7 @@ export function ArticleCard({
           )}
         </span>
         {item.id &&
+          !readOnly &&
           (rejected ? (
             <button
               type="button"

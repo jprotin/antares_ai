@@ -33,6 +33,7 @@ from fastapi.testclient import TestClient  # noqa: E402
 
 import router  # noqa: E402
 import veille  # noqa: E402
+import veille_access  # noqa: E402
 import veille_prompt  # noqa: E402
 import veille_runs  # noqa: E402
 import veille_sources  # noqa: E402
@@ -40,6 +41,13 @@ import veille_translate  # noqa: E402
 import veille_votes  # noqa: E402
 
 DB = DATA / "tasks.db"
+# Partage : requêtes du tunnel (en-têtes écrits par ngrok, cf. share.sh)
+OWNER = "proprio@example.fr"
+GUEST = {"x-antares-user": "invite@gmail.com", "x-forwarded-for": "203.0.113.5"}
+OWNER_HEADERS = {
+    "x-antares-user": " Proprio@Example.fr",
+    "x-forwarded-for": "203.0.113.5",
+}
 VOTES = DATA / "veille.db"
 NOW = datetime(2026, 11, 16, 18, 0, tzinfo=timezone.utc)
 ARTICLE_ID = "3f9c2a71b0d4e8a6"
@@ -640,17 +648,63 @@ class Routes(unittest.TestCase):
         )
         self.assertFalse(VOTES.exists())
 
-    def test_partage_actif_403(self):
+    def test_partage_invite_en_lecture_proprietaire_complet(self):
         router.SHARING_FLAG.touch()
-        for response in (
-            self.client.get("/api/veille/latest"),
-            self.client.get("/api/veille", params={"date": "2026-11-16"}),
-            self.vote("article", ARTICLE_ID, "like"),
-            self.client.get(f"/api/veille/idea/{IDEA_ID}/prompt"),
-            self.client.post(f"/api/veille/idea/{IDEA_ID}/prompt"),
-        ):
-            self.assertEqual(response.status_code, 403)
+        owner = mock.patch.object(router, "SHARE_OWNER_EMAIL", OWNER)
+        owner.start()
+        self.addCleanup(owner.stop)
+        get = self.client.get
+        self.assertEqual(get("/api/veille/latest", headers=GUEST).status_code, 200)
+        self.assertEqual(
+            get(
+                "/api/veille", params={"date": "2026-11-16"}, headers=GUEST
+            ).status_code,
+            200,
+        )
+        self.assertEqual(
+            get(f"/api/veille/idea/{IDEA_ID}/prompt", headers=GUEST).status_code, 404
+        )
+        refused = self.client.post(
+            "/api/veille/vote",
+            json={"kind": "article", "id": ARTICLE_ID, "value": "like"},
+            headers=GUEST,
+        )
+        self.assertEqual(refused.status_code, 403)
+        self.assertIn("Lecture seule", refused.json()["detail"])
+        self.assertEqual(
+            self.client.post(
+                f"/api/veille/idea/{IDEA_ID}/prompt", headers=GUEST
+            ).status_code,
+            403,
+        )
         self.assertFalse(VOTES.exists())
+        self.assertEqual(
+            get("/api/veille/access", headers=GUEST).json(),
+            {"read_only": True, "sharing": True},
+        )
+        # Propriétaire par le tunnel, puis accès local : écriture permise
+        for headers in (OWNER_HEADERS, {}):
+            self.assertEqual(
+                get("/api/veille/access", headers=headers).json()["read_only"], False
+            )
+            self.assertEqual(
+                self.client.post(
+                    "/api/veille/vote",
+                    json={"kind": "idea", "id": IDEA_ID, "value": "like"},
+                    headers=headers,
+                ).status_code,
+                200,
+            )
+        # Prompt déjà fait : l'invité le relit, même par POST
+        veille_votes.VotesDB(VOTES).save_prompt(IDEA_ID, "# Contexte\nx", "m", NOW)
+        cached = self.client.post(f"/api/veille/idea/{IDEA_ID}/prompt", headers=GUEST)
+        self.assertEqual((cached.status_code, cached.json()["cached"]), (200, True))
+        # Partage fermé : plus de restriction
+        router.SHARING_FLAG.unlink()
+        self.assertEqual(
+            get("/api/veille/access", headers=GUEST).json(),
+            {"read_only": False, "sharing": False},
+        )
 
     def patched(self, complete):
         async def available(name):
@@ -924,21 +978,36 @@ class Sources(unittest.TestCase):
                 self.add(url="https://b.example.com", name="B").status_code, 409
             )
 
-    def test_partage_403(self):
+    def test_partage_invite_en_lecture(self):
         router.SHARING_FLAG.touch()
+        self.assertEqual(
+            self.client.get("/api/veille/sources", headers=GUEST).status_code, 200
+        )
         for response in (
-            self.client.get("/api/veille/sources"),
             self.client.post(
-                "/api/veille/sources/test", json={"kind": "search", "query": "x"}
+                "/api/veille/sources/test",
+                json={"kind": "search", "query": "x"},
+                headers=GUEST,
             ),
-            self.add(url="https://blog.example.com"),
             self.client.post(
-                "/api/veille/sources/builtin", json={"name": "OpenAI", "enabled": False}
+                "/api/veille/sources",
+                json={"kind": "feed", "lang": "en", "url": "https://blog.example.com"},
+                headers=GUEST,
             ),
-            self.client.delete("/api/veille/sources/1"),
+            self.client.post(
+                "/api/veille/sources/builtin",
+                json={"name": "OpenAI", "enabled": False},
+                headers=GUEST,
+            ),
+            self.client.patch(
+                "/api/veille/sources/1", json={"category": "ia"}, headers=GUEST
+            ),
+            self.client.delete("/api/veille/sources/1", headers=GUEST),
         ):
             self.assertEqual(response.status_code, 403)
         self.assertEqual(self.probes, [])
+        # Accès local pendant le partage : permis
+        self.assertEqual(self.add(url="https://blog.example.com").status_code, 201)
 
 
 class FeedLink(unittest.TestCase):
@@ -1071,16 +1140,20 @@ class Others(unittest.TestCase):
         self.assertEqual([r["manual"] for r in day["runs"]], [False, True])
         self.assertEqual(day["runs"][0]["items"][0]["summary"], "")
 
-    def test_partage_403(self):
+    def test_partage_invite_en_lecture(self):
         router.SHARING_FLAG.touch()
+        for path in (
+            "/api/veille/others?date=2026-11-16",
+            "/api/veille/run",
+            "/api/veille/sources/favorites",
+        ):
+            self.assertEqual(self.client.get(path, headers=GUEST).status_code, 200)
         for response in (
-            self.client.get("/api/veille/others", params={"date": "2026-11-16"}),
-            self.client.get("/api/veille/run"),
-            self.client.post("/api/veille/run"),
-            self.client.get("/api/veille/sources/favorites"),
+            self.client.post("/api/veille/run", headers=GUEST),
             self.client.post(
                 "/api/veille/sources/favorite",
                 json={"name": "OpenAI", "favorite": True},
+                headers=GUEST,
             ),
         ):
             self.assertEqual(response.status_code, 403)
@@ -1227,8 +1300,13 @@ class StatsRoute(unittest.TestCase):
                 422,
             )
             router.SHARING_FLAG.touch()
-            self.assertEqual(self.client.get("/api/veille/stats").status_code, 403)
-        self.assertEqual(calls, [(30, ["ia", "cloud"]), (365, ["ia", "cloud"])])
+            self.assertEqual(
+                self.client.get("/api/veille/stats", headers=GUEST).status_code, 200
+            )
+        self.assertEqual(
+            calls,
+            [(30, ["ia", "cloud"]), (365, ["ia", "cloud"]), (30, ["ia", "cloud"])],
+        )
 
 
 class Translate(unittest.TestCase):
@@ -1301,15 +1379,34 @@ class Translate(unittest.TestCase):
         self.assertEqual(self.translate(complete, "xyz").status_code, 422)
         self.assertEqual(calls, [])
 
-    def test_partage_403(self):
+    def test_partage_invite_cache_seulement(self):
         router.SHARING_FLAG.touch()
         complete, calls = model_reply({"title": "T", "summary": "S"})
-        self.assertEqual(self.translate(complete).status_code, 403)
+        url = f"/api/veille/article/{OTHER_Z}/translate"
+        with mock.patch.object(router.providers, "complete", complete):
+            self.assertEqual(self.client.post(url, headers=GUEST).status_code, 403)
+            veille_votes.VotesDB(VOTES).save_translation(
+                OTHER_Z, "Titre FR", "Extrait FR", "m", NOW
+            )
+            cached = self.client.post(url, headers=GUEST)
         self.assertEqual(
-            self.client.get(f"/api/veille/article/{OTHER_Z}/translate").status_code,
-            403,
+            (cached.status_code, cached.json()["title"]), (200, "Titre FR")
         )
+        self.assertEqual(self.client.get(url, headers=GUEST).status_code, 200)
         self.assertEqual(calls, [])
+
+
+class Access(unittest.TestCase):
+    def test_qui_est_invite(self):
+        is_guest = veille_access.is_guest
+        self.assertFalse(is_guest({}, OWNER))  # accès local
+        self.assertTrue(is_guest(GUEST, OWNER))
+        self.assertFalse(is_guest(OWNER_HEADERS, OWNER))
+        # Tunnel sans adresse (en-tête absent) : invité
+        self.assertTrue(is_guest({"x-forwarded-for": "203.0.113.5"}, OWNER))
+        self.assertTrue(is_guest({"x-antares-user": ""}, OWNER))
+        # Aucun propriétaire déclaré : tout le tunnel en lecture
+        self.assertTrue(is_guest(OWNER_HEADERS, ""))
 
     def test_bornes_et_bloc_de_code(self):
         long = "x" * 3000

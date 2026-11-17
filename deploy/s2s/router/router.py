@@ -45,8 +45,9 @@
                    (/api/veille/stats?days=7|30|365, cf. veille_stats.py) ;
                    traduction d'un article (GET|POST
                    /api/veille/article/<id>/translate, cf. veille_translate.py).
-                   Coupées pendant un
-                   partage.
+                   Pendant un partage : lecture pour tous, écriture pour le
+                   propriétaire (SHARE_OWNER_EMAIL) et l'accès local seulement
+                   (cf. veille_access.py, GET /api/veille/access).
 - /healthz       : sonde de santé.
 """
 
@@ -86,6 +87,7 @@ import veille_prompt
 import veille_runs
 import veille_stats
 import veille_translate
+import veille_access
 import veille_sources
 import veille_votes
 import voicecode
@@ -707,11 +709,30 @@ def veille_votes_db() -> veille_votes.VotesDB:
     return veille_votes.VotesDB(VOTES_DB)
 
 
+# Propriétaire d'antares pendant un partage (cf. veille_access.py) : accès complet à la
+# veille par le tunnel ; les autres invités la lisent seulement
+SHARE_OWNER_EMAIL = os.environ.get("SHARE_OWNER_EMAIL", "")
+
+
+def veille_read_only(request: Request) -> bool:
+    return sharing() and veille_access.is_guest(request.headers, SHARE_OWNER_EMAIL)
+
+
+def refuse_guest_write(request: Request) -> None:
+    if veille_read_only(request):
+        raise HTTPException(403, "Lecture seule pour les invités du partage")
+
+
+@app.get("/api/veille/access")
+def veille_access_info(request: Request) -> dict:
+    """Droits de l'interface sur la veille : lecture seule pour un invité du partage."""
+    return {"read_only": veille_read_only(request), "sharing": sharing()}
+
+
 # Routes de la veille en `def` (SQLite synchrone, busy_timeout 5 s) : FastAPI les passe
 # dans son pool de fils, la boucle d'événements (et le flux vocal) n'attend pas
 @app.get("/api/veille/latest")
 def veille_latest() -> dict:
-    refuse_while_sharing()
     settings = veille_prompt.load_settings(TASKS_CONFIG)
     return veille.latest(
         VEILLE_DB,
@@ -722,7 +743,6 @@ def veille_latest() -> dict:
 
 @app.get("/api/veille")
 def veille_day(date: str) -> dict:
-    refuse_while_sharing()
     if not veille.valid_date(date):
         raise HTTPException(422, "date attendue au format AAAA-MM-JJ")
     settings = veille_prompt.load_settings(TASKS_CONFIG)
@@ -737,7 +757,6 @@ def veille_day(date: str) -> dict:
 @app.get("/api/veille/others")
 def veille_others(date: str) -> dict:
     """Articles non retenus du jour (onglet « Tous les articles »)."""
-    refuse_while_sharing()
     if not veille.valid_date(date):
         raise HTTPException(422, "date attendue au format AAAA-MM-JJ")
     return veille.others(VEILLE_DB, date, votes=veille_votes_db())
@@ -746,7 +765,6 @@ def veille_others(date: str) -> dict:
 @app.get("/api/veille/stats")
 def veille_statistics(days: int = 30) -> dict:
     """Goûts (votes) et choix de l'IA (résumés quotidiens) sur 7, 30 ou 365 jours."""
-    refuse_while_sharing()
     if days not in veille_stats.PERIODS:
         raise HTTPException(422, "days attendu : 7, 30 ou 365")
     settings = veille_prompt.load_settings(TASKS_CONFIG)
@@ -761,14 +779,13 @@ def veille_statistics(days: int = 30) -> dict:
 
 @app.get("/api/veille/run")
 def veille_run_status() -> dict:
-    refuse_while_sharing()
     return veille_runs.status(VEILLE_DB, veille_votes_db(), datetime.now(timezone.utc))
 
 
 @app.post("/api/veille/run", status_code=202)
-def veille_run_request() -> dict:
+def veille_run_request(request: Request) -> dict:
     """Demande un passage manuel, pris par antares-tasks en 10 s au plus."""
-    refuse_while_sharing()
+    refuse_guest_write(request)
     votes = veille_votes_db()
     now = datetime.now(timezone.utc)
     idle = veille_prompt.load_settings(TASKS_CONFIG).call.idle_seconds
@@ -791,9 +808,9 @@ class VeilleVoteBody(BaseModel):
 
 
 @app.post("/api/veille/vote")
-def veille_vote(body: VeilleVoteBody) -> dict:
+def veille_vote(body: VeilleVoteBody, request: Request) -> dict:
     """Enregistre, remplace ou retire (`none`) un vote ; champs copiés depuis tasks.db."""
-    refuse_while_sharing()
+    refuse_guest_write(request)
     if body.kind not in veille_votes.KINDS:
         raise HTTPException(422, "kind attendu : article ou idea")
     if body.value not in ("like", "dislike", "none"):
@@ -826,7 +843,6 @@ def _source_slugs() -> list[str]:
 @app.get("/api/veille/sources")
 def veille_sources_list() -> dict:
     """Sources fournies (tasks.yaml, avec leur état) et sources ajoutées."""
-    refuse_while_sharing()
     votes = veille_votes_db()
     disabled = votes.disabled()
     favorites = votes.favorites()
@@ -850,7 +866,6 @@ def veille_sources_list() -> dict:
 @app.get("/api/veille/sources/favorites")
 def veille_sources_favorites() -> dict:
     """Noms des sources privilégiées (étoile de la fiche d'un article)."""
-    refuse_while_sharing()
     return {
         "names": sorted(veille_votes_db().favorites()),
         "max_favorites": veille_sources.MAX_FAVORITES,
@@ -863,9 +878,9 @@ class FavoriteToggle(BaseModel):
 
 
 @app.post("/api/veille/sources/favorite")
-def veille_sources_favorite(body: FavoriteToggle) -> dict:
+def veille_sources_favorite(body: FavoriteToggle, request: Request) -> dict:
     """Privilégie (étoile) ou non une source, fournie ou ajoutée, par son nom."""
-    refuse_while_sharing()
+    refuse_guest_write(request)
     votes = veille_votes_db()
     known = {s["name"] for s in veille_sources.builtin(TASKS_CONFIG)} | {
         s["name"] for s in votes.sources()
@@ -895,17 +910,17 @@ async def _probe_source(body: veille_sources.SourceIn) -> tuple[str, dict]:
 
 
 @app.post("/api/veille/sources/test")
-async def veille_sources_test(body: veille_sources.SourceIn) -> dict:
+async def veille_sources_test(body: veille_sources.SourceIn, request: Request) -> dict:
     """Lecture d'essai, sans rien enregistrer."""
-    refuse_while_sharing()
+    refuse_guest_write(request)
     name, found = await _probe_source(body)
     return {**found, "name": name}
 
 
 @app.post("/api/veille/sources", status_code=201)
-async def veille_sources_add(body: veille_sources.SourceIn) -> dict:
+async def veille_sources_add(body: veille_sources.SourceIn, request: Request) -> dict:
     """Ajoute une source après une lecture réussie (adresse du flux trouvé gardée)."""
-    refuse_while_sharing()
+    refuse_guest_write(request)
     votes = veille_votes_db()
     try:
         veille_sources.check_category(
@@ -948,8 +963,10 @@ async def veille_sources_add(body: veille_sources.SourceIn) -> dict:
 
 
 @app.patch("/api/veille/sources/{source_id}")
-def veille_sources_update(source_id: int, body: veille_sources.SourceUpdate) -> dict:
-    refuse_while_sharing()
+def veille_sources_update(
+    source_id: int, body: veille_sources.SourceUpdate, request: Request
+) -> dict:
+    refuse_guest_write(request)
     changes = body.model_dump(exclude_none=True)
     try:
         if "name" in changes:
@@ -976,8 +993,8 @@ def veille_sources_update(source_id: int, body: veille_sources.SourceUpdate) -> 
 
 
 @app.delete("/api/veille/sources/{source_id}", status_code=204)
-def veille_sources_delete(source_id: int) -> Response:
-    refuse_while_sharing()
+def veille_sources_delete(source_id: int, request: Request) -> Response:
+    refuse_guest_write(request)
     if not veille_votes_db().delete_source(source_id):
         raise HTTPException(404, "Source introuvable")
     return Response(status_code=204)
@@ -989,9 +1006,9 @@ class BuiltinToggle(BaseModel):
 
 
 @app.post("/api/veille/sources/builtin")
-def veille_sources_toggle(body: BuiltinToggle) -> dict:
+def veille_sources_toggle(body: BuiltinToggle, request: Request) -> dict:
     """Active ou désactive une source fournie (par son nom dans tasks.yaml)."""
-    refuse_while_sharing()
+    refuse_guest_write(request)
     if body.name not in {s["name"] for s in veille_sources.builtin(TASKS_CONFIG)}:
         raise HTTPException(404, "Source fournie introuvable")
     veille_votes_db().set_enabled(body.name, body.enabled, datetime.now(timezone.utc))
@@ -1013,7 +1030,6 @@ def _idea_or_404(idea_id: str) -> dict:
 
 @app.get("/api/veille/idea/{idea_id}/prompt")
 def veille_idea_prompt(idea_id: str) -> dict:
-    refuse_while_sharing()
     _idea_or_404(idea_id)
     cached = veille_votes_db().prompt(idea_id)
     if cached is None:
@@ -1033,11 +1049,16 @@ async def idea_prompt_model(configured: str, run_model: str) -> str:
 
 
 @app.post("/api/veille/idea/{idea_id}/prompt")
-async def veille_make_idea_prompt(idea_id: str) -> dict:
-    """Prompt prêt à coller dans Claude Code, fabriqué une fois puis rendu du cache."""
-    refuse_while_sharing()
+async def veille_make_idea_prompt(idea_id: str, request: Request) -> dict:
+    """Prompt prêt à coller dans Claude Code, fabriqué une fois puis rendu du cache
+    (invité du partage : cache seulement)."""
     found = await asyncio.to_thread(_idea_or_404, idea_id)
     votes = veille_votes_db()
+    if veille_read_only(request):
+        cached = await asyncio.to_thread(votes.prompt, idea_id)
+        if cached is None:
+            raise HTTPException(403, "Lecture seule pour les invités du partage")
+        return {**cached, "cached": True}
     if await asyncio.to_thread(votes.vote, "idea", idea_id) != "like":
         raise HTTPException(409, "Idée non marquée « Intéressé »")
     lock = _idea_locks.setdefault(idea_id, asyncio.Lock())
@@ -1109,7 +1130,6 @@ def _article_or_404(article_id: str) -> dict:
 
 @app.get("/api/veille/article/{article_id}/translate")
 def veille_translation(article_id: str) -> dict:
-    refuse_while_sharing()
     _article_or_404(article_id)
     cached = veille_votes_db().translation(article_id)
     if cached is None:
@@ -1118,10 +1138,15 @@ def veille_translation(article_id: str) -> dict:
 
 
 @app.post("/api/veille/article/{article_id}/translate")
-async def veille_translate_article(article_id: str) -> dict:
-    """Titre et extrait en français, traduits une fois puis rendus du cache."""
-    refuse_while_sharing()
+async def veille_translate_article(article_id: str, request: Request) -> dict:
+    """Titre et extrait en français, traduits une fois puis rendus du cache (invité du
+    partage : cache seulement)."""
     found = await asyncio.to_thread(_article_or_404, article_id)
+    if veille_read_only(request):
+        cached = await asyncio.to_thread(veille_votes_db().translation, article_id)
+        if cached is None:
+            raise HTTPException(403, "Lecture seule pour les invités du partage")
+        return {**cached, "cached": True}
     lock = _translate_locks.setdefault(article_id, asyncio.Lock())
     try:
         async with lock:

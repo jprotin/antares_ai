@@ -21,7 +21,9 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
   garantie par catégorie, onglet « Tous les articles » (non retenus, votables), fiche
   d'article avec traduction en français et lien vers l'original, navigation entre
   passages ou toute la journée, bouton « Nouveau passage », fenêtre
-  « Statistiques » (goûts, choix de l'IA, taux d'accord, articles ratés).
+  « Statistiques » (goûts, choix de l'IA, taux d'accord, articles ratés). Pendant un
+  partage ngrok : veille lisible par les invités, modifiable par le propriétaire
+  (`SHARE_OWNER_EMAIL`).
 - `FEATURES.md` (fonctionnalités et backlog d'Antares) et `deploy/s2s/.env.example`.
 
 ### Modifié

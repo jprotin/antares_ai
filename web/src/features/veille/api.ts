@@ -195,3 +195,11 @@ export async function translateArticle(id: string): Promise<VeilleTranslation> {
     summary: typeof answer.summary === "string" ? answer.summary : "",
   };
 }
+
+// Droits sur la veille : lecture seule pour un invité d'un partage ngrok
+export function loadAccess(): Promise<{
+  read_only: boolean;
+  sharing: boolean;
+}> {
+  return call("api/veille/access", "GET");
+}

@@ -1,6 +1,7 @@
 // Carte d'idée pour Antares : titre, effort en mots, bénéfice, première étape,
 // « Inspirée de » (lien) ; « Intéressé » (ouvre le prompt) et « Pas intéressé » (carte
-// repliée, « Annuler »). Passage ancien (sans identifiant) : pas de vote.
+// repliée, « Annuler »). Passage ancien (sans identifiant) : pas de vote. Lecture seule
+// (invité d'un partage) : pas de vote, prompt déjà préparé consultable.
 import { FileText, ThumbsDown, ThumbsUp, Undo2 } from "lucide-react";
 
 import type { VeilleIdea, VeilleVoteValue } from "@/types/api";
@@ -18,9 +19,11 @@ export function IdeaCard({
   vote,
   onVote,
   onShowPrompt,
+  readOnly = false,
 }: {
   idea: VeilleIdea;
   vote: VeilleVoteValue | null;
+  readOnly?: boolean;
   onVote: (value: VeilleVoteValue) => void;
   onShowPrompt: () => void;
 }) {
@@ -36,15 +39,17 @@ export function IdeaCard({
       >
         <h4 className="veille-idea__title">{idea.title}</h4>
         <span className="veille-muted veille-idea__note">Pas intéressé</span>
-        <button
-          type="button"
-          className="veille-pill veille-pill--quiet"
-          aria-label={`Annuler « pas intéressé » pour ${idea.title}`}
-          onClick={() => onVote("dislike")}
-        >
-          <Undo2 aria-hidden="true" />
-          Annuler
-        </button>
+        {!readOnly && (
+          <button
+            type="button"
+            className="veille-pill veille-pill--quiet"
+            aria-label={`Annuler « pas intéressé » pour ${idea.title}`}
+            onClick={() => onVote("dislike")}
+          >
+            <Undo2 aria-hidden="true" />
+            Annuler
+          </button>
+        )}
       </li>
     );
   }
@@ -80,7 +85,20 @@ export function IdeaCard({
           )}
         </p>
       )}
-      {idea.id && (
+      {idea.id && readOnly && idea.has_prompt && (
+        <div className="veille-idea__actions">
+          <button
+            type="button"
+            className="veille-pill veille-pill--primary"
+            aria-label={`Voir le prompt : ${idea.title}`}
+            onClick={onShowPrompt}
+          >
+            <FileText aria-hidden="true" />
+            Voir le prompt
+          </button>
+        </div>
+      )}
+      {idea.id && !readOnly && (
         <div className="veille-idea__actions">
           <button
             type="button"

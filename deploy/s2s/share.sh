@@ -3,7 +3,11 @@
 #
 #   ./share.sh collegue@gmail.com [autre@gmail.com ...]
 #
-# - Accès protégé par une connexion Google : seules les adresses données passent.
+# - Accès protégé par une connexion Google : seules les adresses données passent, plus
+#   SHARE_OWNER_EMAIL (.env) s'il est renseigné.
+# - Chaque requête porte l'adresse Google de l'invité (en-tête x-antares-user, retiré
+#   puis réécrit par ngrok : impossible à falsifier) : la veille est en lecture seule
+#   sauf pour SHARE_OWNER_EMAIL (cf. router/veille_access.py).
 # - Pendant le partage, Claude (ton abonnement) et l'écriture dans le RAG sont
 #   désactivés pour tout le monde (drapeau lu par le routeur).
 # - Le partage s'arrête avec Ctrl+C : tunnel fermé, drapeau retiré.
@@ -26,7 +30,12 @@ die() {
   exit 1
 }
 
-(($# > 0)) || die "usage : $0 adresse@gmail.com [autre@gmail.com ...]"
+owner="$(grep -E '^SHARE_OWNER_EMAIL=' "${ENV_FILE}" 2>/dev/null | cut -d= -f2- || true)"
+(($# > 0)) || [[ -n "${owner}" ]] || die "usage : $0 adresse@gmail.com [autre@gmail.com ...]"
+if [[ -n "${owner}" ]]; then
+  [[ "${owner}" =~ ${EMAIL_RE} ]] || die "SHARE_OWNER_EMAIL invalide dans ${ENV_FILE} : ${owner}"
+  set -- "$@" "${owner}"
+fi
 for email in "$@"; do
   [[ "${email}" =~ ${EMAIL_RE} ]] || die "adresse invalide : ${email}"
 done
@@ -55,9 +64,15 @@ trap 'cleanup; exit 130' INT TERM HUP
 # action oauth : https://ngrok.com/docs/traffic-policy/actions/oauth/). Adresses en
 # minuscules, comme celles renvoyées par Google.
 allowed="$(printf "'%s', " "$@" | tr '[:upper:]' '[:lower:]')"
+# En-tête x-antares-user : celui de l'invité est retiré avant tout, puis ngrok écrit
+# l'adresse Google vérifiée (droits sur la veille, cf. router/veille_access.py)
 cat >"${policy}" <<EOF
 on_http_request:
   - actions:
+      - type: remove-headers
+        config:
+          headers:
+            - x-antares-user
       - type: oauth
         config:
           provider: google
@@ -67,10 +82,15 @@ on_http_request:
       - type: deny
         config:
           status_code: 403
+  - actions:
+      - type: add-headers
+        config:
+          headers:
+            x-antares-user: "\${actions.ngrok.oauth.identity.email}"
 EOF
 chmod 644 "${policy}"
 
-log "Partage : Claude et écriture dans le RAG désactivés"
+log "Partage : Claude et écriture dans le RAG désactivés ; veille en lecture seule${owner:+ (sauf ${owner})}"
 docker exec "${ROUTER}" touch /data/sharing
 
 log "Ouverture du tunnel ngrok (invités : $*)"

@@ -1,6 +1,7 @@
 // Bouton de la barre : ouvre la Veille IA et météo ; pastille quand un passage est plus
-// récent que la dernière ouverture. Absent pendant un partage public (et interrogation
-// arrêtée) ; l'interrogation attend le premier relevé du réseau.
+// récent que la dernière ouverture. Présent aussi pendant un partage public (la veille y
+// est en lecture seule pour les invités, cf. router/veille_access.py) ; l'interrogation
+// attend le premier relevé du réseau.
 import { useEffect } from "react";
 import { useStore } from "zustand";
 
@@ -12,16 +13,14 @@ import { hasNews, VEILLE_LABEL } from "./veille";
 
 export function VeilleButton() {
   const netKnown = useAppStore((state) => state.net !== null);
-  const sharing = useAppStore((state) => Boolean(state.net?.sharing));
   const latestAt = useStore(veilleStore, (s) => s.latest?.run?.finished_at);
   const lastOpened = useStore(veilleStore, (s) => s.lastOpened);
 
   useEffect(() => {
-    if (!netKnown || sharing) return;
+    if (!netKnown) return;
     return startPolling();
-  }, [netKnown, sharing]);
+  }, [netKnown]);
 
-  if (sharing) return null;
   const fresh = hasNews(latestAt, lastOpened);
   const label = fresh
     ? `${VEILLE_LABEL} (nouvelle veille disponible)`
