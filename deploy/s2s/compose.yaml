@@ -11,6 +11,8 @@
 #                    (seul cas où du texte quitte la machine, vers Anthropic) ;
 #                    documentation des projets lue dans le RAG d'ai-to-boost (rag, qdrant)
 #                    ou dans le RAG intégré (profil rag-integre, sans Internet)
+#   Hors du moteur vocal, deux services sortent vers Internet, jamais par antares-local :
+#   SearXNG (recherche web) et antares-tasks (veille IA : flux RSS, météo Open-Meteo).
 #   LiteLLM est contourné : il perd `reasoning_effort` en streaming (latence x3).
 #
 # Premier lancement : ./install.sh  —  ensuite : docker compose up -d
@@ -169,12 +171,33 @@ services:
       # régulièrement sur ces adresses (HEAD, 3 s)
       SEARXNG_URL: http://searxng:8080
       WEB_PROBE_URLS: ${WEB_PROBE_URLS:-https://www.wikipedia.org,https://duckduckgo.com}
+      # Base des veilles, écrite par antares-tasks, lue seulement ici (cf. veille.py)
+      TASKS_DB: /tasks-data/tasks.db
+      # Votes de la veille et prompts des idées (base du routeur, lue par antares-tasks)
+      VOTES_DB: /data/veille.db
+      # Catégories et réglages des prompts d'idées ; fonctionnalités (contexte du prompt)
+      TASKS_CONFIG: /tasks/tasks.yaml
+      FEATURES_PATH: /features/FEATURES.md
+      # Sources du dépôt (lecture seule) : seuls les fichiers qui existent sont cités
+      # dans le prompt d'une idée (voix personnelles exclues : donnée biométrique)
+      REPO_ROOT: /repo
     extra_hosts:
       - host.docker.internal:host-gateway
     volumes:
       - ./router:/app:ro
       - ./voices:/voices:ro
       - router-data:/data
+      # Monté en écriture : le mode WAL de SQLite a besoin des fichiers -shm et -wal
+      - tasks-data:/tasks-data
+      - ./tasks/tasks.yaml:/tasks/tasks.yaml:ro
+      - ../../FEATURES.md:/features/FEATURES.md:ro
+      - ./router:/repo/deploy/s2s/router:ro
+      - ./tasks:/repo/deploy/s2s/tasks:ro
+      - ./compose.yaml:/repo/deploy/s2s/compose.yaml:ro
+      - ../../web/src:/repo/web/src:ro
+      - ../../web/tests:/repo/web/tests:ro
+      - ../../docs:/repo/docs:ro
+      - ../../FEATURES.md:/repo/FEATURES.md:ro
     healthcheck:
       test:
         - CMD
@@ -185,6 +208,50 @@ services:
       timeout: 5s
       start_period: 20s
     networks: [antares-local, ai-assistant-net, antares-search]
+
+  # Tâches planifiées (veille à 8 h, 13 h, 18 h, avec la météo) : même image que le
+  # routeur, sans GPU. Horaires, flux et modèle dans tasks/tasks.yaml (aucun modèle ici :
+  # vide = modèle actif des Réglages) ; aucun secret. Lancement à la main, toujours avec
+  # une sous-commande : docker compose run --rm antares-tasks veille|meteo|schedule
+  # FEATURES.md doit exister avant le premier `up` (sinon Docker crée un dossier).
+  antares-tasks:
+    image: antares/s2s:1.0.0
+    container_name: antares-tasks
+    restart: unless-stopped
+    entrypoint: [python, /app/__main__.py]
+    environment:
+      PYTHONPATH: /app:/router
+      TASKS_CONFIG: /app/tasks.yaml
+      TASKS_DB: /tasks-data/tasks.db
+      FEATURES_PATH: /features/FEATURES.md
+      # Votes de la veille (base du routeur, journal DELETE), lus en lecture seule
+      VOTES_DB: /data/veille.db
+      ROUTER_URL: http://llm-router:11434
+    volumes:
+      - ./tasks:/app:ro
+      - ./router:/router:ro
+      - ../../FEATURES.md:/features/FEATURES.md:ro
+      # Réglages, Connexions et votes du routeur en lecture seule (moindre privilège : ni
+      # clés, ni drapeau de partage, ni votes modifiables d'ici) ; base des veilles dans
+      # son propre volume
+      - router-data:/data:ro
+      - tasks-data:/tasks-data
+    depends_on:
+      llm-router:
+        condition: service_healthy
+    # Sonde propre au service (celle de l'image vise le moteur vocal) : boucle vivante si
+    # elle a tourné dans les 3 dernières minutes
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import os, sys, time; sys.exit(time.time() - os.path.getmtime('/tmp/antares-tasks.heartbeat') > 180)"
+      interval: 60s
+      timeout: 5s
+      start_period: 30s
+    # ai-assistant-net : Ollama ; antares-search : Internet et routeur. Jamais antares-local.
+    networks: [ai-assistant-net, antares-search]
 
   # Métamoteur de recherche web (interroge DuckDuckGo, Brave, Wikipédia…), sans clé ni
   # compte. Joignable par le routeur seul ; le moteur vocal n'y a pas accès.
@@ -278,6 +345,11 @@ volumes:
     name: antares-s2s-cache
   router-data:
     name: antares-router-data
+  # Externe : créé par install.sh (volume d'avant Compose, sans ses étiquettes) ;
+  # jamais supprimé par « docker compose down -v »
+  tasks-data:
+    name: antares-tasks-data
+    external: true
   rag-cache:
     name: antares-rag-cache
   rag-qdrant:

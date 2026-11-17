@@ -45,6 +45,8 @@ describe("préférences et thème", () => {
       theme: "antares-theme",
       avatar: "antares-avatar",
       noiseFilter: "antares.noiseFilter",
+      // Propre à la nouvelle interface (veille IA et météo)
+      veilleLastOpened: "antares.veille.lastOpened",
     });
     writePreference(STORAGE_KEYS.avatar, "orb");
     expect(readPreference("antares-avatar")).toBe("orb");

@@ -1,0 +1,498 @@
+{
+  "run": {
+    "id": 3,
+    "schema": 2,
+    "day": "2026-11-16",
+    "slot_at": "2026-11-16T12:00:00+00:00",
+    "started_at": "2026-11-16T12:00:01+00:00",
+    "finished_at": "2026-11-16T12:00:30+00:00",
+    "status": "done",
+    "model": "litellm-ai-to-boost/gemma4:e4b-long",
+    "items": [
+      {
+        "id": "a000000000000001",
+        "title": "AWS Lambda now supports 10 GB ephemeral storage for SnapStart",
+        "url": "https://aws.amazon.com/about-aws/whats-new/2026/11/lambda-snapstart-storage/",
+        "source": "AWS What's New",
+        "lang": "en",
+        "category": "cloud",
+        "sentence": "Lambda accepte des fonctions plus lourdes au démarrage rapide, utile pour héberger un modèle léger sans serveur.",
+        "summary": "AWS What's New : AWS Lambda now supports 10 GB ephemeral storage for SnapStart. Extrait publié par le site, gardé tel quel pour la fiche de l'article, sur plusieurs phrases pour vérifier le rendu en texte simple.",
+        "published_at": "2026-11-16T09:14:00+00:00",
+        "vote": "like"
+      },
+      {
+        "id": "a000000000000002",
+        "title": "Mistral publie un modèle vocal open source",
+        "url": "https://www.lemondeinformatique.fr/actualites/lire-mistral-vocal-12345.html",
+        "source": "Le Monde Informatique",
+        "lang": "fr",
+        "category": "ia",
+        "sentence": "Un modèle de reconnaissance vocale ouvert à comparer à Parakeet sur la latence.",
+        "summary": "Le Monde Informatique : Mistral publie un modèle vocal open source. Extrait publié par le site, gardé tel quel pour la fiche de l'article, sur plusieurs phrases pour vérifier le rendu en texte simple.",
+        "published_at": "2026-11-16T07:30:00+00:00",
+        "vote": null
+      },
+      {
+        "id": "a000000000000003",
+        "title": "Introducing GPT-6 mini",
+        "url": "https://openai.com/index/gpt-6-mini",
+        "source": "OpenAI",
+        "lang": "en",
+        "category": "ia",
+        "sentence": "Un modèle plus petit et plus rapide pour les agents, utile pour les réponses écrites rapides d'Antares.",
+        "summary": "OpenAI : Introducing GPT-6 mini. Extrait publié par le site, gardé tel quel pour la fiche de l'article, sur plusieurs phrases pour vérifier le rendu en texte simple.",
+        "published_at": "2026-11-16T10:02:00+00:00",
+        "vote": null
+      },
+      {
+        "id": "a000000000000004",
+        "title": "Ollama v0.20.0",
+        "url": "https://github.com/ollama/ollama/releases/tag/v0.20.0",
+        "source": "Ollama",
+        "lang": "en",
+        "category": "dev",
+        "sentence": "Nouveau moteur pour Gemma 4, à tester sur le modèle de la voix.",
+        "summary": "",
+        "published_at": "2026-11-16T08:45:00+00:00",
+        "vote": null
+      },
+      {
+        "id": "a000000000000005",
+        "title": "Hugging Face and OpenRouter join forces",
+        "url": "https://huggingface.co/blog/openrouter",
+        "source": "Hugging Face",
+        "lang": "en",
+        "category": "ia",
+        "sentence": "Les modèles à poids ouverts deviennent plus simples à servir, en local comme en ligne.",
+        "summary": "",
+        "published_at": "2026-11-15T16:20:00+00:00",
+        "vote": "dislike"
+      },
+      {
+        "id": "a000000000000006",
+        "title": "Kubernetes 1.36 : les conteneurs GPU partagés passent en bêta",
+        "url": "https://kubernetes.io/blog/2026/11/16/kubernetes-1-36-gpu-sharing/",
+        "source": "Kubernetes",
+        "lang": "en",
+        "category": "cloud",
+        "sentence": "Le partage de GPU entre conteneurs devient plus simple, utile pour une machine virtuelle GPU dans le nuage.",
+        "summary": "",
+        "published_at": "2026-11-16T06:00:00+00:00",
+        "vote": null
+      },
+      {
+        "id": "a000000000000007",
+        "title": "Une faille critique touche les routeurs domestiques",
+        "url": "https://www.bleepingcomputer.com/news/security/critical-flaw-home-routers/",
+        "source": "BleepingComputer",
+        "lang": "en",
+        "category": "securite",
+        "sentence": "Une faille exploitée à distance rappelle de garder le poste qui héberge Antares à jour.",
+        "summary": "",
+        "published_at": "2026-11-16T11:05:00+00:00",
+        "vote": null
+      },
+      {
+        "id": "a000000000000008",
+        "title": "Cloudflare détaille sa nouvelle protection contre les robots d'IA",
+        "url": "https://blog.cloudflare.com/ai-bot-protection-2026/",
+        "source": "Cloudflare Blog",
+        "lang": "en",
+        "category": "securite",
+        "sentence": "Les sites peuvent filtrer plus finement les robots d'indexation des modèles de langage.",
+        "summary": "",
+        "published_at": "2026-11-15T19:40:00+00:00",
+        "vote": null
+      },
+      {
+        "id": "a000000000000009",
+        "title": "Nvidia annonce une carte graphique 24 Go à prix contenu",
+        "url": "https://www.tomshardware.com/pc-components/gpus/nvidia-24gb-card",
+        "source": "Tom's Hardware",
+        "lang": "en",
+        "category": "materiel",
+        "sentence": "Une carte 24 Go lèverait la limite de mémoire vidéo qui contraint le choix du modèle local.",
+        "summary": "",
+        "published_at": "2026-11-16T05:30:00+00:00",
+        "vote": null
+      },
+      {
+        "id": "a00000000000000a",
+        "title": "Frandroid teste le nouveau processeur ARM pour PC portable",
+        "url": "https://www.frandroid.com/produits-android/ordinateurs/test-processeur-arm-pc",
+        "source": "Frandroid",
+        "lang": "fr",
+        "category": "materiel",
+        "sentence": "L'autonomie progresse nettement, mais les pilotes GPU restent le point faible pour l'IA locale.",
+        "summary": "",
+        "published_at": "2026-11-16T08:00:00+00:00",
+        "vote": null
+      },
+      {
+        "id": "a00000000000000b",
+        "title": "GitHub Copilot : le mode agent devient disponible pour tous",
+        "url": "https://github.blog/changelog/2026-11-16-copilot-agent-mode",
+        "source": "GitHub Changelog",
+        "lang": "en",
+        "category": "dev",
+        "sentence": "Le mode agent sort de la préversion, avec des règles de dépôt mieux respectées.",
+        "summary": "",
+        "published_at": "2026-11-16T09:50:00+00:00",
+        "vote": null
+      },
+      {
+        "id": "a00000000000000c",
+        "title": "Docker Desktop simplifie l'accès aux GPU",
+        "url": "https://www.docker.com/blog/docker-desktop-gpu-simplified/",
+        "source": "Docker Blog",
+        "lang": "en",
+        "category": "dev",
+        "sentence": "L'accès au GPU depuis un conteneur se règle en une option, ce qui allège l'installation d'Antares.",
+        "summary": "",
+        "published_at": "2026-11-15T14:10:00+00:00",
+        "vote": null
+      },
+      {
+        "id": "a00000000000000d",
+        "title": "Azure ouvre une région GPU en France",
+        "url": "https://azure.microsoft.com/en-us/blog/new-gpu-region-france/",
+        "source": "Azure Blog",
+        "lang": "en",
+        "category": "cloud",
+        "sentence": "Des machines GPU hébergées en France facilitent un déploiement conforme des données vocales.",
+        "summary": "",
+        "published_at": "2026-11-16T07:55:00+00:00",
+        "vote": null
+      },
+      {
+        "id": "a00000000000000e",
+        "title": "Les DSI misent sur l'IA générative en 2027",
+        "url": "https://www.lemagit.fr/actualites/dsi-ia-generative-2027",
+        "source": "LeMagIT",
+        "lang": "fr",
+        "category": "informatique",
+        "sentence": "Une enquête montre que les budgets IA progressent surtout pour l'assistance aux équipes.",
+        "summary": "",
+        "published_at": "2026-11-16T06:40:00+00:00",
+        "vote": null
+      },
+      {
+        "id": "a00000000000000f",
+        "title": "Next : l'Europe précise ses règles sur les modèles d'IA",
+        "url": "https://next.ink/2026/11/16/europe-regles-modeles-ia/",
+        "source": "Next",
+        "lang": "fr",
+        "category": "informatique",
+        "sentence": "Les obligations de transparence s'appliquent aux modèles généralistes dès l'an prochain.",
+        "summary": "",
+        "published_at": "2026-11-16T10:30:00+00:00",
+        "vote": null
+      },
+      {
+        "id": "a000000000000010",
+        "title": "Simon Willison : mesurer la latence des petits modèles",
+        "url": "https://simonwillison.net/2026/Nov/16/small-model-latency/",
+        "source": "Simon Willison",
+        "lang": "en",
+        "category": "ia",
+        "sentence": "Une méthode simple pour comparer le temps du premier mot entre modèles locaux.",
+        "summary": "",
+        "published_at": "2026-11-16T11:30:00+00:00",
+        "vote": null
+      },
+      {
+        "id": "a000000000000011",
+        "title": "InfoQ : bonnes pratiques pour tester des agents",
+        "url": "https://www.infoq.com/news/2026/11/testing-ai-agents/",
+        "source": "InfoQ",
+        "lang": "en",
+        "category": "dev",
+        "sentence": "Rejouer des conversations enregistrées reste le moyen le plus fiable de tester un agent.",
+        "summary": "",
+        "published_at": "2026-11-15T12:00:00+00:00",
+        "vote": null
+      },
+      {
+        "id": "a000000000000012",
+        "title": "Korben : un assistant vocal 100 % local sur Raspberry Pi",
+        "url": "https://korben.info/assistant-vocal-local-raspberry.html",
+        "source": "Korben",
+        "lang": "fr",
+        "category": "ia",
+        "sentence": "Un montage léger qui montre jusqu'où une cascade voix locale peut descendre en ressources.",
+        "summary": "",
+        "published_at": "2026-11-16T09:00:00+00:00",
+        "vote": null
+      },
+      {
+        "id": "a000000000000013",
+        "title": "Ars Technica : la fin annoncée des mots de passe en entreprise",
+        "url": "https://arstechnica.com/security/2026/11/passkeys-enterprise/",
+        "source": "Ars Technica",
+        "lang": "en",
+        "category": "securite",
+        "sentence": "Les clés d'accès gagnent les entreprises, avec un retour d'expérience encourageant.",
+        "summary": "",
+        "published_at": "2026-11-15T21:15:00+00:00",
+        "vote": null
+      },
+      {
+        "id": "a000000000000014",
+        "title": "Google Cloud publie un modèle vocal temps réel",
+        "url": "https://cloudblog.withgoogle.com/products/ai-machine-learning/realtime-voice-model/",
+        "source": "Google Cloud Blog",
+        "lang": "en",
+        "category": "cloud",
+        "sentence": "Une API vocale temps réel concurrente, à comparer à la cascade locale d'Antares.",
+        "summary": "",
+        "published_at": "2026-11-16T11:45:00+00:00",
+        "vote": null
+      }
+    ],
+    "ideas": [
+      {
+        "id": "b000000000000001",
+        "title": "Comparatif de reconnaissance vocale",
+        "benefit": "Mesurer la latence et la justesse de Parakeet face aux nouveaux modèles ouverts.",
+        "effort": "M",
+        "first_step": "Ajouter un script qui rejoue cinq enregistrements et chronomètre chaque modèle.",
+        "inspired_by": {
+          "id": "a000000000000002",
+          "title": "Mistral publie un modèle vocal open source",
+          "url": "https://www.lemondeinformatique.fr/actualites/lire-mistral-vocal-12345.html"
+        },
+        "vote": "like",
+        "has_prompt": true
+      },
+      {
+        "id": "b000000000000002",
+        "title": "Sous-titres exportables",
+        "benefit": "Relire un appel après coup et le partager en texte.",
+        "effort": "S",
+        "first_step": "Ajouter un bouton d'export texte sous la conversation.",
+        "inspired_by": null,
+        "vote": null,
+        "has_prompt": false
+      },
+      {
+        "id": "b000000000000003",
+        "title": "Mesure du temps du premier mot",
+        "benefit": "Choisir le modèle de la voix sur des chiffres plutôt qu'à l'oreille.",
+        "effort": "M",
+        "first_step": "Journaliser le temps du premier mot par modèle dans le routeur.",
+        "inspired_by": {
+          "id": "a000000000000010",
+          "title": "Simon Willison : mesurer la latence des petits modèles",
+          "url": "https://simonwillison.net/2026/Nov/16/small-model-latency/"
+        },
+        "vote": null,
+        "has_prompt": false
+      },
+      {
+        "id": "b000000000000004",
+        "title": "Déploiement sur machine GPU en France",
+        "benefit": "Préparer la cible cloud avec des données vocales hébergées en France.",
+        "effort": "L",
+        "first_step": "Décrire la machine minimale et le coût horaire dans un ADR.",
+        "inspired_by": {
+          "id": "a00000000000000d",
+          "title": "Azure ouvre une région GPU en France",
+          "url": "https://azure.microsoft.com/en-us/blog/new-gpu-region-france/"
+        },
+        "vote": null,
+        "has_prompt": false
+      },
+      {
+        "id": "b000000000000005",
+        "title": "Tests rejoués des agents",
+        "benefit": "Détecter une régression de comportement avant de livrer un agent.",
+        "effort": "M",
+        "first_step": "Enregistrer trois conversations types et les rejouer en test.",
+        "inspired_by": {
+          "id": "a000000000000011",
+          "title": "InfoQ : bonnes pratiques pour tester des agents",
+          "url": "https://www.infoq.com/news/2026/11/testing-ai-agents/"
+        },
+        "vote": "dislike",
+        "has_prompt": false
+      },
+      {
+        "id": "b000000000000006",
+        "title": "Mode basse consommation",
+        "benefit": "Faire tourner Antares sur un poste modeste avec un modèle plus petit.",
+        "effort": "L",
+        "first_step": "Lister les réglages qui réduisent la mémoire vidéo utilisée.",
+        "inspired_by": {
+          "id": "a000000000000012",
+          "title": "Korben : un assistant vocal 100 % local sur Raspberry Pi",
+          "url": "https://korben.info/assistant-vocal-local-raspberry.html"
+        },
+        "vote": null,
+        "has_prompt": false
+      }
+    ],
+    "errors": [
+      "Flux Hacker News indisponible"
+    ],
+    "manual": false
+  },
+  "weather": {
+    "day": "2026-11-16",
+    "label": "Le Pellerin",
+    "text": "Le Pellerin : 6 à 12 °C, pluie 70 %, vent jusqu'à 35 km/h",
+    "fetched_at": "2026-11-16T12:00:03+00:00",
+    "condition": {
+      "code": 61,
+      "key": "rain",
+      "label": "Pluie",
+      "is_day": true
+    },
+    "current": {
+      "temperature": 10,
+      "wind": 22
+    },
+    "today": {
+      "min": 6,
+      "max": 12,
+      "rain": 70,
+      "wind": 35
+    },
+    "hours": [
+      {
+        "at": "2026-11-16T13:00:00+01:00",
+        "temperature": 10,
+        "code": 61,
+        "key": "rain",
+        "rain": 70,
+        "is_day": true
+      },
+      {
+        "at": "2026-11-16T14:00:00+01:00",
+        "temperature": 11,
+        "code": 3,
+        "key": "cloudy",
+        "rain": 40,
+        "is_day": true
+      },
+      {
+        "at": "2026-11-16T15:00:00+01:00",
+        "temperature": 12,
+        "code": 3,
+        "key": "cloudy",
+        "rain": 30,
+        "is_day": true
+      },
+      {
+        "at": "2026-11-16T16:00:00+01:00",
+        "temperature": 12,
+        "code": 2,
+        "key": "partly-cloudy",
+        "rain": 20,
+        "is_day": true
+      },
+      {
+        "at": "2026-11-16T17:00:00+01:00",
+        "temperature": 11,
+        "code": 1,
+        "key": "partly-cloudy",
+        "rain": 10,
+        "is_day": false
+      },
+      {
+        "at": "2026-11-16T18:00:00+01:00",
+        "temperature": 10,
+        "code": 0,
+        "key": "clear",
+        "rain": 5,
+        "is_day": false
+      },
+      {
+        "at": "2026-11-16T19:00:00+01:00",
+        "temperature": 9,
+        "code": 0,
+        "key": "clear",
+        "rain": 0,
+        "is_day": false
+      },
+      {
+        "at": "2026-11-16T20:00:00+01:00",
+        "temperature": 8,
+        "code": 1,
+        "key": "partly-cloudy",
+        "rain": 0,
+        "is_day": false
+      },
+      {
+        "at": "2026-11-16T21:00:00+01:00",
+        "temperature": 8,
+        "code": 3,
+        "key": "cloudy",
+        "rain": 15,
+        "is_day": false
+      },
+      {
+        "at": "2026-11-16T22:00:00+01:00",
+        "temperature": 7,
+        "code": 53,
+        "key": "drizzle",
+        "rain": 45,
+        "is_day": false
+      },
+      {
+        "at": "2026-11-16T23:00:00+01:00",
+        "temperature": 7,
+        "code": 61,
+        "key": "rain",
+        "rain": 60,
+        "is_day": false
+      },
+      {
+        "at": "2026-11-17T00:00:00+01:00",
+        "temperature": 6,
+        "code": 95,
+        "key": "storm",
+        "rain": 70,
+        "is_day": false
+      }
+    ]
+  },
+  "categories": [
+    {
+      "slug": "ia",
+      "label": "IA"
+    },
+    {
+      "slug": "cloud",
+      "label": "Cloud"
+    },
+    {
+      "slug": "dev",
+      "label": "Dev & outils"
+    },
+    {
+      "slug": "securite",
+      "label": "Sécurité"
+    },
+    {
+      "slug": "materiel",
+      "label": "Matériel"
+    },
+    {
+      "slug": "informatique",
+      "label": "Monde de l'informatique"
+    }
+  ],
+  "last_success_at": "2026-11-16T12:00:30+00:00",
+  "missed": [
+    {
+      "slot_at": "2026-11-16T07:00:00+00:00",
+      "status": "missed"
+    }
+  ],
+  "days": [
+    "2026-11-16",
+    "2026-11-15",
+    "2026-11-14"
+  ]
+}

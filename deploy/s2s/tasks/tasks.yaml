@@ -1,0 +1,508 @@
+---
+# Tâches planifiées d'antares (service antares-tasks) : veille informatique et météo.
+# Relu au démarrage du service (docker compose restart antares-tasks après modification ;
+# le routeur relit `categories` et `idea_prompt` à chaque requête).
+# Aucun secret ici : le modèle passe par les Connexions du routeur (connections.json).
+
+# Fuseau des horaires ci-dessous (heure d'été et d'hiver gérées)
+timezone: Europe/Paris
+# Créneaux de la veille, heure locale HH:MM
+slots: ["08:00", "13:00", "18:00"]
+# Retard toléré sur un créneau (mise en veille du poste, appel en cours) ; au-delà, le
+# créneau est noté « manqué » et n'est jamais rattrapé
+late_tolerance_min: 15
+# Conservation des passages, de la météo, des créneaux et des idées (les adresses déjà
+# vues, les votes et les prompts d'idées sont gardés sans limite)
+retention_days: 30
+
+# Météo (Open-Meteo, sans clé) : relevée à chaque passage (`every_run`), sinon au premier
+# créneau du jour ; `hours` heures pleines dans la frise
+weather:
+  label: Le Pellerin
+  latitude: 47.20
+  longitude: -1.75
+  every_run: true
+  hours: 12
+
+# Modèle de la veille. Vide : modèle actif des Réglages (celui de la voix), ou son repli
+# s'il s'agit d'un modèle Claude. Fixer un autre modèle (« <fournisseur>/<modèle> ») peut
+# faire recharger Ollama (latence, mémoire graphique) : à éviter sur un poste de 12 Go.
+# Les modèles Claude (« claude:… ») sont refusés.
+model: ""
+# Longueur maximale de chaque réponse du modèle (jetons)
+max_tokens: 6000
+# Similarité au-delà de laquelle une idée est jugée déjà proposée (0 à 1)
+idea_similarity: 0.8
+
+# Catégories des articles (ordre = priorité de la pré-catégorie ; la dernière sert par
+# défaut). Mots-clés : mot entier, casse et accents ignorés ; ils servent aussi au filtre
+# des flux `filter_keywords`.
+categories:
+  - slug: ia
+    label: IA
+    keywords:
+      - ia
+      - ai
+      - llm
+      - llms
+      - gpt
+      - chatgpt
+      - claude
+      - anthropic
+      - openai
+      - gemini
+      - gemma
+      - mistral
+      - llama
+      - ollama
+      - qwen
+      - deepseek
+      - rag
+      - mcp
+      - transformer
+      - transformers
+      - hugging face
+      - huggingface
+      - machine learning
+      - deep learning
+      - neural
+      - chatbot
+      - copilot
+      - agentic
+      - intelligence artificielle
+      - artificial intelligence
+  - slug: cloud
+    label: Cloud
+    keywords:
+      - cloud
+      - aws
+      - azure
+      - google cloud
+      - gcp
+      - kubernetes
+      - k8s
+      - serverless
+      - lambda
+      - datacenter
+      - data center
+      - saas
+      - iaas
+      - paas
+      - ovhcloud
+      - scaleway
+  - slug: dev
+    label: Dev & outils
+    keywords:
+      - github
+      - gitlab
+      - git
+      - docker
+      - python
+      - javascript
+      - typescript
+      - rust
+      - java
+      - golang
+      - api
+      - sdk
+      - framework
+      - devops
+      - open source
+      - linux
+      - developpeur
+      - developer
+      - release
+      - ide
+      - vscode
+  - slug: securite
+    label: Sécurité
+    keywords:
+      - securite
+      - security
+      - cybersecurite
+      - cybersecurity
+      - faille
+      - vulnerabilite
+      - vulnerability
+      - cve
+      - ransomware
+      - rancongiciel
+      - malware
+      - phishing
+      - hameconnage
+      - zero-day
+      - piratage
+      - hack
+      - breach
+      - fuite
+  - slug: materiel
+    label: Matériel
+    keywords:
+      - gpu
+      - cpu
+      - nvidia
+      - amd
+      - intel
+      - puce
+      - chip
+      - processeur
+      - processor
+      - smartphone
+      - iphone
+      - pixel
+      - ram
+      - ssd
+      - carte graphique
+      - semi-conducteurs
+      - semiconductor
+  - slug: informatique
+    label: Monde de l'informatique
+
+# Sélection des articles par le modèle
+digest:
+  # Articles gardés par passage, et au plus par source
+  items_target: 30
+  max_per_source: 4
+  # Une seule phrase en français par article, caractères au plus
+  sentence_chars: 220
+  # Idées demandées au modèle, puis gardées après contrôle
+  ideas_requested: 8
+  ideas_kept: 6
+  # Résumé écarté s'il cite un nom propre absent du titre et de l'extrait de l'article,
+  # ou s'il n'en partage aucun mot (résumé inventé ou d'un autre article)
+  check_summaries: true
+
+# Apprentissage par les votes (base du routeur lue en lecture seule, cf. VOTES_DB)
+learning:
+  # Votes lus : les `max_votes` plus récents des `window_days` derniers jours
+  window_days: 180
+  max_votes: 500
+  # Un vote vieux de `half_life_days` jours compte moitié moins
+  half_life_days: 30
+  # Lissage : un trait (source, catégorie, mot) peu voté reste proche de 0
+  prior: 2
+  prior_words: 3
+  # Derniers titres aimés et rejetés montrés au modèle en exemple
+  examples: 10
+  # Part des candidats réservée aux sources de moins de `explore_min_votes` votes
+  explore_ratio: 0.1
+  explore_min_votes: 3
+  weights:
+    source: 1.0
+    category: 1.0
+    words: 0.8
+    recency: 0.5
+
+# Contrôle des idées
+ideas:
+  # Idée dont les mots figurent à cette part dans une ligne de FEATURES.md : déjà faite
+  features_overlap: 0.6
+  # Recouvrement des mots avec une idée « Pas intéressé » au-delà duquel elle est écartée
+  rejected_overlap: 0.5
+  # Idées « Intéressé » et rejetées rappelées au modèle
+  liked_examples: 10
+  rejected_examples: 40
+
+# Prompt d'une idée « Intéressé » (fabriqué par le routeur, à la demande)
+idea_prompt:
+  # Vide : modèle du passage de l'idée, sinon modèle actif des Réglages ou son repli
+  model: ""
+  timeout_s: 120
+  max_tokens: 1500
+  # Caractères de FEATURES.md repris dans la partie « Contexte »
+  features_chars: 2500
+  # Taille maximale du prompt final
+  max_chars: 6000
+  constraints:
+    - "GitFlow : branche feature/* créée depuis develop ; aucun commit direct sur develop ou main"
+    - "Analyser, puis présenter un plan et attendre le Go avant de coder"
+    - "Aucune dépendance nouvelle sans accord ; aucun secret dans le code"
+    - "CSP de l'interface inchangée : aucune image, police ou script externe"
+    - "Tests : unittest côté Python, vitest et Playwright (simulé) côté web"
+    - "Documenter la fonctionnalité dans FEATURES.md (moins de 4 000 caractères)"
+  project_map:
+    - "deploy/s2s/router/ : routeur FastAPI (Réglages, Connexions, RAG, agents, veille)"
+    - "deploy/s2s/tasks/ : service antares-tasks (veille, météo, tâches planifiées)"
+    - "deploy/s2s/compose.yaml : services Docker de la pile"
+    - "deploy/s2s/voices/ : catalogue des voix"
+    - "web/src/ : interface Vite + React + shadcn/ui"
+    - "web/tests/ : tests vitest et Playwright de l'interface"
+    - "docs/ : ADR et documentation"
+    - "FEATURES.md : liste des fonctionnalités"
+
+limits:
+  # Candidats envoyés au modèle (après le score des votes), au total et par source
+  candidates: 90
+  candidates_per_source: 8
+  # Places réservées à chaque catégorie, même peu aimée : les votes classent les articles
+  # à l'intérieur d'une catégorie sans pouvoir la faire disparaître
+  candidates_per_category: 5
+  # Places réservées à chaque source privilégiée (étoile dans l'interface)
+  candidates_per_favorite: 3
+  # Caractères gardés par résumé d'article
+  summary_chars: 200
+  # Extrait gardé pour la fiche d'un article dans l'interface
+  extract_chars: 600
+  # Articles non retenus enregistrés par passage (onglet « Tous les articles »)
+  others_max: 600
+  # Titres des dernières idées rappelés au modèle
+  past_ideas: 60
+  # Caractères de FEATURES.md insérés dans le prompt des idées
+  features_chars: 4000
+  # Âge maximal d'un article
+  max_age_hours: 48
+  # Délai et taille maximale de lecture d'un flux
+  feed_timeout_s: 10
+  feed_max_bytes: 2000000
+
+# Report pendant un appel vocal : un tour de conversation de moins de `idle_seconds`
+# signale un appel actif ; la veille attend par tranches de `wait_step_s`, au plus
+# `max_wait_min` minutes, puis s'exécute quand même
+call:
+  idle_seconds: 120
+  wait_step_s: 60
+  max_wait_min: 15
+
+# Flux lus à chaque veille (vérifiés depuis le conteneur le 2026-11-17). `lang` : langue
+# d'origine ; `category` : catégorie par défaut ; `filter_keywords: true` : seuls les
+# titres qui contiennent un mot-clé d'une catégorie sont gardés.
+# Anthropic et Mistral n'ont pas de flux d'actualités : publications de versions GitHub.
+feeds:
+  # IA
+  - name: OpenAI
+    url: https://openai.com/news/rss.xml
+    category: ia
+  - name: Google AI
+    url: https://blog.google/technology/ai/rss/
+    category: ia
+  - name: Google DeepMind
+    url: https://deepmind.google/blog/rss.xml
+    category: ia
+  - name: Hugging Face
+    url: https://huggingface.co/blog/feed.xml
+    category: ia
+  - name: TechCrunch IA
+    url: https://techcrunch.com/category/artificial-intelligence/feed/
+    category: ia
+  - name: The Verge IA
+    url: https://www.theverge.com/rss/ai-artificial-intelligence/index.xml
+    category: ia
+  - name: ActuIA
+    url: https://www.actuia.com/feed/
+    lang: fr
+    category: ia
+  - name: Simon Willison
+    url: https://simonwillison.net/atom/everything/
+    category: ia
+  # Cloud
+  - name: AWS News Blog
+    url: https://aws.amazon.com/blogs/aws/feed/
+    category: cloud
+  - name: AWS What's New
+    url: https://aws.amazon.com/about-aws/whats-new/recent/feed/
+    category: cloud
+  - name: Azure Blog
+    url: https://azure.microsoft.com/en-us/blog/feed/
+    category: cloud
+  - name: Google Cloud Blog
+    url: https://cloudblog.withgoogle.com/rss/
+    category: cloud
+  - name: Kubernetes
+    url: https://kubernetes.io/feed.xml
+    category: cloud
+  - name: CNCF
+    url: https://www.cncf.io/feed/
+    category: cloud
+  # Dev et outils
+  - name: GitHub Changelog
+    url: https://github.blog/changelog/feed/
+    category: dev
+  - name: GitHub Blog
+    url: https://github.blog/feed/
+    category: dev
+  - name: Microsoft DevBlogs
+    url: https://devblogs.microsoft.com/feed/
+    category: dev
+  - name: Docker Blog
+    url: https://www.docker.com/blog/feed/
+    category: dev
+  - name: InfoQ
+    url: https://www.infoq.com/feed/
+    category: dev
+  - name: The New Stack
+    url: https://thenewstack.io/feed/
+    category: dev
+  - name: Developpez
+    url: https://www.developpez.com/index/rss
+    lang: fr
+    category: dev
+  - name: Claude Code
+    url: https://github.com/anthropics/claude-code/releases.atom
+    category: dev
+  - name: Anthropic SDK Python
+    url: https://github.com/anthropics/anthropic-sdk-python/releases.atom
+    category: dev
+  - name: Mistral client
+    url: https://github.com/mistralai/client-python/releases.atom
+    category: dev
+  - name: LiteLLM
+    url: https://github.com/BerriAI/litellm/releases.atom
+    category: dev
+  - name: n8n
+    url: https://github.com/n8n-io/n8n/releases.atom
+    category: dev
+  - name: Ollama
+    url: https://github.com/ollama/ollama/releases.atom
+    category: dev
+  # Sécurité
+  - name: BleepingComputer
+    url: https://www.bleepingcomputer.com/feed/
+    category: securite
+  - name: Cloudflare Blog
+    url: https://blog.cloudflare.com/rss/
+    category: securite
+  # Matériel
+  - name: Tom's Hardware
+    url: https://www.tomshardware.com/feeds.xml
+    category: materiel
+  - name: Frandroid
+    url: https://www.frandroid.com/feed
+    lang: fr
+    category: materiel
+  - name: Les Numériques
+    url: https://www.lesnumeriques.com/rss.xml
+    lang: fr
+    category: materiel
+    filter_keywords: true
+  - name: Phoronix
+    url: https://www.phoronix.com/rss.php
+    category: materiel
+  - name: ServeTheHome
+    url: https://www.servethehome.com/feed/
+    category: materiel
+  - name: NVIDIA Blog
+    url: https://blogs.nvidia.com/feed/
+    category: materiel
+  - name: Apple Newsroom
+    url: https://www.apple.com/newsroom/rss-feed.rss
+    category: materiel
+  # Sécurité (suite)
+  - name: CERT-FR
+    url: https://www.cert.ssi.gouv.fr/feed/
+    lang: fr
+    category: securite
+  - name: The Hacker News
+    url: https://feeds.feedburner.com/TheHackersNews
+    category: securite
+  - name: Zataz
+    url: https://www.zataz.com/feed/
+    lang: fr
+    category: securite
+  # Dev (suite)
+  - name: JetBrains Blog
+    url: https://blog.jetbrains.com/feed/
+    category: dev
+  - name: LinuxFr
+    url: https://linuxfr.org/news.atom
+    lang: fr
+    category: dev
+  # Monde de l'informatique
+  - name: Le Monde Informatique
+    url: https://www.lemondeinformatique.fr/flux-rss/thematique/toutes-les-actualites/rss.xml
+    lang: fr
+    category: informatique
+  - name: LeMagIT
+    url: https://www.lemagit.fr/rss/ContentSyndication.xml
+    lang: fr
+    category: informatique
+  - name: Next
+    url: https://next.ink/feed/
+    lang: fr
+    category: informatique
+  - name: Numerama Tech
+    url: https://www.numerama.com/tech/feed/
+    lang: fr
+    category: informatique
+  - name: ZDNet
+    url: https://www.zdnet.fr/feeds/rss/actualites/
+    lang: fr
+    category: informatique
+  - name: Silicon
+    url: https://www.silicon.fr/feed
+    lang: fr
+    category: informatique
+  - name: Journal du Net
+    url: https://www.journaldunet.com/rss/
+    lang: fr
+    category: informatique
+  - name: Blog du Modérateur
+    url: https://www.blogdumoderateur.com/feed/
+    lang: fr
+    category: informatique
+  - name: 01net
+    url: https://www.01net.com/actualites/feed/
+    lang: fr
+    category: informatique
+  - name: Korben
+    url: https://korben.info/feed
+    lang: fr
+    category: informatique
+  - name: Ars Technica
+    url: https://feeds.arstechnica.com/arstechnica/index
+    category: informatique
+  - name: The Verge
+    url: https://www.theverge.com/rss/index.xml
+    category: informatique
+  - name: TechCrunch
+    url: https://techcrunch.com/feed/
+    category: informatique
+  - name: MIT Technology Review
+    url: https://www.technologyreview.com/feed/
+    category: informatique
+  - name: Hacker News
+    url: https://news.ycombinator.com/rss
+    category: informatique
+    filter_keywords: true
+  - name: The Register
+    url: https://www.theregister.com/headlines.atom
+    category: informatique
+  - name: Clubic
+    url: https://www.clubic.com/feed/news.rss
+    lang: fr
+    category: informatique
+    filter_keywords: true
+  - name: Journal du Geek
+    url: https://www.journaldugeek.com/feed/
+    lang: fr
+    category: informatique
+    filter_keywords: true
+  - name: Presse-citron
+    url: https://www.presse-citron.net/feed/
+    lang: fr
+    category: informatique
+    filter_keywords: true
+  - name: Wired
+    url: https://www.wired.com/feed/rss
+    category: informatique
+    filter_keywords: true
+  # Recherches d'actualité (Google News, sans clé) : éditeurs sans flux RSS. Le titre
+  # perd son suffixe « - Éditeur », l'éditeur passe en tête de l'extrait ; `when:1d` =
+  # dernières 24 h. Ajouter une recherche : copier une entrée et changer `q=` (au-delà de 4
+  # recherches, Google News répond souvent 429 « trop de requêtes »).
+  - name: Anthropic (Google News)
+    url: https://news.google.com/rss/search?q=Anthropic%20OR%20%22Claude%20AI%22%20when:1d&hl=fr&gl=FR&ceid=FR:fr
+    lang: fr
+    category: ia
+  # Korben : son flux /feed ne porte que les articles longs, pas les brèves
+  - name: Korben (Google News)
+    url: https://news.google.com/rss/search?q=site:korben.info%20when:1d&hl=fr&gl=FR&ceid=FR:fr
+    lang: fr
+    category: informatique
+  - name: Mistral AI (Google News)
+    url: https://news.google.com/rss/search?q=%22Mistral%20AI%22%20when:1d&hl=fr&gl=FR&ceid=FR:fr
+    lang: fr
+    category: ia
+  - name: Cloud français (Google News)
+    url: https://news.google.com/rss/search?q=OVHcloud%20OR%20Scaleway%20OR%20Outscale%20when:1d&hl=fr&gl=FR&ceid=FR:fr
+    lang: fr
+    category: cloud

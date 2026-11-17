@@ -1,0 +1,52 @@
+{
+  "$defs": {
+    "IdeaAnswer": {
+      "properties": {
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "benefit": {
+          "title": "Benefit",
+          "type": "string"
+        },
+        "effort": {
+          "enum": ["S", "M", "L"],
+          "title": "Effort",
+          "type": "string"
+        },
+        "first_step": {
+          "title": "First Step",
+          "type": "string"
+        },
+        "inspired_by": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Inspired By"
+        }
+      },
+      "required": ["title", "benefit", "effort", "first_step"],
+      "title": "IdeaAnswer",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "ideas": {
+      "items": {
+        "$ref": "#/$defs/IdeaAnswer"
+      },
+      "title": "Ideas",
+      "type": "array"
+    }
+  },
+  "required": ["ideas"],
+  "title": "IdeasAnswer",
+  "type": "object"
+}

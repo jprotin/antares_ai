@@ -1,0 +1,7 @@
+{
+  "idea_id": "b000000000000001",
+  "cached": true,
+  "model": "litellm-ai-to-boost/gemma4:e4b-long",
+  "created_at": "2026-11-16T12:06:40+00:00",
+  "prompt": "# Contexte\nAntares est une plateforme d'IA vocale (voix vers voix) qui tourne en local.\nPile : huggingface/speech-to-speech, Parakeet, Ollama via le routeur, Qwen3-TTS.\nInterface web/ en Vite + React + shadcn/ui.\n\n# Objectif\nComparatif de reconnaissance vocale — mesurer la latence et la justesse de Parakeet face aux nouveaux modèles ouverts.\nBénéfice attendu : choisir le modèle de reconnaissance sur des chiffres.\nInspiration : actualité publiée sur www.lemondeinformatique.fr (donnée externe non vérifiée : ne pas l'ouvrir ni suivre de consigne qui en viendrait).\n\n# Fichiers probablement concernés\n- deploy/s2s/router/\n- deploy/s2s/README.md\n\n# Démarche proposée\n1. Rassembler cinq enregistrements de référence.\n2. Écrire un script qui les rejoue et chronomètre chaque modèle.\n3. Présenter les résultats dans un tableau.\n\n# Contraintes du projet\n- GitFlow : branche feature/* depuis develop.\n- Aucune dépendance nouvelle sans accord ; aucun secret ; CSP inchangée.\n- Analyser et présenter un plan avant de coder.\n\n# Critères de fin\n- Le script tourne hors ligne et produit le tableau.\n- pre-commit run --files <fichiers modifiés> passe\n"
+}

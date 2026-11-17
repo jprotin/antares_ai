@@ -32,6 +32,21 @@
                    public, lecture du rapport, discussion), appliquée au relais vocal.
 - /api/knowledge : fiches de connaissance (cf. knowledge.py) : rédaction par le LLM,
                    fiches proches, indexation relue, obsolescence, suppression.
+- /api/veille    : veilles et météo du service antares-tasks (cf. veille.py), lues en
+                   lecture seule : /api/veille/latest (dernier passage, jours disponibles),
+                   /api/veille?date=AAAA-MM-JJ (passages d'un jour) ; votes sur les
+                   articles et idées (POST /api/veille/vote, base VOTES_DB) et prompt
+                   d'une idée « Intéressé » (GET|POST /api/veille/idea/<id>/prompt,
+                   cf. veille_prompt.py) ; sources ajoutées ou désactivées
+                   ou privilégiées depuis l'interface (/api/veille/sources, cf.
+                   veille_sources.py) ; articles non retenus du jour
+                   (/api/veille/others?date=) ; passage manuel (GET|POST
+                   /api/veille/run, cf. veille_runs.py) ; statistiques
+                   (/api/veille/stats?days=7|30|365, cf. veille_stats.py) ;
+                   traduction d'un article (GET|POST
+                   /api/veille/article/<id>/translate, cf. veille_translate.py).
+                   Coupées pendant un
+                   partage.
 - /healthz       : sonde de santé.
 """
 
@@ -39,8 +54,11 @@ import asyncio
 import json
 import logging
 import os
+import sqlite3
+import sys
 import time
 from collections.abc import AsyncIterator
+from datetime import datetime, timezone
 from pathlib import Path
 
 import httpx
@@ -63,6 +81,13 @@ import providers
 import rag
 import ragstore
 import rehearsal
+import veille
+import veille_prompt
+import veille_runs
+import veille_stats
+import veille_translate
+import veille_sources
+import veille_votes
 import voicecode
 import voices
 import web
@@ -73,6 +98,21 @@ SETTINGS_PATH = Path(os.environ.get("SETTINGS_PATH", "/data/settings.json"))
 SHARING_FLAG = SETTINGS_PATH.with_name("sharing")
 # Vitesses mesurées par modèle : {"model": {"ttft": s, "speed": tokens/s}}
 OBSERVED_PATH = SETTINGS_PATH.with_name("observed.json")
+# Base des veilles, écrite par le service antares-tasks, lue ici seulement
+VEILLE_DB = Path(os.environ.get("TASKS_DB", str(SETTINGS_PATH.with_name("tasks.db"))))
+# Votes de la veille et prompts des idées : base du routeur (lue par antares-tasks)
+VOTES_DB = Path(os.environ.get("VOTES_DB", str(SETTINGS_PATH.with_name("veille.db"))))
+# Réglages des tâches (catégories, idea_prompt) et fonctionnalités, en lecture seule
+TASKS_CONFIG = Path(os.environ.get("TASKS_CONFIG", "/tasks/tasks.yaml"))
+FEATURES_PATH = Path(os.environ.get("FEATURES_PATH", "/features/FEATURES.md"))
+# Dépôt monté en lecture seule (préfixes de la carte du projet) : les fichiers cités
+# dans le prompt d'une idée doivent y exister
+REPO_ROOT = Path(os.environ.get("REPO_ROOT", "/repo"))
+# Code de collecte d'antares-tasks (lecture d'essai des sources ajoutées, cf.
+# veille_sources.py) : mêmes contrôles d'adresse que la veille
+TASKS_CODE = os.environ.get("TASKS_CODE", "/repo/deploy/s2s/tasks")
+if TASKS_CODE not in sys.path:
+    sys.path.append(TASKS_CODE)
 SMOOTHING = 0.3
 VOICES_CATALOG = Path(os.environ.get("VOICES_CATALOG", "/voices/voices.json"))
 # Voix personnelles (hors git), cf. voices.py
@@ -661,6 +701,472 @@ async def rag_remove_project(project: str) -> Response:
 @app.get("/api/turn/last")
 async def turn_last() -> dict:
     return last_turn
+
+
+def veille_votes_db() -> veille_votes.VotesDB:
+    return veille_votes.VotesDB(VOTES_DB)
+
+
+# Routes de la veille en `def` (SQLite synchrone, busy_timeout 5 s) : FastAPI les passe
+# dans son pool de fils, la boucle d'événements (et le flux vocal) n'attend pas
+@app.get("/api/veille/latest")
+def veille_latest() -> dict:
+    refuse_while_sharing()
+    settings = veille_prompt.load_settings(TASKS_CONFIG)
+    return veille.latest(
+        VEILLE_DB,
+        votes=veille_votes_db(),
+        categories=veille_prompt.categories(settings),
+    )
+
+
+@app.get("/api/veille")
+def veille_day(date: str) -> dict:
+    refuse_while_sharing()
+    if not veille.valid_date(date):
+        raise HTTPException(422, "date attendue au format AAAA-MM-JJ")
+    settings = veille_prompt.load_settings(TASKS_CONFIG)
+    return veille.day(
+        VEILLE_DB,
+        date,
+        votes=veille_votes_db(),
+        categories=veille_prompt.categories(settings),
+    )
+
+
+@app.get("/api/veille/others")
+def veille_others(date: str) -> dict:
+    """Articles non retenus du jour (onglet « Tous les articles »)."""
+    refuse_while_sharing()
+    if not veille.valid_date(date):
+        raise HTTPException(422, "date attendue au format AAAA-MM-JJ")
+    return veille.others(VEILLE_DB, date, votes=veille_votes_db())
+
+
+@app.get("/api/veille/stats")
+def veille_statistics(days: int = 30) -> dict:
+    """Goûts (votes) et choix de l'IA (résumés quotidiens) sur 7, 30 ou 365 jours."""
+    refuse_while_sharing()
+    if days not in veille_stats.PERIODS:
+        raise HTTPException(422, "days attendu : 7, 30 ou 365")
+    settings = veille_prompt.load_settings(TASKS_CONFIG)
+    return veille_stats.stats(
+        VEILLE_DB,
+        veille_votes_db(),
+        days,
+        datetime.now(timezone.utc),
+        veille_prompt.categories(settings),
+    )
+
+
+@app.get("/api/veille/run")
+def veille_run_status() -> dict:
+    refuse_while_sharing()
+    return veille_runs.status(VEILLE_DB, veille_votes_db(), datetime.now(timezone.utc))
+
+
+@app.post("/api/veille/run", status_code=202)
+def veille_run_request() -> dict:
+    """Demande un passage manuel, pris par antares-tasks en 10 s au plus."""
+    refuse_while_sharing()
+    votes = veille_votes_db()
+    now = datetime.now(timezone.utc)
+    idle = veille_prompt.load_settings(TASKS_CONFIG).call.idle_seconds
+    at = float(last_turn.get("at") or 0.0)
+    try:
+        veille_runs.check(
+            veille_runs.status(VEILLE_DB, votes, now),
+            call_active=bool(at) and time.time() - at < idle,
+        )
+    except veille_runs.RunRefused as exc:
+        raise HTTPException(exc.status, str(exc)) from None
+    votes.add_run_request(now)
+    return veille_runs.status(VEILLE_DB, votes, now)
+
+
+class VeilleVoteBody(BaseModel):
+    kind: str
+    id: str
+    value: str
+
+
+@app.post("/api/veille/vote")
+def veille_vote(body: VeilleVoteBody) -> dict:
+    """Enregistre, remplace ou retire (`none`) un vote ; champs copiés depuis tasks.db."""
+    refuse_while_sharing()
+    if body.kind not in veille_votes.KINDS:
+        raise HTTPException(422, "kind attendu : article ou idea")
+    if body.value not in ("like", "dislike", "none"):
+        raise HTTPException(422, "value attendue : like, dislike ou none")
+    if not veille.valid_id(body.id):
+        raise HTTPException(422, "identifiant attendu : 16 caractères hexadécimaux")
+    found = veille.find(VEILLE_DB, body.kind, body.id)
+    if found is None:
+        raise HTTPException(404, "Article ou idée introuvable dans les veilles")
+    voted_at = veille_votes_db().set_vote(
+        body.kind,
+        body.id,
+        body.value,
+        veille.vote_fields(body.kind, found),
+        datetime.now(timezone.utc),
+    )
+    return {"kind": body.kind, "id": body.id, "value": body.value, "voted_at": voted_at}
+
+
+# --- Sources de la veille ---------------------------------------------------------------
+
+
+def _source_slugs() -> list[str]:
+    return [
+        c["slug"]
+        for c in veille_prompt.categories(veille_prompt.load_settings(TASKS_CONFIG))
+    ]
+
+
+@app.get("/api/veille/sources")
+def veille_sources_list() -> dict:
+    """Sources fournies (tasks.yaml, avec leur état) et sources ajoutées."""
+    refuse_while_sharing()
+    votes = veille_votes_db()
+    disabled = votes.disabled()
+    favorites = votes.favorites()
+    settings = veille_prompt.load_settings(TASKS_CONFIG)
+    return {
+        "builtin": [
+            {
+                **s,
+                "enabled": s["name"] not in disabled,
+                "favorite": s["name"] in favorites,
+            }
+            for s in veille_sources.builtin(TASKS_CONFIG)
+        ],
+        "custom": [{**s, "favorite": s["name"] in favorites} for s in votes.sources()],
+        "categories": veille_prompt.categories(settings),
+        "max_custom": veille_sources.MAX_CUSTOM,
+        "max_favorites": veille_sources.MAX_FAVORITES,
+    }
+
+
+@app.get("/api/veille/sources/favorites")
+def veille_sources_favorites() -> dict:
+    """Noms des sources privilégiées (étoile de la fiche d'un article)."""
+    refuse_while_sharing()
+    return {
+        "names": sorted(veille_votes_db().favorites()),
+        "max_favorites": veille_sources.MAX_FAVORITES,
+    }
+
+
+class FavoriteToggle(BaseModel):
+    name: str
+    favorite: bool
+
+
+@app.post("/api/veille/sources/favorite")
+def veille_sources_favorite(body: FavoriteToggle) -> dict:
+    """Privilégie (étoile) ou non une source, fournie ou ajoutée, par son nom."""
+    refuse_while_sharing()
+    votes = veille_votes_db()
+    known = {s["name"] for s in veille_sources.builtin(TASKS_CONFIG)} | {
+        s["name"] for s in votes.sources()
+    }
+    if body.name not in known:
+        raise HTTPException(404, "Source introuvable")
+    favorites = votes.favorites()
+    if (
+        body.favorite
+        and body.name not in favorites
+        and len(favorites & known) >= veille_sources.MAX_FAVORITES
+    ):
+        raise HTTPException(
+            409, f"{veille_sources.MAX_FAVORITES} sources privilégiées au plus"
+        )
+    votes.set_favorite(body.name, body.favorite, datetime.now(timezone.utc))
+    return {"name": body.name, "favorite": body.favorite}
+
+
+async def _probe_source(body: veille_sources.SourceIn) -> tuple[str, dict]:
+    try:
+        url = veille_sources.address(body)
+        found = await veille_sources.probe(url, body.lang, datetime.now(timezone.utc))
+    except veille_sources.SourceError as exc:
+        raise HTTPException(422, str(exc)) from None
+    return veille_sources.default_name(body, found["url"]), found
+
+
+@app.post("/api/veille/sources/test")
+async def veille_sources_test(body: veille_sources.SourceIn) -> dict:
+    """Lecture d'essai, sans rien enregistrer."""
+    refuse_while_sharing()
+    name, found = await _probe_source(body)
+    return {**found, "name": name}
+
+
+@app.post("/api/veille/sources", status_code=201)
+async def veille_sources_add(body: veille_sources.SourceIn) -> dict:
+    """Ajoute une source après une lecture réussie (adresse du flux trouvé gardée)."""
+    refuse_while_sharing()
+    votes = veille_votes_db()
+    try:
+        veille_sources.check_category(
+            body.category, await asyncio.to_thread(_source_slugs)
+        )
+        if body.name:
+            veille_sources.check_name(body.name)
+    except veille_sources.SourceError as exc:
+        raise HTTPException(422, str(exc)) from None
+    custom = await asyncio.to_thread(votes.sources)
+    if len(custom) >= veille_sources.MAX_CUSTOM:
+        raise HTTPException(409, f"{veille_sources.MAX_CUSTOM} sources au plus")
+    name, found = await _probe_source(body)
+    taken = {s["name"] for s in veille_sources.builtin(TASKS_CONFIG)} | {
+        s["name"] for s in custom
+    }
+    urls = {s["url"] for s in veille_sources.builtin(TASKS_CONFIG)} | {
+        s["url"] for s in custom
+    }
+    if name in taken:
+        raise HTTPException(409, f"Une source s'appelle déjà « {name} »")
+    if found["url"] in urls:
+        raise HTTPException(409, "Cette source est déjà dans la liste")
+    source = {
+        "kind": body.kind,
+        "name": name,
+        "url": found["url"],
+        "query": body.query if body.kind == "search" else "",
+        "lang": body.lang,
+        "category": body.category,
+        "filter_keywords": body.filter_keywords,
+    }
+    try:
+        saved = await asyncio.to_thread(
+            votes.add_source, source, datetime.now(timezone.utc)
+        )
+    except sqlite3.IntegrityError:
+        raise HTTPException(409, "Cette source est déjà dans la liste") from None
+    return {**saved, "probe": found}
+
+
+@app.patch("/api/veille/sources/{source_id}")
+def veille_sources_update(source_id: int, body: veille_sources.SourceUpdate) -> dict:
+    refuse_while_sharing()
+    changes = body.model_dump(exclude_none=True)
+    try:
+        if "name" in changes:
+            changes["name"] = veille_sources.check_name(
+                " ".join(changes["name"].split())
+            )
+            if changes["name"] in {
+                s["name"] for s in veille_sources.builtin(TASKS_CONFIG)
+            }:
+                raise veille_sources.SourceError(
+                    f"Une source s'appelle déjà « {changes['name']} »"
+                )
+        if "category" in changes:
+            veille_sources.check_category(changes["category"], _source_slugs())
+    except veille_sources.SourceError as exc:
+        raise HTTPException(422, str(exc)) from None
+    try:
+        updated = veille_votes_db().update_source(source_id, changes)
+    except sqlite3.IntegrityError:
+        raise HTTPException(409, "Une source porte déjà ce nom") from None
+    if updated is None:
+        raise HTTPException(404, "Source introuvable")
+    return updated
+
+
+@app.delete("/api/veille/sources/{source_id}", status_code=204)
+def veille_sources_delete(source_id: int) -> Response:
+    refuse_while_sharing()
+    if not veille_votes_db().delete_source(source_id):
+        raise HTTPException(404, "Source introuvable")
+    return Response(status_code=204)
+
+
+class BuiltinToggle(BaseModel):
+    name: str
+    enabled: bool
+
+
+@app.post("/api/veille/sources/builtin")
+def veille_sources_toggle(body: BuiltinToggle) -> dict:
+    """Active ou désactive une source fournie (par son nom dans tasks.yaml)."""
+    refuse_while_sharing()
+    if body.name not in {s["name"] for s in veille_sources.builtin(TASKS_CONFIG)}:
+        raise HTTPException(404, "Source fournie introuvable")
+    veille_votes_db().set_enabled(body.name, body.enabled, datetime.now(timezone.utc))
+    return {"name": body.name, "enabled": body.enabled}
+
+
+# Une fabrication de prompt à la fois par idée : le second clic attend puis lit le cache
+_idea_locks: dict[str, asyncio.Lock] = {}
+
+
+def _idea_or_404(idea_id: str) -> dict:
+    if not veille.valid_id(idea_id):
+        raise HTTPException(422, "identifiant attendu : 16 caractères hexadécimaux")
+    found = veille.find(VEILLE_DB, "idea", idea_id)
+    if found is None:
+        raise HTTPException(404, "Idée introuvable dans les veilles")
+    return found
+
+
+@app.get("/api/veille/idea/{idea_id}/prompt")
+def veille_idea_prompt(idea_id: str) -> dict:
+    refuse_while_sharing()
+    _idea_or_404(idea_id)
+    cached = veille_votes_db().prompt(idea_id)
+    if cached is None:
+        raise HTTPException(404, "Prompt pas encore préparé pour cette idée")
+    return {**cached, "cached": True}
+
+
+async def idea_prompt_model(configured: str, run_model: str) -> str:
+    """`idea_prompt.model`, sinon le modèle du passage de l'idée, sinon le modèle actif
+    des Réglages ou son repli ; jamais Claude."""
+    for name in (configured, run_model):
+        name = providers.normalize(name.strip()) if name.strip() else ""
+        if name and not claude.is_claude(name) and await model_available(name):
+            return name
+    settings = load_settings()
+    return await usable_model(settings.model, settings, local_only=True)
+
+
+@app.post("/api/veille/idea/{idea_id}/prompt")
+async def veille_make_idea_prompt(idea_id: str) -> dict:
+    """Prompt prêt à coller dans Claude Code, fabriqué une fois puis rendu du cache."""
+    refuse_while_sharing()
+    found = await asyncio.to_thread(_idea_or_404, idea_id)
+    votes = veille_votes_db()
+    if await asyncio.to_thread(votes.vote, "idea", idea_id) != "like":
+        raise HTTPException(409, "Idée non marquée « Intéressé »")
+    lock = _idea_locks.setdefault(idea_id, asyncio.Lock())
+    try:
+        async with lock:
+            return await _make_idea_prompt(idea_id, found, votes)
+    finally:
+        # Retiré aussi après un 502/503 : pas d'entrée orpheline
+        _idea_locks.pop(idea_id, None)
+
+
+async def _make_idea_prompt(
+    idea_id: str, found: dict, votes: veille_votes.VotesDB
+) -> dict:
+    cached = await asyncio.to_thread(votes.prompt, idea_id)
+    if cached is not None:
+        return {**cached, "cached": True}
+    settings = veille_prompt.load_settings(TASKS_CONFIG).idea_prompt
+    model = await idea_prompt_model(settings.model, found["model"])
+    features = veille_prompt.read_features(FEATURES_PATH, settings.features_chars)
+    files, existing = await asyncio.to_thread(
+        veille_prompt.repo_index, REPO_ROOT, settings.project_map
+    )
+    messages = veille_prompt.build_messages(found["item"], features, settings, files)
+    try:
+        text = await providers.complete(
+            model,
+            messages,
+            json_mode=True,
+            max_tokens=settings.max_tokens,
+            temperature=veille_prompt.TEMPERATURE,
+            timeout=settings.timeout_s,
+        )
+    except (KeyError, IndexError, TypeError, ValueError) as exc:
+        logger.warning("Prompt d'idée : réponse de %s illisible (%s)", model, exc)
+        raise HTTPException(502, "Réponse du modèle illisible") from None
+    except LookupError:
+        raise HTTPException(503, f"Modèle introuvable : {model}") from None
+    except httpx.HTTPError as exc:
+        logger.warning("Prompt d'idée : %s injoignable (%s)", model, exc)
+        raise HTTPException(503, f"Modèle injoignable : {model}") from None
+    try:
+        answer = veille_prompt.parse_answer(text)
+    except ValueError:
+        logger.warning("Prompt d'idée : réponse de %s illisible", model)
+        raise HTTPException(502, "Réponse du modèle illisible") from None
+    prompt = veille_prompt.build_prompt(
+        found["item"], answer, features, settings, existing if files else None
+    )
+    saved = await asyncio.to_thread(
+        votes.save_prompt, idea_id, prompt, model, datetime.now(timezone.utc)
+    )
+    return {**saved, "cached": False}
+
+
+# --- Traduction d'un article (fiche, bouton « Traduire en français ») ---------------------
+
+_translate_locks: dict[str, asyncio.Lock] = {}
+
+
+def _article_or_404(article_id: str) -> dict:
+    if not veille.valid_id(article_id):
+        raise HTTPException(422, "identifiant attendu : 16 caractères hexadécimaux")
+    found = veille.find(VEILLE_DB, "article", article_id)
+    if found is None:
+        raise HTTPException(404, "Article introuvable dans les veilles")
+    return found
+
+
+@app.get("/api/veille/article/{article_id}/translate")
+def veille_translation(article_id: str) -> dict:
+    refuse_while_sharing()
+    _article_or_404(article_id)
+    cached = veille_votes_db().translation(article_id)
+    if cached is None:
+        raise HTTPException(404, "Article pas encore traduit")
+    return {**cached, "cached": True}
+
+
+@app.post("/api/veille/article/{article_id}/translate")
+async def veille_translate_article(article_id: str) -> dict:
+    """Titre et extrait en français, traduits une fois puis rendus du cache."""
+    refuse_while_sharing()
+    found = await asyncio.to_thread(_article_or_404, article_id)
+    lock = _translate_locks.setdefault(article_id, asyncio.Lock())
+    try:
+        async with lock:
+            return await _translate(article_id, found)
+    finally:
+        _translate_locks.pop(article_id, None)
+
+
+async def _translate(article_id: str, found: dict) -> dict:
+    votes = veille_votes_db()
+    cached = await asyncio.to_thread(votes.translation, article_id)
+    if cached is not None:
+        return {**cached, "cached": True}
+    item = found["item"]
+    title = str(item.get("title") or "")
+    summary = str(item.get("summary") or "")
+    settings = veille_prompt.load_settings(TASKS_CONFIG).idea_prompt
+    model = await idea_prompt_model(settings.model, found["model"])
+    try:
+        text = await providers.complete(
+            model,
+            veille_translate.build_messages(title, summary),
+            json_mode=True,
+            max_tokens=settings.max_tokens,
+            temperature=veille_translate.TEMPERATURE,
+            timeout=settings.timeout_s,
+        )
+        answer = veille_translate.parse_answer(text, bool(summary.strip()))
+    except (KeyError, IndexError, TypeError, ValueError) as exc:
+        logger.warning("Traduction : réponse de %s illisible (%s)", model, exc)
+        raise HTTPException(502, "Réponse du modèle illisible") from None
+    except LookupError:
+        raise HTTPException(503, f"Modèle introuvable : {model}") from None
+    except httpx.HTTPError as exc:
+        logger.warning("Traduction : %s injoignable (%s)", model, exc)
+        raise HTTPException(503, f"Modèle injoignable : {model}") from None
+    saved = await asyncio.to_thread(
+        votes.save_translation,
+        article_id,
+        answer.title,
+        answer.summary,
+        model,
+        datetime.now(timezone.utc),
+    )
+    return {**saved, "cached": False}
 
 
 async def check_agent(draft: agents.AgentDraft) -> None:

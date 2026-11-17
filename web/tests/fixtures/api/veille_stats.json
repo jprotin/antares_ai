@@ -1,0 +1,366 @@
+{
+  "days": 30,
+  "since": "2026-10-19",
+  "until": "2026-11-17",
+  "summary": {
+    "likes": 42,
+    "dislikes": 13,
+    "agreement": 68.4,
+    "agreement_votes": 38,
+    "missed_likes": 9,
+    "featured": 348,
+    "collected": 5210,
+    "ideas_interested": 5,
+    "ideas_rejected": 11
+  },
+  "tastes": {
+    "categories": [
+      {
+        "slug": "ia",
+        "label": "IA",
+        "count": 19,
+        "share": 45.2,
+        "dislikes": 4
+      },
+      {
+        "slug": "cloud",
+        "label": "Cloud",
+        "count": 7,
+        "share": 16.7,
+        "dislikes": 3
+      },
+      {
+        "slug": "dev",
+        "label": "Dev & outils",
+        "count": 8,
+        "share": 19.0,
+        "dislikes": 1
+      },
+      {
+        "slug": "securite",
+        "label": "Sécurité",
+        "count": 5,
+        "share": 11.9,
+        "dislikes": 2
+      },
+      {
+        "slug": "informatique",
+        "label": "Monde de l'informatique",
+        "count": 3,
+        "share": 7.1,
+        "dislikes": 3
+      }
+    ],
+    "sources": [
+      {
+        "name": "Journal du Net",
+        "likes": 9,
+        "dislikes": 1,
+        "like_rate": 90.0
+      },
+      {
+        "name": "Next",
+        "likes": 7,
+        "dislikes": 0,
+        "like_rate": 100.0
+      },
+      {
+        "name": "Korben",
+        "likes": 5,
+        "dislikes": 1,
+        "like_rate": 83.3
+      },
+      {
+        "name": "01net",
+        "likes": 4,
+        "dislikes": 3,
+        "like_rate": 57.1
+      },
+      {
+        "name": "Hacker News",
+        "likes": 1,
+        "dislikes": 4,
+        "like_rate": 20.0
+      }
+    ],
+    "words": [
+      {
+        "word": "agents",
+        "count": 9
+      },
+      {
+        "word": "kubernetes",
+        "count": 5
+      },
+      {
+        "word": "ollama",
+        "count": 4
+      },
+      {
+        "word": "mistral",
+        "count": 3
+      }
+    ]
+  },
+  "ai": {
+    "categories": [
+      {
+        "slug": "ia",
+        "label": "IA",
+        "count": 131,
+        "share": 37.6
+      },
+      {
+        "slug": "cloud",
+        "label": "Cloud",
+        "count": 49,
+        "share": 14.1
+      },
+      {
+        "slug": "dev",
+        "label": "Dev & outils",
+        "count": 56,
+        "share": 16.1
+      },
+      {
+        "slug": "securite",
+        "label": "Sécurité",
+        "count": 42,
+        "share": 12.1
+      },
+      {
+        "slug": "materiel",
+        "label": "Matériel",
+        "count": 21,
+        "share": 6.0
+      },
+      {
+        "slug": "informatique",
+        "label": "Monde de l'informatique",
+        "count": 49,
+        "share": 14.1
+      }
+    ],
+    "sources": [
+      {
+        "name": "Journal du Net",
+        "featured": 41,
+        "share": 11.8,
+        "collected": 180,
+        "selection_rate": 22.8
+      },
+      {
+        "name": "Next",
+        "featured": 37,
+        "share": 10.6,
+        "collected": 120,
+        "selection_rate": 30.8
+      },
+      {
+        "name": "Korben",
+        "featured": 14,
+        "share": 4.0,
+        "collected": 40,
+        "selection_rate": 35.0
+      }
+    ]
+  },
+  "timeline": [
+    {
+      "day": "2026-11-04",
+      "featured": {
+        "ia": 8,
+        "cloud": 3,
+        "dev": 4,
+        "securite": 2,
+        "materiel": 1,
+        "informatique": 2
+      },
+      "agree_likes": 2,
+      "agree_dislikes": 1,
+      "missed_likes": 0
+    },
+    {
+      "day": "2026-11-05",
+      "featured": {
+        "ia": 9,
+        "cloud": 4,
+        "dev": 4,
+        "securite": 3,
+        "materiel": 2,
+        "informatique": 2
+      },
+      "agree_likes": 3,
+      "agree_dislikes": 2,
+      "missed_likes": 1
+    },
+    {
+      "day": "2026-11-06",
+      "featured": {
+        "ia": 10,
+        "cloud": 3,
+        "dev": 4,
+        "securite": 4,
+        "materiel": 1,
+        "informatique": 2
+      },
+      "agree_likes": 4,
+      "agree_dislikes": 1,
+      "missed_likes": 2
+    },
+    {
+      "day": "2026-11-07",
+      "featured": {
+        "ia": 8,
+        "cloud": 4,
+        "dev": 4,
+        "securite": 2,
+        "materiel": 2,
+        "informatique": 2
+      },
+      "agree_likes": 5,
+      "agree_dislikes": 2,
+      "missed_likes": 0
+    },
+    {
+      "day": "2026-11-08",
+      "featured": {
+        "ia": 9,
+        "cloud": 3,
+        "dev": 4,
+        "securite": 3,
+        "materiel": 1,
+        "informatique": 2
+      },
+      "agree_likes": 2,
+      "agree_dislikes": 1,
+      "missed_likes": 1
+    },
+    {
+      "day": "2026-11-09",
+      "featured": {
+        "ia": 10,
+        "cloud": 4,
+        "dev": 4,
+        "securite": 4,
+        "materiel": 2,
+        "informatique": 2
+      },
+      "agree_likes": 3,
+      "agree_dislikes": 2,
+      "missed_likes": 2
+    },
+    {
+      "day": "2026-11-10",
+      "featured": {
+        "ia": 8,
+        "cloud": 3,
+        "dev": 4,
+        "securite": 2,
+        "materiel": 1,
+        "informatique": 2
+      },
+      "agree_likes": 4,
+      "agree_dislikes": 1,
+      "missed_likes": 0
+    },
+    {
+      "day": "2026-11-11",
+      "featured": {
+        "ia": 9,
+        "cloud": 4,
+        "dev": 4,
+        "securite": 3,
+        "materiel": 2,
+        "informatique": 2
+      },
+      "agree_likes": 5,
+      "agree_dislikes": 2,
+      "missed_likes": 1
+    },
+    {
+      "day": "2026-11-12",
+      "featured": {
+        "ia": 10,
+        "cloud": 3,
+        "dev": 4,
+        "securite": 4,
+        "materiel": 1,
+        "informatique": 2
+      },
+      "agree_likes": 2,
+      "agree_dislikes": 1,
+      "missed_likes": 2
+    },
+    {
+      "day": "2026-11-13",
+      "featured": {
+        "ia": 8,
+        "cloud": 4,
+        "dev": 4,
+        "securite": 2,
+        "materiel": 2,
+        "informatique": 2
+      },
+      "agree_likes": 3,
+      "agree_dislikes": 2,
+      "missed_likes": 0
+    },
+    {
+      "day": "2026-11-14",
+      "featured": {
+        "ia": 9,
+        "cloud": 3,
+        "dev": 4,
+        "securite": 3,
+        "materiel": 1,
+        "informatique": 2
+      },
+      "agree_likes": 4,
+      "agree_dislikes": 1,
+      "missed_likes": 1
+    },
+    {
+      "day": "2026-11-15",
+      "featured": {
+        "ia": 10,
+        "cloud": 4,
+        "dev": 4,
+        "securite": 4,
+        "materiel": 2,
+        "informatique": 2
+      },
+      "agree_likes": 5,
+      "agree_dislikes": 2,
+      "missed_likes": 2
+    },
+    {
+      "day": "2026-11-16",
+      "featured": {
+        "ia": 8,
+        "cloud": 3,
+        "dev": 4,
+        "securite": 2,
+        "materiel": 1,
+        "informatique": 2
+      },
+      "agree_likes": 2,
+      "agree_dislikes": 1,
+      "missed_likes": 0
+    },
+    {
+      "day": "2026-11-17",
+      "featured": {
+        "ia": 9,
+        "cloud": 4,
+        "dev": 4,
+        "securite": 3,
+        "materiel": 2,
+        "informatique": 2
+      },
+      "agree_likes": 3,
+      "agree_dislikes": 2,
+      "missed_likes": 1
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "$defs": {
+    "ItemAnswer": {
+      "properties": {
+        "ref": {
+          "title": "Ref",
+          "type": "string"
+        },
+        "category": {
+          "default": "",
+          "title": "Category",
+          "type": "string"
+        },
+        "sentence": {
+          "title": "Sentence",
+          "type": "string"
+        }
+      },
+      "required": ["ref", "sentence"],
+      "title": "ItemAnswer",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "items": {
+      "items": {
+        "$ref": "#/$defs/ItemAnswer"
+      },
+      "title": "Items",
+      "type": "array"
+    }
+  },
+  "required": ["items"],
+  "title": "ArticlesAnswer",
+  "type": "object"
+}
