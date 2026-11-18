@@ -32,8 +32,6 @@ const ALLOWED_WRITES = [
 export type GuardOptions = {
   // Messages console.error attendus pour ce test (sous-chaîne)
   allowConsoleErrors: string[];
-  // Violations CSP tolérées sur l'ancienne interface (ligne « amélioration » en KO attendu)
-  allowLegacyCsp: boolean;
   // Écritures refusées attendues (« METHODE /api/chemin ») : toujours bloquées, mais
   // sans faire échouer le test (ex. alignement de la voix au chargement)
   expectedRefusals: string[];
@@ -81,10 +79,6 @@ export async function guardWrites(context: BrowserContext, refused: string[]) {
   });
 }
 
-export function isLegacy(): boolean {
-  return process.env.ANTARES_UI !== "next";
-}
-
 async function installCspCollector(page: Page) {
   await page.addInitScript(() => {
     const store: unknown[] = [];
@@ -113,12 +107,11 @@ function sameOrigin(url: string, origin: string): boolean {
 
 export const test = base.extend<Fixtures>({
   allowConsoleErrors: [[], { option: true }],
-  allowLegacyCsp: [false, { option: true }],
   expectedRefusals: [[], { option: true }],
 
   guards: [
     async (
-      { page, baseURL, allowConsoleErrors, allowLegacyCsp, expectedRefusals },
+      { page, baseURL, allowConsoleErrors, expectedRefusals },
       use,
       testInfo: TestInfo,
     ) => {
@@ -164,7 +157,6 @@ export const test = base.extend<Fixtures>({
       await use(guards);
 
       const csp = await guards.csp().catch(() => []);
-      const tolerated = allowLegacyCsp && isLegacy();
       expect.soft(guards.foreign, "requêtes hors origine").toEqual([]);
       expect.soft(guards.pageErrors, "erreurs JS (pageerror)").toEqual([]);
       expect
@@ -176,7 +168,7 @@ export const test = base.extend<Fixtures>({
           "écritures refusées par la garde",
         )
         .toEqual([]);
-      if (!tolerated) expect.soft(csp, "violations CSP").toEqual([]);
+      expect.soft(csp, "violations CSP").toEqual([]);
     },
     { auto: true },
   ],

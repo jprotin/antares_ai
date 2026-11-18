@@ -1,4 +1,4 @@
-/* Indicateur de connexion Internet (frontend/style.css, lignes 1378-1416, 1551-1555). */
+/* Indicateur de connexion Internet. */
 @layer components {
   .net {
     display: inline-flex;

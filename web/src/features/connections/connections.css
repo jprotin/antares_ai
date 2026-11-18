@@ -1,5 +1,5 @@
-/* Connexions : formulaire de fournisseur et services (RAG, recherche, Claude, MCP)
-   (frontend/style.css, lignes 1583-1657) ; listes et cartes : styles/legacy-dialogs.css. */
+/* Connexions : formulaire de fournisseur et services (RAG, recherche, Claude, MCP) ;
+   listes et cartes : styles/legacy-dialogs.css. */
 @layer components {
   .agent-form .checkbox {
     display: flex;

@@ -1,5 +1,4 @@
-/* Fenêtres : fond, centrage, en-tête et actions fixes, plein écran sur mobile
-   (frontend/style.css, lignes 1299-1377). */
+/* Fenêtres : fond, centrage, en-tête et actions fixes, plein écran sur mobile. */
 @layer components {
   /* Fenêtres Radix habillées comme les <dialog> natifs de l'ancienne interface : fond
      (::backdrop) et centrage de l'agent utilisateur reproduits */
@@ -61,9 +60,6 @@
     .stage__bar {
       flex-direction: column-reverse;
       align-items: stretch;
-    }
-    .stage__tools {
-      justify-content: flex-end;
     }
     /* La liste s'ouvre sur toute la largeur, quel que soit le bouton */
     .stage__pickers {

@@ -7,7 +7,7 @@ import type { Page } from "@playwright/test";
 
 import { openPage } from "../support/menu";
 import { MockApi } from "../support/mock-api";
-import { expect, isLegacy, test } from "../support/test";
+import { expect, test } from "../support/test";
 import { RealtimeMock, type ServerEvent } from "../support/ws-scenario";
 
 const LATEST = JSON.parse(
@@ -67,7 +67,6 @@ function mockJournal(api: MockApi) {
 }
 
 test.describe("journal de la veille @mock @veille", () => {
-  test.skip(isLegacy(), "veille absente de l'ancienne interface");
   test.beforeEach(async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
   });

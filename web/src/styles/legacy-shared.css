@@ -1,40 +1,7 @@
-/* Classes partagées de frontend/style.css (boutons, badges), transposées telles quelles
-   (lignes 739-775, 864-883, 921-947, 1086-1094) ; variables renommées. */
+/* Classes partagées héritées de l'ancienne interface (boutons, badges). */
 @layer components {
   .stage {
     position: relative;
-  }
-
-  .settings-button {
-    display: grid;
-    flex: none;
-    place-items: center;
-    width: 2.5rem;
-    height: 2.5rem;
-    border: 1px solid var(--panel-border);
-    border-radius: 50%;
-    background: var(--overlay);
-    color: var(--muted-text);
-    cursor: pointer;
-    transition:
-      color 0.2s,
-      background 0.2s,
-      transform 0.4s;
-  }
-
-  .settings-button svg {
-    width: 1.25rem;
-    height: 1.25rem;
-    fill: currentColor;
-  }
-  .settings-button:hover {
-    color: var(--text);
-    background: var(--overlay-strong);
-    transform: rotate(30deg);
-  }
-  .settings-button:focus-visible {
-    outline: 3px solid var(--brand-strong);
-    outline-offset: 3px;
   }
 
   .badge {
@@ -92,7 +59,7 @@
     cursor: pointer;
   }
 
-  /* Badge « hors local » et « web » (frontend/style.css, lignes 944-947) */
+  /* Badge « hors local » et « web » */
   .badge--cloud {
     background: var(--cloud-bg);
     color: var(--cloud-text);

@@ -3,7 +3,7 @@
 import { readFileSync } from "node:fs";
 
 import { MockApi } from "../support/mock-api";
-import { expect, isLegacy, test } from "../support/test";
+import { expect, test } from "../support/test";
 
 const SETTINGS = JSON.parse(
   readFileSync(
@@ -31,22 +31,6 @@ test.describe("fenêtres @mock @fenetres @lot5", () => {
     const put = api.writes().find((call) => call.path === "/api/settings");
     expect(put?.method).toBe("PUT");
     expect((put?.body as { model?: string }).model).toBe(value);
-  });
-
-  test("FE-1b : Réglages, Annuler n'envoie rien", async ({ page, ui }) => {
-    test.skip(!isLegacy(), "Réglages en page : pas de bouton Annuler");
-    const api = await new MockApi(page).install();
-    await ui.goto();
-    await ui.openDialog("settings");
-    await ui.dialog("settings").locator('input[name="model"]').nth(1).check();
-    await ui
-      .dialog("settings")
-      .getByRole("button", { name: "Annuler" })
-      .click();
-    await expect.poll(() => ui.isDialogOpen("settings")).toBe(false);
-    expect(
-      api.writes().filter((call) => call.path === "/api/settings"),
-    ).toEqual([]);
   });
 
   test.describe("erreur serveur", () => {
@@ -112,8 +96,6 @@ test.describe("fenêtres @mock @fenetres @lot5", () => {
     page,
     ui,
   }) => {
-    // Amélioration (grille FE-9) : l'ancienne interface plante dans ce cas
-    test.fail(isLegacy(), "KO attendu sur l'ancienne interface");
     let release: () => void = () => {};
     const ready = new Promise<void>((resolve) => (release = resolve));
     const api = await new MockApi(page)
@@ -135,19 +117,5 @@ test.describe("fenêtres @mock @fenetres @lot5", () => {
       voice: "terminator",
       project: "",
     });
-  });
-
-  test("FE-6b : fenêtre ouverte depuis Réglages, Échap rend le focus à son bouton", async ({
-    page,
-    ui,
-  }) => {
-    test.skip(!isLegacy(), "Agents en sous-page des Réglages, pas en fenêtre");
-    await new MockApi(page).install();
-    await ui.goto();
-    await ui.openDialog("agents");
-    await page.keyboard.press("Escape");
-    await expect.poll(() => ui.isDialogOpen("agents")).toBe(false);
-    expect(await ui.isDialogOpen("settings")).toBe(true);
-    await expect(page.locator("#open-agents")).toBeFocused();
   });
 });

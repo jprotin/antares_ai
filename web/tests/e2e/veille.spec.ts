@@ -10,7 +10,7 @@ import type { Page } from "@playwright/test";
 
 import { openPage } from "../support/menu";
 import { MockApi } from "../support/mock-api";
-import { expect, isLegacy, test } from "../support/test";
+import { expect, test } from "../support/test";
 
 const LATEST = JSON.parse(
   readFileSync(
@@ -104,7 +104,6 @@ async function noHorizontalScroll(page: Page, before: number) {
 }
 
 test.describe("veille IA et météo @mock @veille", () => {
-  test.skip(isLegacy(), "veille absente de l'ancienne interface");
   // Fenêtre mesurée sans l'animation d'ouverture (mise à l'échelle)
   test.beforeEach(async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });

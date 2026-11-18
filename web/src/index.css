@@ -6,7 +6,7 @@
 /* Thème posé sur <html data-theme> par public/theme-init.js (avant le premier rendu) */
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 
-/* Couleurs antares (frontend/style.css) : seule la teinte --hue varie selon l'agent.
+/* Couleurs antares : seule la teinte --hue varie selon l'agent.
    Les noms shadcn (--background, --primary…) sont dérivés de ces valeurs ; l'accent
    vif d'antares s'appelle --brand, car --accent désigne chez shadcn un fond de survol. */
 @property --hue {
@@ -16,8 +16,7 @@
 }
 
 @layer base {
-  /* Jetons de frontend/style.css (lignes 1-88), renommés : --accent* -> --brand*,
-     --muted -> --muted-text ; --overlay du thème sombre corrigé (était cyclique) */
+  /* Jetons antares (l'accent vif s'appelle --brand, le texte atténué --muted-text) */
   :root {
     /* Teinte de base (bleu) ; décalée légèrement selon le domaine de l'agent (theme.js) */
     --hue: 222;

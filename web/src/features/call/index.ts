@@ -6,7 +6,6 @@ import type { FeatureDef } from "@/app/types";
 
 import { Workspace } from "./Workspace";
 
-export { CallStage } from "./CallStage";
 export { Workspace } from "./Workspace";
 
 export const callFeature: FeatureDef = {

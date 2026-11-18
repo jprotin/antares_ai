@@ -1,5 +1,5 @@
 /* Fenêtres de la famille Agents (agents, connexions, fiches, projets du RAG) : listes,
-   cartes, formulaires (frontend/style.css, lignes 952-1084 et 1096-1101). */
+   cartes, formulaires. */
 @layer components {
   .settings {
     overflow-y: auto;

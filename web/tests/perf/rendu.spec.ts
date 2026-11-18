@@ -1,7 +1,7 @@
 // Rendu (grille MD-4, AV-4) : durée de rendu d'une réponse écrite de 5 000 caractères et
 // images par seconde de l'orbe et des avatars 3D (swiftshader, sans GPU : la mesure sous
-// GPU réel reste manuelle). Référence dans tests/baseline/legacy.json (clé « rendu ») :
-// UPDATE_BASELINE=1 la réécrit, sinon l'interface testée y est comparée.
+// GPU réel reste manuelle). Référence mesurée sur l'ancienne interface, dans
+// tests/baseline/legacy.json (clé « rendu ») : UPDATE_BASELINE=1 la réécrit.
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
 
 import type { Page } from "@playwright/test";
@@ -204,12 +204,10 @@ test("rendu Markdown et images par seconde @perf", async ({ page, ui }) => {
   expect
     .soft(markdown5000.median, "MD-4 : rendu de 5 000 caractères (ms)")
     .toBeLessThanOrEqual(
-      process.env.ANTARES_UI === "next"
-        ? Math.max(
-            reference.markdown5000.median * RENDER_TOLERANCE,
-            reference.markdown5000.median + NEXT_RENDER_EXCEPTION_MS,
-          )
-        : reference.markdown5000.median * RENDER_TOLERANCE,
+      Math.max(
+        reference.markdown5000.median * RENDER_TOLERANCE,
+        reference.markdown5000.median + NEXT_RENDER_EXCEPTION_MS,
+      ),
     );
   for (const kind of AVATARS) {
     expect

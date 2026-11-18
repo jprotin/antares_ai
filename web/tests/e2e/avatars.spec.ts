@@ -156,7 +156,7 @@ test.describe("avatars @mock @avatars @lot4", () => {
       await dialog.getByRole("button", { name: "Appliquer" }).click();
       await ui.waitApplied();
       // En page, l'avatar n'est affiché qu'en revenant à la Conversation
-      if (ui.pages) await ui.closeDialog("settings", "button");
+      await ui.closeDialog("settings", "button");
     }
     // Les rendus 3D ont bien été créés (sinon le test ne prouverait rien)
     expect(
@@ -174,8 +174,6 @@ test.describe("avatars @mock @avatars @lot4", () => {
       type: "contextes WebGL vivants",
       description: String(alive),
     });
-    if (process.env.ANTARES_UI === "next") expect(alive).toBeLessThanOrEqual(1);
-    else
-      expect(alive, "KO attendu sur l'ancienne interface").toBeGreaterThan(1);
+    expect(alive).toBeLessThanOrEqual(1);
   });
 });

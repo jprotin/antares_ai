@@ -19,31 +19,25 @@ docker compose up -d    # ensuite, hors ligne
 
 Interface d'appel : <http://127.0.0.1:8765>
 
-### Interface : nouvelle (`web/`) ou ancienne (`frontend/`)
+### Interface (`web/`)
 
 L'interface servie est construite depuis `web/` (Vite + React, ADR 0012) dans l'image
 `antares/web`, par `install.sh` (étape en ligne, npm). L'ancienne interface (`frontend/`)
-reste disponible pendant la période d'observation :
+a été retirée le 2026-11-18 ; elle reste dans l'historique git.
 
 ```bash
-./ui.sh legacy          # ancienne interface (1 s, sans construction, hors ligne)
-./ui.sh new             # nouvelle interface ; reconstruit l'image si elle est périmée
+./ui.sh new             # reconstruit l'image si elle est périmée
 ./ui.sh new --build     # reconstruction forcée
 ```
 
-- Le choix persiste dans `.env` (`COMPOSE_FILE`) : `docker compose up -d` et `install.sh`
-  le conservent.
 - Après un `git pull` qui touche `web/`, lancer `./ui.sh new` : `docker compose up -d`
   seul ne reconstruit pas l'image. L'image servie porte l'empreinte de `web/` dans
   `/version.json` (champ `rev`), et `ui.sh new` la compare à celle du dépôt.
 - Construction impossible (pas de réseau, registre npm injoignable) : `ui.sh new` échoue
   sans rien changer (interface et `.env` en place) ; `install.sh` échoue avec un message
-  explicite, et `./ui.sh legacy` sert l'ancienne interface en attendant.
+  explicite.
 - Machine sans registre npm : `docker image save antares/web:latest | gzip > web.tar.gz`
   sur une machine en ligne, puis `docker image load < web.tar.gz`.
-- Retour arrière de niveau 2 (annuler la migration dans le dépôt) : `git revert -m 1` du
-  merge sur une branche `bugfix/*` ou `hotfix/*`, puis `./ui.sh legacy`. Pour reprendre
-  la migration ensuite, annuler d'abord ce revert (`git revert <commit du revert>`).
 - Tests de l'interface : `cd ../../web && npm run test:e2e:mock` (voir `web/README.md`) ;
   `check-local.sh` et `smoke-test.sh` ne vérifient pas l'interface.
 
@@ -585,7 +579,6 @@ docker compose run --rm antares-tasks schedule          # prochains passages, ma
   et le sujet du moment, dans une note de régie collée au dernier message (un petit
   modèle se perd sinon). Le sujet présenté est marqué « À l'antenne » dans la liste.
   Disponible pendant un partage (lecture seule).
-- **Ancienne interface** (`ui.sh legacy`) : pas de veille (nouvelle interface seulement).
 - `FEATURES.md` doit exister avant le premier `docker compose up` (sinon Docker crée un
   dossier à sa place) ; le tenir à jour à chaque fin de feature, sous 4 000 caractères :
   une idée qui y figure déjà n'est plus proposée.

@@ -1,6 +1,6 @@
 // Thème, préférences et fenêtres (grille TH, PR, FE-6, AG) en mock.
 import { MockApi } from "../support/mock-api";
-import { expect, isLegacy, test } from "../support/test";
+import { expect, test } from "../support/test";
 
 test.describe("thème et préférences @mock @theme @lot2", () => {
   test.beforeEach(async ({ page }) => {
@@ -71,9 +71,7 @@ test.describe("thème et préférences @mock @theme @lot2", () => {
       type: "thème au premier rendu",
       description: String(early),
     });
-    if (isLegacy())
-      expect(early, "KO attendu sur l'ancienne interface").not.toBe("light");
-    else expect(early).toBe("light");
+    expect(early).toBe("light");
   });
 });
 

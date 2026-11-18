@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
-# Interface servie sur 127.0.0.1:8765 :
-#   ./ui.sh legacy          ancienne interface (frontend/), retour arrière en une commande
-#   ./ui.sh new [--build]   nouvelle interface (web/), image reconstruite si périmée
-# Le choix persiste dans .env (COMPOSE_FILE) : un simple `docker compose up -d` le garde.
+# Interface (web/) servie sur 127.0.0.1:8765 :
+#   ./ui.sh new [--build]   image reconstruite si périmée (ou toujours avec --build)
+# Retire de .env l'ancien COMPOSE_FILE de l'interface legacy s'il y est encore.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly SCRIPT_DIR
 readonly ENV_FILE="${SCRIPT_DIR}/.env"
-readonly LEGACY_FILES="compose.yaml:compose.legacy-ui.yaml"
 readonly URL="http://127.0.0.1:8765"
 readonly IMAGE="antares/web:latest"
 readonly WAIT_S=30
@@ -40,13 +38,11 @@ set_compose_file() {
   [[ "${before}" == "${after}" ]] || die ".env : clés modifiées par erreur, vérifier ${ENV_FILE}"
 }
 
-# Interface servie : legacy (app.js), new (theme-init.js) ou rien
+# Interface servie : new (theme-init.js) ou rien
 served() {
   local page
   page="$(curl -fsS --max-time 3 "${URL}/" 2>/dev/null || true)"
-  if grep -q 'src="app.js"' <<<"${page}"; then
-    echo legacy
-  elif grep -q 'theme-init.js' <<<"${page}"; then
+  if grep -q 'theme-init.js' <<<"${page}"; then
     echo new
   else
     echo none
@@ -74,15 +70,6 @@ warn_uncommitted() {
   return 0
 }
 
-legacy() {
-  warn_uncommitted
-  log "Ancienne interface (frontend/)"
-  set_compose_file "${LEGACY_FILES}"
-  docker compose up -d --no-deps web
-  wait_served legacy
-  log "Servie sur ${URL} : ancienne interface"
-}
-
 new() {
   local force="${1:-}" rev
   docker compose -f compose.yaml config web 2>/dev/null | grep -q "image: ${IMAGE}" ||
@@ -97,20 +84,19 @@ new() {
       die "construction impossible (registre npm injoignable ?) : interface et .env inchangés"
     [[ "$(image_rev)" == "${rev}" ]] || die "image construite sans la bonne empreinte"
   fi
-  log "Nouvelle interface (web/)"
+  log "Interface (web/)"
   set_compose_file ""
   docker compose up -d --no-deps web
   wait_served new
   [[ "$(curl -fsS "${URL}/version.json" | grep -oE '"rev": *"[^"]*"' | cut -d'"' -f4)" == "${rev}" ]] ||
     die "version servie différente de ${rev}"
-  log "Servie sur ${URL} : nouvelle interface (${rev:0:12})"
+  log "Servie sur ${URL} : interface ${rev:0:12}"
 }
 
 case "${1:-}" in
-  legacy) legacy ;;
   new) new "${2:-}" ;;
   *)
-    echo "usage : $0 legacy | new [--build]" >&2
+    echo "usage : $0 new [--build]" >&2
     exit 2
     ;;
 esac

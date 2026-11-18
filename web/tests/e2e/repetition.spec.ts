@@ -7,7 +7,7 @@ import type { Page } from "@playwright/test";
 
 import { openPage } from "../support/menu";
 import { MockApi } from "../support/mock-api";
-import { expect, isLegacy, test } from "../support/test";
+import { expect, test } from "../support/test";
 import { RealtimeMock } from "../support/ws-scenario";
 
 type Rehearsal = Record<string, unknown> & {
@@ -128,10 +128,9 @@ function texts(realtime: RealtimeMock): string[] {
     .map((event) => JSON.stringify(event));
 }
 
-// Préparation : fenêtre (ancienne interface) ou page Répétition du menu (nouvelle)
+// Préparation : page Répétition du menu
 async function openSetup(page: Page) {
-  if (isLegacy()) await page.locator("#open-rehearsal").click();
-  else await openPage(page, "Répétition");
+  await openPage(page, "Répétition");
 }
 
 // Répétition lancée depuis la fenêtre de préparation, calibrage du bruit terminé
@@ -279,9 +278,8 @@ test.describe("répétition @mock @repetition @lot6", () => {
     await page.getByRole("button", { name: "Terminer" }).click();
     await expect(page.locator("#rehearsal")).toBeHidden();
     await expect.poll(() => ui.callState()).toBe("idle");
-    // Nouvelle interface : la page Répétition revient à la préparation
-    if (isLegacy()) await expect(ui.status()).toHaveText("Répétition terminée");
-    else await expect(page.locator("#rehearsal-setup")).toBeVisible();
+    // La page Répétition revient à la préparation
+    await expect(page.locator("#rehearsal-setup")).toBeVisible();
     expect(
       api
         .writes()
@@ -362,11 +360,9 @@ test.describe("répétition @mock @repetition @lot6", () => {
     await expect(count).toHaveText("2 / 3");
     await page.locator("#rehearsal-noise").blur();
 
-    // Fenêtre ouverte : les Réglages
+    // Page des Réglages ouverte (les slides n'y sont pas affichées) : flèche sans effet
     await ui.openDialog("settings");
     await page.keyboard.press("ArrowRight");
-    // Nouvelle interface : Réglages en page, les slides n'y sont pas affichées
-    if (isLegacy()) await expect(count).toHaveText("2 / 3");
     await ui.closeDialog("settings", "escape");
     await expect.poll(() => ui.isDialogOpen("settings")).toBe(false);
     await expect(count).toHaveText("2 / 3");
@@ -420,8 +416,8 @@ test.describe("répétition @mock @repetition @lot6", () => {
     page.once("dialog", (dialog) => dialog.accept());
     await page.getByRole("button", { name: "Quitter" }).click();
     await page.reload();
-    // Nouvelle interface : le panneau vit dans la zone d'appel (page Conversation)
-    if (!isLegacy()) await openPage(page, "Conversation");
+    // Le panneau vit dans la zone d'appel (page Conversation)
+    await openPage(page, "Conversation");
     await expect(page.locator("#rehearsal-noise")).toHaveValue("strong");
   });
 

@@ -138,15 +138,13 @@ main() {
   check_prerequisites
   ensure_tokens
   ensure_volumes
-  # Image de l'ancienne interface : ./ui.sh legacy fonctionne ensuite hors ligne
-  docker pull nginx:1.29-alpine >/dev/null
   log "Construction des images (dont l'interface : npm, en ligne)"
   # Empreinte de web/ : ./ui.sh new reconnaît une image à jour
   ANTARES_WEB_REV="$(git -C "${SCRIPT_DIR}" rev-parse HEAD:web 2>/dev/null || echo inconnu)"
   ANTARES_COMMIT="$(git -C "${SCRIPT_DIR}" rev-parse --short HEAD 2>/dev/null || echo dev)"
   export ANTARES_WEB_REV ANTARES_COMMIT
   docker compose --profile rag-integre build ||
-    die "construction impossible (registre npm ou Docker Hub injoignable ?). Relancer ./install.sh une fois en ligne ; en attendant, ./ui.sh legacy sert l'ancienne interface"
+    die "construction impossible (registre npm ou Docker Hub injoignable ?) : relancer ./install.sh une fois en ligne"
   warmup_models
   warmup_rag
   log "Démarrage hors ligne"

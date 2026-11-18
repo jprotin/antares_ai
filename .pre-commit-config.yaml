@@ -7,9 +7,6 @@ default_install_hook_types:
   - pre-commit
   - commit-msg
 
-# Bibliothèques tierces copiées telles quelles (cf. frontend/vendor/README.md)
-exclude: ^frontend/vendor/
-
 repos:
   # ---------- Transverses (toujours actifs) ----------
   - repo: https://github.com/pre-commit/pre-commit-hooks
@@ -151,17 +148,6 @@ repos:
         # web/ : prettier du lockfile de web/ (hook web-prettier)
         exclude: ^web/
 
-  - repo: https://github.com/pre-commit/mirrors-eslint
-    rev: v9.14.0
-    hooks:
-      - id: eslint
-        # Ancienne interface seulement (jusqu'à la suppression de frontend/) ; web/ a
-        # sa propre configuration (hook web-eslint)
-        files: ^frontend/.*\.js$
-        types: [file]
-        additional_dependencies:
-          - eslint@9.14.0
-
   # ---------- PHP ----------
   - repo: https://github.com/digitalpulp/pre-commit-php
     rev: 1.4.0
@@ -199,7 +185,7 @@ repos:
       - id: no-todo-fixme-on-main
         name: Empêcher TODO/FIXME sans ticket
         # Cherche uniquement dans les langages de code, exclut les configs/docs qui décrivent la règle.
-        entry: bash -c 'if git diff --cached --diff-filter=AM -- "*.py" "*.js" "*.ts" "*.tsx" "*.jsx" "*.go" "*.rs" "*.rb" "*.php" "*.sh" "*.tf" "*.java" "*.c" "*.cpp" "*.h" "*.hpp" ":(exclude)frontend/vendor/*" | grep -E "^\+.*\b(TODO|FIXME|XXX)\b" | grep -vE "#[0-9]|[A-Z]+-[0-9]"; then echo "TODO/FIXME sans reference ticket detecte"; exit 1; fi'
+        entry: bash -c 'if git diff --cached --diff-filter=AM -- "*.py" "*.js" "*.ts" "*.tsx" "*.jsx" "*.go" "*.rs" "*.rb" "*.php" "*.sh" "*.tf" "*.java" "*.c" "*.cpp" "*.h" "*.hpp" | grep -E "^\+.*\b(TODO|FIXME|XXX)\b" | grep -vE "#[0-9]|[A-Z]+-[0-9]"; then echo "TODO/FIXME sans reference ticket detecte"; exit 1; fi'
         language: system
         pass_filenames: false
         stages: [pre-commit]

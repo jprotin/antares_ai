@@ -1,16 +1,9 @@
-// Fonctions internes de l'appel et de la Répétition : mêmes résultats que l'ancienne
-// interface (vecteurs dorés relevés sur ses sources : fixtures/legacy-internals.json).
-// La nouvelle implémentation rejoindra `cases` aux lots 3 et 6.
+// Fonctions internes de l'appel et de la Répétition : vecteurs dorés relevés sur
+// l'ancienne interface (fixtures/caracterisation.json), conservés comme référence.
 import { describe, expect, test } from "vitest";
 
-import golden from "./fixtures/legacy-internals.json";
+import golden from "./fixtures/caracterisation.json";
 import sseCases from "./fixtures/sse-cases.json";
-import {
-  legacyApp,
-  legacyRehearsal,
-  legacySse,
-  type Message,
-} from "./legacy-internals";
 
 import { base64FromPcm, floatFromBase64Pcm } from "@/lib/pcm";
 import { readChatStream } from "@/lib/sse";
@@ -29,13 +22,15 @@ const nextRehearsal = {
   initialScores: (report: never) => initialScores(report),
 };
 
+type Message = { role: string; content: string };
+
 const nextApp = {
   base64FromPcm,
   floatFromBase64Pcm,
   recentHistory: (messages: Message[]) => recentHistory(messages),
 };
 
-// Même lecteur que legacySse : morceaux servis un à un
+// Lecteur du flux : morceaux servis un à un
 function nextSse(chunks: Uint8Array[]): Promise<string> {
   let index = 0;
   return readChatStream({
@@ -50,13 +45,7 @@ type Pcm = { samples: number[]; floats: number[] };
 type History = { role: string; length: number; char: string }[];
 
 const cases = [
-  {
-    name: "legacy",
-    app: legacyApp,
-    rehearsal: legacyRehearsal,
-    sse: legacySse,
-  },
-  { name: "next", app: nextApp, rehearsal: nextRehearsal, sse: nextSse },
+  { name: "web", app: nextApp, rehearsal: nextRehearsal, sse: nextSse },
 ];
 
 type SseCase = {

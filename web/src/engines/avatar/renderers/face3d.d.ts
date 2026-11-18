@@ -1,4 +1,4 @@
-// Types de face3d.js (porté de frontend/, imports three.js npm)
+// Types de face3d.js (module JS, imports three.js npm)
 import type { AvatarRenderer } from "./types";
 
 export declare class Face3D implements AvatarRenderer {

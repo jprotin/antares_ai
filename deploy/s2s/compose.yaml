@@ -122,7 +122,7 @@ services:
     depends_on: [llm-router]
 
   # Interface (web/) construite en image : npm à l'étape en ligne (install.sh, ui.sh new),
-  # nginx ensuite. Retour à l'ancienne interface : ./ui.sh legacy (compose.legacy-ui.yaml).
+  # nginx ensuite.
   web:
     image: antares/web:latest
     build:

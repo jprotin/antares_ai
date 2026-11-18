@@ -5,7 +5,7 @@ import type { Page } from "@playwright/test";
 
 import { MENU_TOGGLE, openPage } from "../support/menu";
 import { MockApi } from "../support/mock-api";
-import { expect, isLegacy, test } from "../support/test";
+import { expect, test } from "../support/test";
 import { RealtimeMock } from "../support/ws-scenario";
 
 const menu = (page: Page) => page.locator('[data-slot="sidebar"]').first();
@@ -15,7 +15,6 @@ const trail = (page: Page) =>
   page.getByRole("navigation", { name: /breadcrumb/i });
 
 test.describe("ossature @mock @ossature", () => {
-  test.skip(isLegacy(), "menu et pages absents de l'ancienne interface");
   test.beforeEach(async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
     await new MockApi(page).install();

@@ -10,7 +10,7 @@ COPY . .
 ARG ANTARES_COMMIT=dev
 ARG ANTARES_WEB_REV=inconnu
 ENV ANTARES_COMMIT=${ANTARES_COMMIT} ANTARES_WEB_REV=${ANTARES_WEB_REV}
-# Sans les tests (hors contexte : ils lisent frontend/) ; tsc -b complet en pre-commit
+# Sans les tests (lancés hors image) ; tsc -b complet en pre-commit
 RUN npm run build:app
 
 FROM nginx:1.29-alpine@sha256:5616878291a2eed594aee8db4dade5878cf7edcb475e59193904b198d9b830de

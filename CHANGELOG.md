@@ -43,6 +43,15 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
   127.0.0.1:8765 à l'identique de l'ancienne ; retour arrière par
   `deploy/s2s/ui.sh legacy` (ADR 0012).
 
+### Retiré
+
+- Ancienne interface `frontend/` et son retour arrière (`ui.sh legacy`,
+  `compose.legacy-ui.yaml`, image nginx de repli tirée par `install.sh`) ; elle reste dans
+  l'historique git. Les tests ne visent plus que `web/` (plus d'`ANTARES_UI`) ; les
+  vecteurs dorés relevés sur l'ancienne interface restent la référence des tests
+  unitaires. Code mort retiré de `web/` : composants shadcn inutilisés, icônes et règles
+  CSS de l'ancienne barre du haut.
+
 ### Sécurité
 
 - La page ne peut plus être intégrée dans un site tiers (`frame-ancestors 'none'`,

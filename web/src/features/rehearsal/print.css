@@ -1,6 +1,5 @@
-/* Impression du rapport : le rapport seul, sur fond blanc (frontend/style.css, lignes
-   2102-2163 et 2405-2413). Fenêtres (portails dans body) et visionneuse (#feature-portal,
-   dans #root hors de .app), menu et barre du haut masqués ; !important repris de l'ancienne feuille. */
+/* Impression du rapport : le rapport seul, sur fond blanc. Fenêtres (portails dans body) et visionneuse (#feature-portal,
+   dans #root hors de .app), menu et barre du haut masqués ; !important nécessaire face aux styles de l'écran. */
 @media print {
   @layer components {
     body:has(.app[data-rehearsal="report"]) .app > :not(.rehearsal),

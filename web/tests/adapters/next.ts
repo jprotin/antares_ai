@@ -1,5 +1,5 @@
-// Nouvelle interface (web/) : ossature à menu de gauche, écrans en pages (zone nommée
-// comme l'ancienne fenêtre), sélecteurs Popover + Command. Les méthodes s'appuient sur
+// Interface web/ : ossature à menu de gauche, écrans en pages (zone nommée), sélecteurs
+// Popover + Command. Les méthodes s'appuient sur
 // les rôles et noms accessibles, et sur data-testid là où le DOM l'impose.
 import type { Locator, Page } from "@playwright/test";
 
@@ -42,9 +42,6 @@ const PAGES: Record<
 };
 
 export class NextAdapter implements UiAdapter {
-  // Écrans en pages (menu de gauche) et non en fenêtres
-  readonly pages = true;
-
   constructor(readonly page: Page) {}
 
   // Page Conversation (l'accueil est le tableau de bord)
@@ -84,7 +81,7 @@ export class NextAdapter implements UiAdapter {
       .getByRole("button", { name: new RegExp(label, "i") })
       .first()
       .click();
-    // Recherche seulement pour l'agent (comme l'ancienne interface)
+    // Recherche seulement pour l'agent
     const search = this.page.getByRole("combobox");
     if (await search.count()) await search.fill(name);
     await this.page.getByRole("option", { name }).first().click();
