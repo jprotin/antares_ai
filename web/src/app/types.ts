@@ -1,18 +1,10 @@
 // Contrat du registre des fonctionnalités (critère RF-6) : une fonctionnalité déclare
-// son bouton de barre, ses fenêtres et son panneau ; le socle les rend.
-import type { ComponentType, SVGProps } from "react";
+// sa page (entrée du menu), ses fenêtres et son panneau ; le socle les rend.
+import type { LucideIcon } from "lucide-react";
+import type { ComponentType } from "react";
 
 import type { CallEngine } from "@/engines/realtime/CallEngine";
 import type { CallPlugin } from "@/engines/realtime/plugins";
-
-export type ToolbarItem =
-  | { order: number; render: ComponentType }
-  | {
-      order: number;
-      opens: string;
-      label: string;
-      icon: ComponentType<SVGProps<SVGSVGElement>>;
-    };
 
 export type DialogDef = {
   id: string;
@@ -23,9 +15,35 @@ export type DialogDef = {
   elementId?: string;
 };
 
+// Sous-page d'une entrée du menu (ex. Réglages > Agents) : adresse #/<page>/<path>
+export type SubPageDef = {
+  path: string;
+  title: string;
+  render: ComponentType;
+  // Nom de la zone de la page (titre de l'ancienne fenêtre, ciblé par les tests)
+  label?: string;
+};
+
+// Page de l'application et son entrée dans le menu de gauche (app/AppSidebar.tsx)
+export type PageDef = {
+  path: string;
+  title: string;
+  icon: LucideIcon;
+  // Rang dans sa zone du menu
+  order: number;
+  // Haut du menu, ou pied (Réglages)
+  placement: "main" | "footer";
+  // Contenu de la page ; absent si elle n'a que des sous-pages (la première s'affiche)
+  render?: ComponentType;
+  label?: string;
+  children?: SubPageDef[];
+  // Pastille à côté de l'entrée (nouvelle veille…)
+  badge?: ComponentType;
+};
+
 export type FeatureDef = {
   id: string;
-  toolbar?: ToolbarItem;
+  page?: PageDef;
   dialogs?: DialogDef[];
   // Panneau rendu dans la grille, après la conversation (il gère sa visibilité)
   panel?: ComponentType;

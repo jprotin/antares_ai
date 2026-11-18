@@ -11,6 +11,7 @@ import { createStore } from "zustand/vanilla";
 import type { CallEngine } from "@/engines/realtime/CallEngine";
 import type { CallPlugin } from "@/engines/realtime/plugins";
 import type { ServerEvent } from "@/engines/realtime/protocol";
+import { navigate } from "@/app/router";
 import { deleteResource, detailMessage, getJson } from "@/lib/api";
 import { store } from "@/state/store";
 
@@ -202,9 +203,10 @@ export class RehearsalController {
     }
   }
 
+  // Page Répétition (préparation et historique)
   openSetup() {
     this.setSetup({ error: "" });
-    store.getState().showDialog("rehearsal-setup");
+    navigate("repetition");
     void this.loadSetup();
   }
 

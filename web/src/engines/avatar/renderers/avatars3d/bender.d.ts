@@ -1,4 +1,4 @@
-// Types de bender.js (porté de frontend/, imports three.js npm)
+// Types de bender.js (module JS, imports three.js npm)
 import type { AvatarRenderer } from "../types";
 
 export declare class Bender implements AvatarRenderer {

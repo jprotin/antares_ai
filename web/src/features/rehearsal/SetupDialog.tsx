@@ -1,10 +1,11 @@
 // Préparation d'une répétition et historique (port de openSetup / create / renderHistory,
 // rehearsal.js). Les champs gardent leur valeur d'une ouverture à l'autre, comme le
 // <dialog> de l'ancienne interface.
-import { Dialog } from "radix-ui";
 import { useState, type FormEvent } from "react";
 import { useStore } from "zustand";
 
+import { useSurface } from "@/app/surface";
+import { SurfaceTitle } from "@/components/Surface";
 import { useAppStore } from "@/state/hooks";
 import { store } from "@/state/store";
 
@@ -114,6 +115,7 @@ function History({ history }: { history: HistoryItem[] }) {
 }
 
 export function SetupDialog() {
+  const inDialog = useSurface() === "dialog";
   const { audiences, history, error, starting } = useStore(
     rehearsal.view,
     (state) => state.setup,
@@ -149,9 +151,9 @@ export function SetupDialog() {
     <div id="rehearsal-setup" className="contents" {...{ open: true }}>
       <form className="settings__form" id="rehearsal-form" onSubmit={submit}>
         <header className="settings__header dialog__header">
-          <Dialog.Title asChild>
+          <SurfaceTitle>
             <h2>Répéter une présentation</h2>
-          </Dialog.Title>
+          </SurfaceTitle>
           <p>
             Déroulez votre discours en faisant défiler vos slides : l'IA écoute
             sans rien dire. Elle joue ensuite votre public pour les questions,
@@ -276,14 +278,16 @@ export function SetupDialog() {
           </div>
         </section>
         <footer className="settings__actions dialog__footer">
-          <button
-            type="button"
-            className="button-ghost"
-            id="rehearsal-cancel"
-            onClick={() => store.getState().closeDialog("rehearsal-setup")}
-          >
-            Fermer
-          </button>
+          {inDialog && (
+            <button
+              type="button"
+              className="button-ghost"
+              id="rehearsal-cancel"
+              onClick={() => store.getState().closeDialog("rehearsal-setup")}
+            >
+              Fermer
+            </button>
+          )}
           <button
             type="submit"
             className="button-primary"

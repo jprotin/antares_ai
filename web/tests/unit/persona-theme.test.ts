@@ -1,5 +1,5 @@
-// Consignes du personnage et teinte par agent : mêmes résultats que l'ancienne interface
-// (vecteurs dorés relevés sur les modules legacy : fixtures/persona-theme.json).
+// Consignes du personnage et teinte par agent : vecteurs dorés relevés sur l'ancienne
+// interface (fixtures/persona-theme.json), conservés comme référence.
 import { describe, expect, test } from "vitest";
 
 import golden from "./fixtures/persona-theme.json";

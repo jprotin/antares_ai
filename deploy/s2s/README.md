@@ -19,31 +19,25 @@ docker compose up -d    # ensuite, hors ligne
 
 Interface d'appel : <http://127.0.0.1:8765>
 
-### Interface : nouvelle (`web/`) ou ancienne (`frontend/`)
+### Interface (`web/`)
 
 L'interface servie est construite depuis `web/` (Vite + React, ADR 0012) dans l'image
 `antares/web`, par `install.sh` (étape en ligne, npm). L'ancienne interface (`frontend/`)
-reste disponible pendant la période d'observation :
+a été retirée le 2026-11-18 ; elle reste dans l'historique git.
 
 ```bash
-./ui.sh legacy          # ancienne interface (1 s, sans construction, hors ligne)
-./ui.sh new             # nouvelle interface ; reconstruit l'image si elle est périmée
+./ui.sh new             # reconstruit l'image si elle est périmée
 ./ui.sh new --build     # reconstruction forcée
 ```
 
-- Le choix persiste dans `.env` (`COMPOSE_FILE`) : `docker compose up -d` et `install.sh`
-  le conservent.
 - Après un `git pull` qui touche `web/`, lancer `./ui.sh new` : `docker compose up -d`
   seul ne reconstruit pas l'image. L'image servie porte l'empreinte de `web/` dans
   `/version.json` (champ `rev`), et `ui.sh new` la compare à celle du dépôt.
 - Construction impossible (pas de réseau, registre npm injoignable) : `ui.sh new` échoue
   sans rien changer (interface et `.env` en place) ; `install.sh` échoue avec un message
-  explicite, et `./ui.sh legacy` sert l'ancienne interface en attendant.
+  explicite.
 - Machine sans registre npm : `docker image save antares/web:latest | gzip > web.tar.gz`
   sur une machine en ligne, puis `docker image load < web.tar.gz`.
-- Retour arrière de niveau 2 (annuler la migration dans le dépôt) : `git revert -m 1` du
-  merge sur une branche `bugfix/*` ou `hotfix/*`, puis `./ui.sh legacy`. Pour reprendre
-  la migration ensuite, annuler d'abord ce revert (`git revert <commit du revert>`).
 - Tests de l'interface : `cd ../../web && npm run test:e2e:mock` (voir `web/README.md`) ;
   `check-local.sh` et `smoke-test.sh` ne vérifient pas l'interface.
 
@@ -51,6 +45,13 @@ Les dépendances Python de l'image sont figées dans `constraints.txt` (ensemble
 une reconstruction ne tire aucune nouvelle version. `qwentts-cpp-python` 0.4.2 plante sur
 le poste de dev (« Illegal instruction ») ; pour monter de version, reconstruire, passer
 `./smoke-test.sh`, puis régénérer le fichier (`uv pip freeze` dans le conteneur).
+
+Ossature (ADR 0015) : menu accordéon à gauche (repliable en icônes, tiroir sur
+téléphone) avec **Accueil** (tableau de bord : météo, assistant, top 5 du jour et de la
+semaine, idées du jour, dernière répétition), **Conversation**, **Répétition**,
+**Actualités** et, en pied de menu, **Réglages** (Général, Agents, Connexions, Projets
+RAG, Connaissances). Chaque page a son adresse (`#/reglages/agents`) ; un appel continue
+quand on change de page, et le menu permet de raccrocher de partout.
 
 Navigateur recommandé : **Firefox**. Sous Chrome, la voix se dégrade au fil d'un appel
 laissé ouvert (constaté sur le poste de dev ; l'audio envoyé par le serveur reste net).
@@ -99,7 +100,7 @@ Stockage : `/data/documents` (volume `antares-router-data`).
 
 ## Répéter une présentation
 
-Bouton **Répéter une présentation** (icône tableau, en haut de l'écran d'appel) : titre,
+Page **Répétition** du menu : titre,
 slides en **PDF** (export depuis PowerPoint, Keynote ou Google Slides ; 80 slides,
 15 Mo au plus), public (client exigeant, jury, conférence, comité de direction, ou un
 de vos agents), nombre de questions, objectif et durée visée facultatifs.
@@ -221,7 +222,7 @@ bloc pour une question banale). Le code s'affiche à la fin de la réponse vocal
 
 ## Changer de modèle ou de voix
 
-Depuis l'interface : bouton **Réglages** (roue dentée). Le choix est appliqué dès la
+Depuis l'interface : **Réglages > Général** (pied du menu). Le choix est appliqué dès la
 phrase suivante, même en cours d'appel, et persisté par le routeur LLM.
 
 - **Modèle** : la liste est construite à la volée à partir des **fournisseurs** déclarés
@@ -360,7 +361,7 @@ L'agent utilisé s'affiche sous la réponse.
   mode, puis agent, puis documentation) et place en tête les agents utiles à ce mode.
 - **Nuance** : la couleur de l'interface et de l'orbe suit le domaine de l'agent actif,
   par petits décalages de teinte autour du bleu de base.
-- **Thème** : bouton à côté de la roue dentée — système, sombre ou clair (mémorisé
+- **Thème** : bouton en haut à droite — système, sombre ou clair (mémorisé
   dans le navigateur).
 - **Avatar** (Réglages), mémorisé dans le navigateur ; modèles 3D originaux
   (three.js/WebGL, `frontend/face3d.js` et `frontend/avatars3d/`), rendus à 30 images/s
@@ -464,9 +465,9 @@ langue, extrait du site, une phrase en français, écartée si elle cite un nom 
 mot : `digest.check_summaries`) puis **6 idées** de fonctionnalités pour Antares, contrôlées contre
 `FEATURES.md` (racine du dépôt) et les idées rejetées. La **météo** (Open-Meteo, sans clé)
 est relevée à chaque passage : temps actuel illustré, mini et maxi, pluie, vent et
-12 prochaines heures. Tout se lit dans l'interface : bouton « journal » à côté des
-Réglages, avec une pastille quand un passage est plus récent que la dernière ouverture ;
-fenêtre plein écran, lisible sur téléphone, avec les passages précédents (30 jours gardés).
+12 prochaines heures. Tout se lit dans l'interface : page **Actualités** du menu, avec
+une pastille quand un passage est plus récent que la dernière ouverture ; page pleine
+largeur, lisible sur téléphone, avec les passages précédents (30 jours gardés).
 Les boutons ‹ › passent d'un passage du jour à l'autre (le dernier à l'ouverture) ;
 « Toute la journée » les additionne sans doublon dans l'onglet « À la une » ;
 l'onglet **« Tous les articles »** liste les articles lus mais non retenus par le modèle
@@ -567,7 +568,7 @@ docker compose run --rm antares-tasks schedule          # prochains passages, ma
   articles, cités d'abord) ; l'avatar raconte, donne son avis et demande le tien, sans
   lire. La recherche web n'est alors faite que si tu la demandes (« cherche sur
   internet »).
-- **Journal** : mini-fenêtre de l'avatar en haut à gauche de la Veille, bouton
+- **Journal** : mini-fenêtre de l'avatar en haut à gauche de la page Actualités, bouton
   « Lancer le journal » (ou « fais-moi le journal » en appel). L'avatar ouvre sur la
   météo puis présente 5 sujets (aimés d'abord, une catégorie différente tant que
   possible, jamais un article rejeté), donne son avis et attend le tien, rebondit, puis
@@ -578,7 +579,6 @@ docker compose run --rm antares-tasks schedule          # prochains passages, ma
   et le sujet du moment, dans une note de régie collée au dernier message (un petit
   modèle se perd sinon). Le sujet présenté est marqué « À l'antenne » dans la liste.
   Disponible pendant un partage (lecture seule).
-- **Ancienne interface** (`ui.sh legacy`) : pas de veille (nouvelle interface seulement).
 - `FEATURES.md` doit exister avant le premier `docker compose up` (sinon Docker crée un
   dossier à sa place) ; le tenir à jour à chaque fin de feature, sous 4 000 caractères :
   une idée qui y figure déjà n'est plus proposée.

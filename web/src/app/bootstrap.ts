@@ -9,6 +9,7 @@ import { store } from "@/state/store";
 import { loadDocuments } from "@/features/attachments";
 
 import { features } from "./features";
+import { startRouter } from "./router";
 import type { FeatureDef } from "./types";
 import { avatar, engine } from "./runtime";
 
@@ -76,6 +77,7 @@ export function registerCallPlugins(
 
 export function bootstrap() {
   registerCallPlugins(features, engine);
+  startRouter();
   const state = store.getState();
   loadDocuments().catch((error) =>
     console.warn("Documents joints indisponibles", error),

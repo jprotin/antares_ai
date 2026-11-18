@@ -37,6 +37,8 @@ export default tseslint.config(
       "playwright-report",
       "coverage",
       "src/components/ui",
+      // Généré par le CLI shadcn (sidebar), gardé tel quel
+      "src/hooks/use-mobile.ts",
     ],
   },
   {

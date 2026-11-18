@@ -6,6 +6,12 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
 ### Ajouté
 
+- Ossature à menu et pages (ADR 0015) : menu accordéon à gauche (shadcn Sidebar,
+  repliable, tiroir sur mobile) avec Accueil, Conversation, Répétition, Actualités et
+  Réglages en pied ; une adresse par page (`#/reglages/agents`) ; tableau de bord
+  d'accueil (météo, assistant, top 5 du jour et de la semaine, idées, dernière
+  répétition) ; l'appel continue d'une page à l'autre. Les icônes de la barre du haut
+  (Répétition, Veille, Réglages) sont remplacées par le menu.
 - Veille IA et météo (ADR 0013) : service `antares-tasks` qui lit des flux RSS et Atom à
   8 h, 13 h et 18 h, fait résumer les nouveautés et proposer des idées par le modèle des
   Réglages, relève la météo à chaque passage ; bouton avec pastille et fenêtre plein
@@ -36,6 +42,15 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 - Interface web réécrite en Vite + React + shadcn/ui + TypeScript (`web/`), servie sur
   127.0.0.1:8765 à l'identique de l'ancienne ; retour arrière par
   `deploy/s2s/ui.sh legacy` (ADR 0012).
+
+### Retiré
+
+- Ancienne interface `frontend/` et son retour arrière (`ui.sh legacy`,
+  `compose.legacy-ui.yaml`, image nginx de repli tirée par `install.sh`) ; elle reste dans
+  l'historique git. Les tests ne visent plus que `web/` (plus d'`ANTARES_UI`) ; les
+  vecteurs dorés relevés sur l'ancienne interface restent la référence des tests
+  unitaires. Code mort retiré de `web/` : composants shadcn inutilisés, icônes et règles
+  CSS de l'ancienne barre du haut.
 
 ### Sécurité
 

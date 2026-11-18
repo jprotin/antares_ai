@@ -104,7 +104,6 @@ test.describe("réponse écrite @mock @ecrit @lot3", () => {
   });
 
   test.describe("injection", () => {
-    test.use({ allowLegacyCsp: true });
     test("MD-2 : injection HTML nettoyée", async ({ page, ui, guards }) => {
       const hostile =
         '<img src=x onerror="window.__pwned=1"><script>window.__pwned=2</script>Texte sûr';
@@ -127,19 +126,12 @@ test.describe("réponse écrite @mock @ecrit @lot3", () => {
       await expect(ui.lastAssistantLine().locator("img, script")).toHaveCount(
         0,
       );
-      // L'analyse de DOMPurify déclenche script-src-attr sur l'ancienne interface (bloqué,
-      // sans effet) ; la nouvelle retire les gestionnaires avant l'analyse
-      const violations = await guards.csp();
-      if (process.env.ANTARES_UI === "next") expect(violations).toEqual([]);
-      else
-        expect(violations.every((v) => v.directive === "script-src-attr")).toBe(
-          true,
-        );
+      // Gestionnaires retirés avant l'analyse de DOMPurify : aucune violation CSP
+      expect(await guards.csp()).toEqual([]);
     });
   });
 
   test.describe("amélioration", () => {
-    test.use({ allowLegacyCsp: true });
     test("MD-3 : attribut style d'une réponse sans violation CSP", async ({
       page,
       ui,
@@ -161,12 +153,7 @@ test.describe("réponse écrite @mock @ecrit @lot3", () => {
         type: "csp",
         description: `${violations.length} violation(s)`,
       });
-      if (process.env.ANTARES_UI === "next") expect(violations).toEqual([]);
-      else
-        expect(
-          violations.length,
-          "KO attendu sur l'ancienne interface",
-        ).toBeGreaterThan(0);
+      expect(violations).toEqual([]);
     });
   });
 });

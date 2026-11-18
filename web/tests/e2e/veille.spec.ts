@@ -8,8 +8,9 @@ import { readFileSync } from "node:fs";
 
 import type { Page } from "@playwright/test";
 
+import { openPage } from "../support/menu";
 import { MockApi } from "../support/mock-api";
-import { expect, isLegacy, test } from "../support/test";
+import { expect, test } from "../support/test";
 
 const LATEST = JSON.parse(
   readFileSync(
@@ -34,7 +35,6 @@ const NET = JSON.parse(
 );
 const STORAGE_KEY = "antares.veille.lastOpened";
 const RUN = LATEST.run;
-const LABEL = /^Veille IA et météo/;
 
 type Run = typeof RUN;
 type Item = (typeof RUN.items)[number];
@@ -61,13 +61,23 @@ async function openedAt9(page: Page) {
   }, STORAGE_KEY);
 }
 
-const button = (page: Page) => page.getByRole("button", { name: LABEL });
+// Page Actualités (menu de gauche), pastille de son entrée
+const button = (page: Page) =>
+  page
+    .locator('[data-slot="sidebar"]')
+    .getByRole("link", { name: "Actualités", exact: true });
 const dialog = (page: Page) =>
-  page.getByRole("dialog", { name: "Veille IA et météo" });
-const badge = (page: Page) => page.locator("#open-veille .veille-badge");
+  page.getByRole("region", { name: "Veille IA et météo", exact: true });
+const badge = (page: Page) => page.getByTestId("veille-fresh");
+
+// Quitte la page Actualités (retour à la Conversation)
+async function closeVeille(page: Page) {
+  await openPage(page, "Conversation");
+  await expect(dialog(page)).toHaveCount(0);
+}
 
 async function openVeille(page: Page) {
-  await button(page).click();
+  await openPage(page, "Actualités");
   await expect(dialog(page)).toBeVisible();
   await expect(page.locator(".veille__body")).toHaveAttribute(
     "aria-busy",
@@ -94,7 +104,6 @@ async function noHorizontalScroll(page: Page, before: number) {
 }
 
 test.describe("veille IA et météo @mock @veille", () => {
-  test.skip(isLegacy(), "veille absente de l'ancienne interface");
   // Fenêtre mesurée sans l'animation d'ouverture (mise à l'échelle)
   test.beforeEach(async ({ page }) => {
     await page.emulateMedia({ reducedMotion: "reduce" });
@@ -109,9 +118,7 @@ test.describe("veille IA et météo @mock @veille", () => {
       await new MockApi(page).install();
       await ui.goto();
       await expect(badge(page)).toBeVisible();
-      await expect(button(page)).toHaveAccessibleName(
-        "Veille IA et météo (nouvelle veille disponible)",
-      );
+      await expect(badge(page)).toHaveText("Nouvelle veille disponible");
     });
 
     test("E-02 : ouvrir puis fermer efface la pastille, même après rechargement", async ({
@@ -123,8 +130,7 @@ test.describe("veille IA et météo @mock @veille", () => {
       await ui.goto();
       await expect(badge(page)).toBeVisible();
       await openVeille(page);
-      await dialog(page).getByRole("button", { name: "Fermer" }).click();
-      await expect(dialog(page)).toHaveCount(0);
+      await closeVeille(page);
       await expect(badge(page)).toHaveCount(0);
       await page.reload();
       await page.getByTestId("app").waitFor();
@@ -163,7 +169,7 @@ test.describe("veille IA et météo @mock @veille", () => {
       const api = await new MockApi(page).install();
       await ui.goto();
       await openVeille(page);
-      await page.keyboard.press("Escape");
+      await closeVeille(page);
       await expect(badge(page)).toHaveCount(0);
       const later = new Date(Date.now() + 3_600_000).toISOString();
       api.set("veille/latest", withRun({ id: 4, finished_at: later }));
@@ -190,13 +196,13 @@ test.describe("veille IA et météo @mock @veille", () => {
     });
   });
 
-  test.describe("fenêtre plein écran", () => {
+  test.describe("page pleine largeur", () => {
     for (const [width, height] of [
       [375, 667],
       [768, 1024],
       [1440, 900],
     ] as const) {
-      test(`E-10/E-11 : ${width} × ${height}, plein écran sans défilement horizontal`, async ({
+      test(`E-10/E-11 : ${width} × ${height}, toute la largeur de la page sans défilement horizontal`, async ({
         page,
         ui,
       }) => {
@@ -206,14 +212,17 @@ test.describe("veille IA et météo @mock @veille", () => {
         const before = await rootScrollWidth(page);
         await openVeille(page);
         await noHorizontalScroll(page, before);
+        // Toute la largeur de la page (à droite du menu)
         const box = await dialog(page).boundingBox();
-        expect(Math.abs((box?.width ?? 0) - width)).toBeLessThanOrEqual(1);
-        expect(Math.abs((box?.height ?? 0) - height)).toBeLessThanOrEqual(1);
-        // Contenu centré, largeur bornée
+        const area = await page.locator(".shell__page").boundingBox();
+        expect(
+          Math.abs((box?.width ?? 0) - (area?.width ?? 0)),
+        ).toBeLessThanOrEqual(1);
+        // Contenu centré dans la page, largeur bornée
         const body = await page.locator(".veille__body").boundingBox();
         expect(body?.width ?? 0).toBeLessThanOrEqual(76 * 16 + 1);
-        const left = body?.x ?? 0;
-        const right = width - left - (body?.width ?? 0);
+        const left = (body?.x ?? 0) - (area?.x ?? 0);
+        const right = (area?.width ?? 0) - left - (body?.width ?? 0);
         expect(Math.abs(left - right)).toBeLessThanOrEqual(20);
       });
     }
@@ -293,7 +302,7 @@ test.describe("veille IA et météo @mock @veille", () => {
       await expect(dialog(page).locator(".veille__errors li")).toHaveText([
         "Flux Hacker News indisponible",
       ]);
-      await page.keyboard.press("Escape");
+      await closeVeille(page);
       api.set(
         "veille/latest",
         withRun({
@@ -427,29 +436,24 @@ test.describe("veille IA et météo @mock @veille", () => {
       await expect(dialog(page).locator(".weather-art")).toHaveCount(0);
     });
 
-    test("E-18 : en-tête collant, fermeture par Échap et par le bouton, focus rendu", async ({
-      page,
-      ui,
-    }) => {
+    test("E-18 : en-tête collant en haut de la page", async ({ page, ui }) => {
       await page.setViewportSize({ width: 375, height: 667 });
       await new MockApi(page).install();
       await ui.goto();
       await openVeille(page);
-      await page.locator("#veille").evaluate((panel) => {
-        panel.scrollTop = panel.scrollHeight;
+      await page.locator(".shell__page").evaluate((scroller) => {
+        scroller.scrollTop = scroller.scrollHeight;
       });
       const header = await page.locator(".veille__header").boundingBox();
-      expect(Math.abs(header?.y ?? 99)).toBeLessThanOrEqual(1);
+      const bar = await page
+        .locator('[data-slot="sidebar-inset"] > header')
+        .boundingBox();
+      expect(
+        Math.abs((header?.y ?? 99) - ((bar?.y ?? 0) + (bar?.height ?? 0))),
+      ).toBeLessThanOrEqual(1);
       await expect(
-        dialog(page).getByRole("button", { name: "Fermer" }),
+        dialog(page).getByRole("button", { name: "Nouveau passage" }),
       ).toBeInViewport();
-      await page.keyboard.press("Escape");
-      await expect(dialog(page)).toHaveCount(0);
-      await expect(page.locator("#open-veille")).toBeFocused();
-      await openVeille(page);
-      await dialog(page).getByRole("button", { name: "Fermer" }).click();
-      await expect(dialog(page)).toHaveCount(0);
-      await expect(page.locator("#open-veille")).toBeFocused();
     });
 
     test("E-19 : dernier passage réussi et créneaux manqués", async ({
@@ -798,7 +802,7 @@ test.describe("veille IA et météo @mock @veille", () => {
       await ui.goto();
       await openVeille(page);
       await expect(dialog(page).locator(".veille-tag--new")).toHaveCount(20);
-      await page.keyboard.press("Escape");
+      await closeVeille(page);
       await openVeille(page);
       await expect(dialog(page).locator(".veille-tag--new")).toHaveCount(0);
     });

@@ -1,5 +1,6 @@
 // Scène de l'appel (colonne gauche) : nom de l'assistant, statut, avatar, bouton
-// Appeler/Raccrocher, demi-duplex, modèles utilisés
+// Appeler/Raccrocher, demi-duplex, modèles utilisés. La sortie audio est dans l'ossature
+// (app/AppShell.tsx) : l'appel continue quand on change de page.
 import { useEffect, useRef } from "react";
 
 import { avatar, engine } from "@/app/runtime";
@@ -49,16 +50,6 @@ export function CallStage() {
   const status = useAppStore((state) => state.status);
   const halfDuplex = useAppStore((state) => state.halfDuplex);
   const name = useAppStore((state) => currentVoice(state)?.name ?? "Antares");
-  const speaker = useRef<HTMLAudioElement>(null);
-
-  useEffect(() => {
-    document.title = `${name} · Antares`;
-  }, [name]);
-
-  useEffect(() => {
-    engine.attachSpeaker(speaker.current);
-    return () => engine.attachSpeaker(null);
-  }, []);
 
   return (
     <>
@@ -101,7 +92,6 @@ export function CallStage() {
         </label>
       </div>
       <ModelInfo />
-      <audio ref={speaker} autoPlay hidden data-testid="speaker" />
     </>
   );
 }

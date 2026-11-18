@@ -1,7 +1,6 @@
 // Connexions (port de connections.js) : fournisseurs de modèles (Ollama, LiteLLM, API
 // compatibles OpenAI), modèle de repli, puis services (RAG, recherche, Claude, MCP).
 // Les clés d'API restent côté routeur : l'interface ne sait que si une clé est définie.
-import { Dialog } from "radix-ui";
 import {
   useCallback,
   useEffect,
@@ -10,6 +9,7 @@ import {
   type FormEvent,
 } from "react";
 
+import { SurfaceClose, SurfaceTitle } from "@/components/Surface";
 import { saveSetting } from "@/app/bootstrap";
 import { deleteResource, getJson, sendJson } from "@/lib/api";
 import { modelLabel, type ModelEntry } from "@/lib/labels";
@@ -456,9 +456,9 @@ export function ConnectionsDialog() {
   return (
     <div className="settings__form">
       <header className="settings__header dialog__header">
-        <Dialog.Title asChild>
+        <SurfaceTitle>
           <h2>Connexions</h2>
-        </Dialog.Title>
+        </SurfaceTitle>
         <p>
           Fournisseurs de modèles : Ollama (sur cette machine ou ailleurs),
           LiteLLM ou toute API compatible OpenAI. Leurs modèles apparaissent
@@ -561,7 +561,7 @@ export function ConnectionsDialog() {
       )}
 
       <footer className="settings__actions dialog__footer">
-        <Dialog.Close asChild>
+        <SurfaceClose>
           <button
             type="button"
             className="button-primary"
@@ -569,7 +569,7 @@ export function ConnectionsDialog() {
           >
             Fermer
           </button>
-        </Dialog.Close>
+        </SurfaceClose>
       </footer>
     </div>
   );

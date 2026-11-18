@@ -51,7 +51,7 @@ test.describe("avatars @mock @avatars @lot4", () => {
     await expect(orbVoices.locator('input[name="voice"]')).toHaveCount(2);
     await orbVoices.locator('input[name="voice"][value="sohee"]').check();
     await dialog.getByRole("button", { name: "Appliquer" }).click();
-    await expect.poll(() => ui.isDialogOpen("settings")).toBe(false);
+    await ui.waitApplied();
     expect(voiceWrites(api)).toEqual(["sohee"]);
     expect(
       await page.evaluate(() => localStorage.getItem("antares-avatar")),
@@ -114,7 +114,7 @@ test.describe("avatars @mock @avatars @lot4", () => {
     // Un avatar 3D choisi retombe sur l'orbe
     await dialog.locator('input[name="avatar"][value="visor"]').check();
     await dialog.getByRole("button", { name: "Appliquer" }).click();
-    await expect.poll(() => ui.isDialogOpen("settings")).toBe(false);
+    await ui.waitApplied();
     expect(
       await page.evaluate(() => localStorage.getItem("antares-avatar")),
     ).toBe("orb");
@@ -154,7 +154,9 @@ test.describe("avatars @mock @avatars @lot4", () => {
         .locator(`input[name="avatar"][value="${kinds[i % kinds.length]}"]`)
         .check();
       await dialog.getByRole("button", { name: "Appliquer" }).click();
-      await expect.poll(() => ui.isDialogOpen("settings")).toBe(false);
+      await ui.waitApplied();
+      // En page, l'avatar n'est affiché qu'en revenant à la Conversation
+      await ui.closeDialog("settings", "button");
     }
     // Les rendus 3D ont bien été créés (sinon le test ne prouverait rien)
     expect(
@@ -172,8 +174,6 @@ test.describe("avatars @mock @avatars @lot4", () => {
       type: "contextes WebGL vivants",
       description: String(alive),
     });
-    if (process.env.ANTARES_UI === "next") expect(alive).toBeLessThanOrEqual(1);
-    else
-      expect(alive, "KO attendu sur l'ancienne interface").toBeGreaterThan(1);
+    expect(alive).toBeLessThanOrEqual(1);
   });
 });

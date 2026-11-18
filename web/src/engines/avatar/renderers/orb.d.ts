@@ -1,4 +1,4 @@
-// Types de orb.js (porté tel quel de frontend/orb.js)
+// Types de orb.js (module JS, sans types)
 import type { AvatarRenderer } from "./types";
 
 export declare class Orb implements AvatarRenderer {

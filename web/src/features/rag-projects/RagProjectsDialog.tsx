@@ -1,9 +1,9 @@
 // Projets du RAG intégré (port de ragprojects.js) : documentation déposée ici (Markdown,
 // texte, code, PDF, Word), découpée et indexée par le service rag d'antares. Réservé au
 // mode « RAG intégré » des Connexions : le RAG d'ai-to-boost s'alimente par ses outils.
-import { Dialog } from "radix-ui";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { SurfaceClose, SurfaceTitle } from "@/components/Surface";
 import { detailMessage, getJson } from "@/lib/api";
 import { store } from "@/state/store";
 
@@ -201,9 +201,9 @@ export function RagProjectsDialog() {
   return (
     <div className="settings__form">
       <header className="settings__header dialog__header">
-        <Dialog.Title asChild>
+        <SurfaceTitle>
           <h2>Projets du RAG intégré</h2>
-        </Dialog.Title>
+        </SurfaceTitle>
         <p>
           Documentation de tes projets, consultée quand le projet est choisi
           dans les Réglages ou cité dans la question. Markdown, texte, code, PDF
@@ -321,7 +321,7 @@ export function RagProjectsDialog() {
         ))}
       </div>
       <footer className="settings__actions dialog__footer">
-        <Dialog.Close asChild>
+        <SurfaceClose>
           <button
             type="button"
             className="button-primary"
@@ -329,7 +329,7 @@ export function RagProjectsDialog() {
           >
             Fermer
           </button>
-        </Dialog.Close>
+        </SurfaceClose>
       </footer>
     </div>
   );

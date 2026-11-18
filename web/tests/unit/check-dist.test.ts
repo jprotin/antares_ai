@@ -72,7 +72,7 @@ describe("check-dist", () => {
       "capture-worklet.js": "registerProcessor('b', B);",
     });
     expect(checkDist(changed, { ...options, worklet })).toEqual([
-      "capture-worklet.js différent de frontend/",
+      "capture-worklet.js différent de public/",
     ]);
   });
 

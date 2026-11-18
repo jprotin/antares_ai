@@ -1,7 +1,7 @@
 # Interface antares (Vite + React + shadcn/ui)
 
 Interface servie sur 127.0.0.1:8765 depuis la bascule du 2026-10-19 (ADR 0012) ; l'ancienne,
-`frontend/`, reste disponible par `deploy/s2s/ui.sh legacy`. Fichiers
+`frontend/`, a été retirée le 2026-11-18 (historique git). Fichiers
 statiques servis par nginx, avec la CSP actuelle (`script-src 'self'`, `style-src 'self'`).
 
 ## Commandes

@@ -1,12 +1,5 @@
-// Implémentations comparées par les tables de caractérisation (stratégie de tests, 3.1) :
-// l'ancien module tel quel, puis le nouveau dès qu'il existe (lots 2, 3 et 6).
-// @ts-expect-error module JS de l'ancienne interface, sans types
-import * as legacyGate from "../../../frontend/noise-gate.js";
-// @ts-expect-error idem
-import * as legacySettings from "../../../frontend/settings.js";
-// @ts-expect-error idem
-import * as legacyTheme from "../../../frontend/theme.js";
-
+// Implémentations vérifiées par les tables de caractérisation (stratégie de tests, 3.1),
+// dont les vecteurs dorés ont été relevés sur l'ancienne interface.
 import { hueFor } from "@/engines/theme/theme";
 import {
   createNoiseGate,
@@ -38,20 +31,14 @@ export type Implementation = {
 
 export const implementations: Implementation[] = [
   {
-    name: "legacy",
-    hueFor: legacyTheme.hueFor,
-    instructionsFor: legacySettings.instructionsFor,
-    writtenInstructionsFor: legacySettings.writtenInstructionsFor,
-  },
-  {
-    name: "next",
+    name: "web",
     hueFor,
     instructionsFor,
     writtenInstructionsFor,
   },
 ];
 
-// Filtre de bruit : ancien module et port de la Répétition (lot 6)
+// Filtre de bruit de la Répétition
 export type NoiseGateImplementation = {
   name: string;
   createNoiseGate(): NoiseGate;
@@ -59,10 +46,5 @@ export type NoiseGateImplementation = {
 };
 
 export const noiseGateImplementations: NoiseGateImplementation[] = [
-  {
-    name: "legacy",
-    createNoiseGate: legacyGate.createNoiseGate,
-    storedFilter: legacyGate.storedFilter,
-  },
-  { name: "next", createNoiseGate, storedFilter },
+  { name: "web", createNoiseGate, storedFilter },
 ];

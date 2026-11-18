@@ -1,8 +1,8 @@
 // Panneau Connaissances (port de renderCards, knowledge.js) : fiches indexées par projet,
 // obsolescence et suppression (avec confirmation)
-import { Dialog } from "radix-ui";
 import { useCallback, useEffect, useState } from "react";
 
+import { SurfaceClose, SurfaceTitle } from "@/components/Surface";
 import { deleteResource, getJson, sendJson } from "@/lib/api";
 
 import type { Card } from "./knowledge";
@@ -106,9 +106,9 @@ export function KnowledgePanelDialog() {
   return (
     <div className="settings__form">
       <header className="settings__header dialog__header">
-        <Dialog.Title asChild>
+        <SurfaceTitle>
           <h2>Connaissances</h2>
-        </Dialog.Title>
+        </SurfaceTitle>
         <p>Fiches indexées dans le RAG, par projet.</p>
       </header>
       <div className="agents__list" id="knowledge-cards">
@@ -142,11 +142,11 @@ export function KnowledgePanelDialog() {
         ))}
       </div>
       <footer className="settings__actions dialog__footer">
-        <Dialog.Close asChild>
+        <SurfaceClose>
           <button type="button" className="button-primary" id="knowledge-close">
             Fermer
           </button>
-        </Dialog.Close>
+        </SurfaceClose>
       </footer>
     </div>
   );

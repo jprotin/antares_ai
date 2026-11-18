@@ -2,7 +2,7 @@
 // - aucun script ni style en ligne dans le HTML, aucun attribut style= ou on*= ;
 // - aucune URL data: (le build garde les ressources en fichiers, assetsInlineLimit 0) ;
 // - toute URL absolue http(s) figure dans scripts/url-allowlist.txt ;
-// - le worklet du micro est copié tel quel depuis frontend/ (hors bundle, non haché).
+// - le worklet du micro est copié tel quel depuis public/ (hors bundle, non haché).
 //   node scripts/check-dist.mjs [dist]
 import { createHash } from "node:crypto";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
@@ -72,7 +72,7 @@ export function checkDist(dist, { allowlist, worklet }) {
   if (worklet && existsSync(worklet)) {
     if (!existsSync(built)) problems.push("capture-worklet.js absent");
     else if (sha256(built) !== sha256(worklet))
-      problems.push("capture-worklet.js différent de frontend/");
+      problems.push("capture-worklet.js différent de public/");
   }
   return [...new Set(problems)];
 }
@@ -82,10 +82,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const dist = process.argv[2] ?? join(web, "dist");
   const problems = checkDist(dist, {
     allowlist: readAllowlist(join(web, "scripts/url-allowlist.txt")),
-    // Référence : l'ancienne interface (absente de l'image Docker : contrôle sauté)
-    worklet: existsSync(join(web, "public/capture-worklet.js"))
-      ? join(web, "../frontend/capture-worklet.js")
-      : "",
+    worklet: join(web, "public/capture-worklet.js"),
   });
   if (problems.length) {
     console.error(`check-dist : ${problems.length} problème(s)`);

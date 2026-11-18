@@ -1,8 +1,7 @@
-// Adaptateur par interface (stratégie de tests, 4.3) : absorbe les différences de DOM
-// entre l'ancienne interface (frontend/) et la nouvelle (web/). Aucune assertion ici.
+// Adaptateur de l'interface (stratégie de tests, 4.3) : les specs passent par lui plutôt
+// que par le DOM, qui peut changer sans les toucher. Aucune assertion ici.
 import type { Locator, Page } from "@playwright/test";
 
-import { LegacyAdapter } from "./legacy";
 import { NextAdapter } from "./next";
 
 export type DialogName =
@@ -23,6 +22,8 @@ export interface UiAdapter {
   openDialog(name: DialogName): Promise<void>;
   closeDialog(name: DialogName, how: CloseHow): Promise<void>;
   isDialogOpen(name: DialogName): Promise<boolean>;
+  // Réglages appliqués : la page le confirme
+  waitApplied(): Promise<void>;
   pickAgent(name: string): Promise<void>;
   pickMode(name: string): Promise<void>;
   toggleTheme(): Promise<void>;
@@ -46,7 +47,5 @@ export interface UiAdapter {
 }
 
 export function adapterFor(page: Page): UiAdapter {
-  return process.env.ANTARES_UI === "next"
-    ? new NextAdapter(page)
-    : new LegacyAdapter(page);
+  return new NextAdapter(page);
 }

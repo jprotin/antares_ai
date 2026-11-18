@@ -1,5 +1,5 @@
 // Rendu des réponses écrites : Markdown → HTML nettoyé, code coloré avec bouton Copier,
-// liens externes signalés « à vérifier » (port de frontend/render.js). FORBID_ATTR
+// liens externes signalés « à vérifier ». FORBID_ATTR
 // style : la CSP bloque déjà l'attribut, on évite ainsi la violation remontée.
 import DOMPurify from "dompurify";
 import hljs from "highlight.js/lib/common";

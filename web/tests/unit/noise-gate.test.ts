@@ -1,4 +1,4 @@
-// Filtre du bruit (stratégie de tests, 3.2) : même table pour l'ancien et le nouveau module.
+// Filtre du bruit (stratégie de tests, 3.2) : table de caractérisation du module.
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 import { noiseGateImplementations } from "./implementations";

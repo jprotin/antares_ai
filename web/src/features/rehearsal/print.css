@@ -1,11 +1,14 @@
-/* Impression du rapport : le rapport seul, sur fond blanc (frontend/style.css, lignes
-   2102-2163 et 2405-2413). Fenêtres (portails dans body) et visionneuse (#feature-portal,
-   dans #root hors de .app) masquées ; !important repris de l'ancienne feuille. */
+/* Impression du rapport : le rapport seul, sur fond blanc. Fenêtres (portails dans body) et visionneuse (#feature-portal,
+   dans #root hors de .app), menu et barre du haut masqués ; !important nécessaire face aux styles de l'écran. */
 @media print {
   @layer components {
     body:has(.app[data-rehearsal="report"]) .app > :not(.rehearsal),
     body:has(.app[data-rehearsal="report"]) > :not(#root),
     body:has(.app[data-rehearsal="report"]) #feature-portal,
+    body:has(.app[data-rehearsal="report"]) [data-slot="sidebar"],
+    body:has(.app[data-rehearsal="report"])
+      [data-slot="sidebar-inset"]
+      > header,
     .app[data-rehearsal="report"] .rehearsal__bar,
     .app[data-rehearsal="report"] .rehearsal__caption,
     .app[data-rehearsal="report"] .report__controls {
@@ -15,6 +18,15 @@
       display: block;
       height: auto;
       padding: 0;
+    }
+    /* Ossature (menu, page qui défile) : hauteur et défilement libérés pour l'impression */
+    body:has(.app[data-rehearsal="report"]) [data-slot="sidebar-wrapper"],
+    body:has(.app[data-rehearsal="report"]) [data-slot="sidebar-inset"],
+    body:has(.app[data-rehearsal="report"]) .shell__page {
+      display: block !important;
+      height: auto !important;
+      min-height: 0 !important;
+      overflow: visible !important;
     }
     .app[data-rehearsal="report"] .rehearsal,
     .app[data-rehearsal="report"] .report {

@@ -1,5 +1,5 @@
-/* Fenêtre Réglages : options, voix de l'orbe, aide, erreurs (frontend/style.css, lignes
-   776-863, 884-920, 1418-1421, 1557-1568) ; fond de fenêtre dans app/dialogs.css. */
+/* Réglages : options, voix de l'orbe, aide, erreurs ; fond de fenêtre dans
+   app/dialogs.css. */
 @layer components {
   .settings {
     width: min(34rem, calc(100vw - 32px));
@@ -137,7 +137,7 @@
     display: none;
   }
 
-  /* Groupes de modèles par fournisseur (frontend/style.css, lignes 1571-1581) */
+  /* Groupes de modèles par fournisseur */
   .option__group {
     margin: 0.4rem 0 0;
     color: var(--muted-text);
