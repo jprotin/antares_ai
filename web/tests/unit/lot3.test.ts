@@ -23,6 +23,8 @@ import { createAppStore } from "@/state/store";
 
 vi.mock("@/app/runtime", () => ({ avatar: {}, engine: {} }));
 vi.mock("@/features/attachments", () => ({ loadDocuments: vi.fn() }));
+// Registre vide : les pages (conversation, Markdown) ne se chargent pas sous Node
+vi.mock("@/app/features", () => ({ features: [] }));
 
 describe("lignes de la conversation", () => {
   test("test_writeLine_partiel_puis_final_avec_ajout", () => {

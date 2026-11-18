@@ -1,22 +1,19 @@
-// REGISTRE : seul fichier partagé touché pour brancher une fonctionnalité
+// REGISTRE : seul fichier partagé touché pour brancher une fonctionnalité (page et entrée
+// du menu, fenêtres, panneau, plugin d'appel)
 import type { FeatureDef } from "./types";
 
-import { agentsFeature } from "@/features/agents";
-import { connectionsFeature } from "@/features/connections";
+import { callFeature } from "@/features/call";
+import { homeFeature } from "@/features/home";
 import { knowledgeFeature } from "@/features/knowledge";
-import { ragProjectsFeature } from "@/features/rag-projects";
 import { rehearsalFeature } from "@/features/rehearsal";
 import { settingsFeature } from "@/features/settings";
-import { themeFeature } from "@/features/theme";
 import { veilleFeature } from "@/features/veille";
 
 export const features: FeatureDef[] = [
-  themeFeature,
-  settingsFeature,
-  agentsFeature,
-  connectionsFeature,
-  knowledgeFeature,
-  ragProjectsFeature,
+  homeFeature,
+  callFeature,
   rehearsalFeature,
   veilleFeature,
+  settingsFeature,
+  knowledgeFeature,
 ];

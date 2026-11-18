@@ -1,7 +1,6 @@
 // Réglages (port de initSettingsDialog, settings.js) : avatar et sa voix (choix Mr / Miss
 // Antares sur l'orbe seulement), modèle de langage, projet du RAG. Appliqués dès la
 // phrase suivante, même en cours d'appel.
-import { Dialog } from "radix-ui";
 import {
   useEffect,
   useRef,
@@ -10,9 +9,11 @@ import {
   type ReactNode,
 } from "react";
 
+import { SurfaceClose, SurfaceTitle } from "@/components/Surface";
 import { avatar, engine } from "@/app/runtime";
 import { voicesFor } from "@/app/bootstrap";
-import { isDialogRegistered } from "@/app/registry";
+import { navigate } from "@/app/router";
+import { useSurface } from "@/app/surface";
 import type { AvatarKind } from "@/engines/avatar/AvatarHost";
 import { getJson, sendJson } from "@/lib/api";
 import { modelBadge, modelDetail, type ModelEntry } from "@/lib/labels";
@@ -95,23 +96,22 @@ function Option({
   );
 }
 
-// Ouvre une fenêtre par-dessus Réglages (seulement si elle est déclarée au registre)
+// Ouvre une sous-page des Réglages (Connexions, Agents…)
 function OpenButton({
-  dialog,
+  route,
   id,
   children,
 }: {
-  dialog: string;
+  route: string;
   id: string;
   children: ReactNode;
 }) {
-  if (!isDialogRegistered(dialog)) return null;
   return (
     <button
       type="button"
       id={id}
       className="button-ghost"
-      onClick={() => store.getState().showDialog(dialog)}
+      onClick={() => navigate(route)}
     >
       {children}
     </button>
@@ -143,6 +143,9 @@ export function SettingsDialog() {
   });
   const [error, setError] = useState("");
   const [applying, setApplying] = useState(false);
+  // En page, pas de fenêtre à refermer : confirmation à la place
+  const [applied, setApplied] = useState(false);
+  const surface = useSurface();
   const preview = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
@@ -191,6 +194,7 @@ export function SettingsDialog() {
   async function apply(event: FormEvent) {
     event.preventDefault();
     setApplying(true);
+    setApplied(false);
     setError("");
     // La voix suit l'avatar ; seul l'orbe laisse choisir
     const chosenVoice = kind === "orb" ? voice : voicesFor(kind)[0]?.id;
@@ -202,7 +206,8 @@ export function SettingsDialog() {
       });
       store.getState().setProfile({ settings: saved });
       if (kind !== avatar.kind) avatar.use(kind);
-      store.getState().closeDialog("settings");
+      if (surface === "dialog") store.getState().closeDialog("settings");
+      else setApplied(true);
       engine.sendVoiceSession();
     } catch (reason) {
       setError((reason as Error).message);
@@ -224,9 +229,9 @@ export function SettingsDialog() {
   return (
     <form className="settings__form" onSubmit={apply}>
       <header className="settings__header dialog__header">
-        <Dialog.Title asChild>
+        <SurfaceTitle>
           <h2>Réglages</h2>
-        </Dialog.Title>
+        </SurfaceTitle>
         <p>Appliqués dès la phrase suivante, même en cours d'appel.</p>
       </header>
 
@@ -313,7 +318,7 @@ export function SettingsDialog() {
           prendre quelques secondes de plus. Les modèles viennent des
           fournisseurs déclarés dans les Connexions.
         </p>
-        <OpenButton dialog="connections" id="open-connections">
+        <OpenButton route="reglages/connexions" id="open-connections">
           Connexions (Ollama, LiteLLM, API…)
         </OpenButton>
       </fieldset>
@@ -325,7 +330,7 @@ export function SettingsDialog() {
           cité par son nom (« demande au relecteur ADR… ») répond à cette
           question.
         </p>
-        <OpenButton dialog="agents" id="open-agents">
+        <OpenButton route="reglages/agents" id="open-agents">
           Gérer les agents
         </OpenButton>
       </fieldset>
@@ -336,7 +341,7 @@ export function SettingsDialog() {
           Fiches rédigées depuis vos conversations et documents, relues puis
           indexées dans le RAG de vos projets.
         </p>
-        <OpenButton dialog="knowledge-panel" id="open-knowledge">
+        <OpenButton route="reglages/connaissances" id="open-knowledge">
           Voir les fiches
         </OpenButton>
       </fieldset>
@@ -371,7 +376,7 @@ export function SettingsDialog() {
           cf. Connexions) est ajoutée à chaque question. Sans projet choisi, un
           projet cité par son nom est consulté pour cette question.
         </p>
-        <OpenButton dialog="rag-projects" id="open-rag-projects">
+        <OpenButton route="reglages/projets-rag" id="open-rag-projects">
           Projets du RAG intégré
         </OpenButton>
       </fieldset>
@@ -379,13 +384,18 @@ export function SettingsDialog() {
       <p className="settings__error" role="alert">
         {error}
       </p>
+      {applied && (
+        <p className="settings__hint" role="status">
+          Réglages appliqués.
+        </p>
+      )}
 
       <footer className="settings__actions dialog__footer">
-        <Dialog.Close asChild>
+        <SurfaceClose>
           <button type="button" className="button-ghost">
             Annuler
           </button>
-        </Dialog.Close>
+        </SurfaceClose>
         <button
           type="submit"
           className="button-primary"

@@ -1,8 +1,2 @@
-import type { FeatureDef } from "@/app/types";
-
-import { ThemeToggle } from "./ThemeToggle";
-
-export const themeFeature: FeatureDef = {
-  id: "theme",
-  toolbar: { order: 10, render: ThemeToggle },
-};
+// Bouton de thème (auto, sombre, clair), dans la barre du haut de l'ossature
+export { ThemeToggle } from "./ThemeToggle";

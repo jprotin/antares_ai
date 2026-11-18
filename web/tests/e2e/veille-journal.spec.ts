@@ -1,10 +1,11 @@
 // Journal de la veille en mock (J-01 à J-05) : mini-fenêtre de l'avatar en haut à gauche
-// de la Veille, lancement de l'appel avec le message caché, sujet « À l'antenne »,
+// de la page Actualités, lancement de l'appel avec le message caché, sujet « À l'antenne »,
 // « Sujet suivant », « Arrêter », retour de l'avatar sur la scène, erreurs.
 import { readFileSync } from "node:fs";
 
 import type { Page } from "@playwright/test";
 
+import { openPage } from "../support/menu";
 import { MockApi } from "../support/mock-api";
 import { expect, isLegacy, test } from "../support/test";
 import { RealtimeMock, type ServerEvent } from "../support/ws-scenario";
@@ -21,11 +22,11 @@ const MARKER = "[Journal de la veille]";
 type Journal = Record<string, unknown> & { active: boolean };
 
 const dialog = (page: Page) =>
-  page.getByRole("dialog", { name: "Veille IA et météo" });
+  page.getByRole("region", { name: "Veille IA et météo", exact: true });
 const panel = (page: Page) => page.getByTestId("veille-journal");
 
 async function openVeille(page: Page) {
-  await page.getByRole("button", { name: /^Veille IA et météo/ }).click();
+  await openPage(page, "Actualités");
   await expect(dialog(page)).toBeVisible();
 }
 
@@ -148,7 +149,7 @@ test.describe("journal de la veille @mock @veille", () => {
     expect(count(realtime, "session.update")).toBe(1);
   });
 
-  test("J-03 : l'avatar revient sur la scène à la fermeture", async ({
+  test("J-03 : l'avatar revient sur la scène en quittant la page", async ({
     page,
     ui,
   }) => {
@@ -169,7 +170,7 @@ test.describe("journal de la veille @mock @veille", () => {
     });
     expect(sizes[2]).toBeCloseTo(sizes[0] ?? 0, 0);
     expect(sizes[3]).toBeCloseTo(sizes[1] ?? 0, 0);
-    await page.keyboard.press("Escape");
+    await openPage(page, "Conversation");
     await expect(dialog(page)).toBeHidden();
     await expect(page.locator("canvas.orb")).toHaveCount(1);
     await expect(outside).toHaveCount(1);

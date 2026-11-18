@@ -18,11 +18,15 @@ export type CallState =
 
 export interface UiAdapter {
   readonly page: Page;
+  // Nouvelle interface : écrans en pages du menu (pas de fenêtre à fermer, pas d'Annuler)
+  readonly pages: boolean;
   goto(): Promise<void>;
   dialog(name: DialogName): Locator;
   openDialog(name: DialogName): Promise<void>;
   closeDialog(name: DialogName, how: CloseHow): Promise<void>;
   isDialogOpen(name: DialogName): Promise<boolean>;
+  // Réglages appliqués : la fenêtre se ferme (ancienne), la page le confirme (nouvelle)
+  waitApplied(): Promise<void>;
   pickAgent(name: string): Promise<void>;
   pickMode(name: string): Promise<void>;
   toggleTheme(): Promise<void>;

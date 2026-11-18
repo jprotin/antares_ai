@@ -30,6 +30,8 @@ const INSIDE_SETTINGS: DialogName[] = [
 ];
 
 export class LegacyAdapter implements UiAdapter {
+  readonly pages = false;
+
   constructor(readonly page: Page) {}
 
   async goto() {
@@ -66,6 +68,10 @@ export class LegacyAdapter implements UiAdapter {
         .first()
         .click();
     }
+  }
+
+  async waitApplied() {
+    await this.dialog("settings").waitFor({ state: "hidden" });
   }
 
   async isDialogOpen(name: DialogName) {

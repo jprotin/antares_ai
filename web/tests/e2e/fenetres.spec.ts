@@ -27,13 +27,14 @@ test.describe("fenêtres @mock @fenetres @lot5", () => {
     const value = await target.getAttribute("value");
     await target.check();
     await dialog.getByRole("button", { name: "Appliquer" }).click();
-    await expect.poll(() => ui.isDialogOpen("settings")).toBe(false);
+    await ui.waitApplied();
     const put = api.writes().find((call) => call.path === "/api/settings");
     expect(put?.method).toBe("PUT");
     expect((put?.body as { model?: string }).model).toBe(value);
   });
 
   test("FE-1b : Réglages, Annuler n'envoie rien", async ({ page, ui }) => {
+    test.skip(!isLegacy(), "Réglages en page : pas de bouton Annuler");
     const api = await new MockApi(page).install();
     await ui.goto();
     await ui.openDialog("settings");
@@ -127,7 +128,7 @@ test.describe("fenêtres @mock @fenetres @lot5", () => {
     const dialog = ui.dialog("settings");
     await expect(dialog.locator('input[name="model"]:checked')).toHaveCount(1);
     await dialog.getByRole("button", { name: "Appliquer" }).click();
-    await expect.poll(() => ui.isDialogOpen("settings")).toBe(false);
+    await ui.waitApplied();
     const put = api.writes().find((call) => call.path === "/api/settings");
     expect(put?.body).toMatchObject({
       model: "claude:sonnet",
@@ -140,6 +141,7 @@ test.describe("fenêtres @mock @fenetres @lot5", () => {
     page,
     ui,
   }) => {
+    test.skip(!isLegacy(), "Agents en sous-page des Réglages, pas en fenêtre");
     await new MockApi(page).install();
     await ui.goto();
     await ui.openDialog("agents");

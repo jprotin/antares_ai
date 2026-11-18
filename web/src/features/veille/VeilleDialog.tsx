@@ -15,7 +15,6 @@ import {
   Rss,
   X,
 } from "lucide-react";
-import { Dialog } from "radix-ui";
 import {
   useCallback,
   useEffect,
@@ -25,6 +24,7 @@ import {
 } from "react";
 import { useStore } from "zustand";
 
+import { SurfaceClose, SurfaceTitle } from "@/components/Surface";
 import { getJson } from "@/lib/api";
 import type {
   VeilleCategory,
@@ -463,9 +463,9 @@ export function VeilleDialog() {
         <div className="veille__bar">
           <JournalPanel available={journalAvailable} onCurrent={showOnAir} />
           <div className="veille__titles">
-            <Dialog.Title asChild>
+            <SurfaceTitle>
               <h2>{VEILLE_LABEL}</h2>
-            </Dialog.Title>
+            </SurfaceTitle>
             {view && (
               <p className="veille__when" data-testid="veille-when">
                 {selected && index !== null
@@ -515,12 +515,12 @@ export function VeilleDialog() {
                 <span className="veille-pill__text">Sources</span>
               </button>
             )}
-            <Dialog.Close asChild>
+            <SurfaceClose>
               <button type="button" className="veille-pill veille__close">
                 <X aria-hidden="true" />
                 <span className="veille-pill__text">Fermer</span>
               </button>
-            </Dialog.Close>
+            </SurfaceClose>
           </div>
         </div>
         {view && (

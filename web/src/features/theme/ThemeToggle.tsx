@@ -1,27 +1,27 @@
-// Bouton de thème : auto -> sombre -> clair ; l'icône du choix courant est affichée
-// par la feuille (data-choice), comme dans l'ancienne interface
-import {
-  ThemeAutoIcon,
-  ThemeDarkIcon,
-  ThemeLightIcon,
-} from "@/components/icons";
+// Bouton de thème : auto -> sombre -> clair ; l'icône montre le choix courant
+import { Moon, Sun, SunMoon } from "lucide-react";
+
+import { Button } from "@/components/ui/button";
 import { THEME_LABELS } from "@/engines/theme/theme";
 import { useTheme } from "@/hooks/useTheme";
 
+const ICONS = { auto: SunMoon, dark: Moon, light: Sun } as const;
+
 export function ThemeToggle() {
   const { choice, toggle } = useTheme();
+  const Icon = ICONS[choice];
   return (
-    <button
+    <Button
       type="button"
-      className="settings-button theme-button"
+      variant="ghost"
+      size="icon"
+      className="theme-button"
       data-choice={choice}
       title={THEME_LABELS[choice]}
       aria-label={THEME_LABELS[choice]}
       onClick={toggle}
     >
-      <ThemeAutoIcon className="icon-auto" />
-      <ThemeDarkIcon className="icon-dark" />
-      <ThemeLightIcon className="icon-light" />
-    </button>
+      <Icon />
+    </Button>
   );
 }

@@ -1,11 +1,22 @@
-/* Grille de l'écran et barre du haut (frontend/style.css, lignes 119-126, 720-737,
-   1102-1136). */
+/* Zone d'appel (page Conversation, répétition en cours) et page courante de l'ossature.
+   Le menu, la barre du haut et les cartes sont des composants shadcn (Tailwind). */
 @layer components {
+  /* Page courante : seule zone qui défile (la barre du haut reste en place) */
+  .shell__page {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  /* Zone d'appel : la scène à gauche, la conversation à droite */
   .app {
     display: grid;
+    flex: 1;
     grid-template-columns: minmax(20rem, 5fr) 7fr;
     gap: 1.25rem;
-    height: 100vh;
+    min-height: 0;
     padding: 1.25rem;
   }
 
@@ -13,10 +24,9 @@
 
   @media (max-width: 900px) {
     .app {
+      flex: none;
       grid-template-columns: 1fr;
       grid-template-rows: auto minmax(22rem, 1fr);
-      height: auto;
-      min-height: 100vh;
       padding: 16px;
     }
 
@@ -27,7 +37,7 @@
     }
   }
 
-  /* --- Barre du haut : agent, mode, thème, réglages ------------------------------ */
+  /* --- Barre de la scène : agent, mode -------------------------------------------- */
 
   .stage__bar {
     display: flex;
@@ -42,23 +52,5 @@
     flex-wrap: wrap;
     gap: 0.5rem;
     min-width: 0;
-  }
-
-  .stage__tools {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .theme-button:hover {
-    transform: none;
-  }
-  .theme-button svg {
-    display: none;
-  }
-  .theme-button[data-choice="auto"] .icon-auto,
-  .theme-button[data-choice="dark"] .icon-dark,
-  .theme-button[data-choice="light"] .icon-light {
-    display: block;
   }
 }

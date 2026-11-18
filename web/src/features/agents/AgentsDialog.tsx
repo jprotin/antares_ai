@@ -1,6 +1,5 @@
 // Fenêtre Agents (port de agents.js) : fiches « consignes » regroupées par domaine,
 // filtrables par utilité ; stockées par le routeur LLM (/api/agents).
-import { Dialog } from "radix-ui";
 import {
   useCallback,
   useEffect,
@@ -9,6 +8,7 @@ import {
   type FormEvent,
 } from "react";
 
+import { SurfaceClose, SurfaceTitle } from "@/components/Surface";
 import { deleteResource, getJson, sendJson } from "@/lib/api";
 import { modelLabel } from "@/lib/labels";
 import { store } from "@/state/store";
@@ -158,9 +158,9 @@ export function AgentsDialog() {
     <div className="settings__form">
       <header className="settings__header dialog__header agents__header">
         <div>
-          <Dialog.Title asChild>
+          <SurfaceTitle>
             <h2>Agents</h2>
-          </Dialog.Title>
+          </SurfaceTitle>
           <p>Consignes réutilisables, regroupées par domaine.</p>
         </div>
         <select
@@ -347,11 +347,11 @@ export function AgentsDialog() {
         >
           Nouvel agent
         </button>
-        <Dialog.Close asChild>
+        <SurfaceClose>
           <button type="button" className="button-primary" id="agents-close">
             Fermer
           </button>
-        </Dialog.Close>
+        </SurfaceClose>
       </footer>
     </div>
   );

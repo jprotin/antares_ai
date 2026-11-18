@@ -1,8 +1,8 @@
 import type { FeatureDef } from "@/app/types";
 
 import { KnowledgeEditDialog } from "./KnowledgeEditDialog";
-import { KnowledgePanelDialog } from "./KnowledgePanelDialog";
 
+export { KnowledgePanelDialog } from "./KnowledgePanelDialog";
 export { proposeFromConversation, proposeFromDocument } from "./knowledge";
 
 export const knowledgeFeature: FeatureDef = {
@@ -13,12 +13,6 @@ export const knowledgeFeature: FeatureDef = {
       render: KnowledgeEditDialog,
       className: "settings agents",
       elementId: "knowledge-edit",
-    },
-    {
-      id: "knowledge-panel",
-      render: KnowledgePanelDialog,
-      className: "settings agents",
-      elementId: "knowledge-panel",
     },
   ],
 };

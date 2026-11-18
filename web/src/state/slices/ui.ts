@@ -6,6 +6,9 @@ import type { StateCreator } from "zustand/vanilla";
 import type { NetState } from "@/types/api";
 
 export type UiSlice = {
+  // Page affichée (adresse après « #/ », ex. "reglages/agents"), cf. app/router.ts
+  route: string;
+  setRoute(route: string): void;
   dialogs: string[];
   // Fenêtre du dessus, ou null
   openDialog: string | null;
@@ -33,6 +36,8 @@ export type UiSlice = {
 export const isAnyDialogOpen = (state: UiSlice) => state.dialogs.length > 0;
 
 export const createUiSlice: StateCreator<UiSlice> = (set) => ({
+  route: "",
+  setRoute: (route) => set({ route }),
   dialogs: [],
   openDialog: null,
   showDialog: (id) =>

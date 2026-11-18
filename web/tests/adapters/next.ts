@@ -1,9 +1,11 @@
-// Nouvelle interface (web/) : fenêtres Radix (role=dialog), sélecteurs Popover + Command.
-// Les écrans arrivent lot par lot : les méthodes s'appuient sur les rôles et noms
-// accessibles, et sur data-testid là où le DOM l'impose.
+// Nouvelle interface (web/) : ossature à menu de gauche, écrans en pages (zone nommée
+// comme l'ancienne fenêtre), sélecteurs Popover + Command. Les méthodes s'appuient sur
+// les rôles et noms accessibles, et sur data-testid là où le DOM l'impose.
 import type { Locator, Page } from "@playwright/test";
 
-import type { CloseHow, DialogName, UiAdapter } from "./index";
+import { openPage } from "../support/menu";
+
+import type { DialogName, UiAdapter } from "./index";
 
 const TITLES: Record<DialogName, string> = {
   settings: "Réglages",
@@ -14,60 +16,63 @@ const TITLES: Record<DialogName, string> = {
   rehearsal: "Répéter une présentation",
 };
 
-// Ouvreurs placés dans la fenêtre Réglages (comme dans l'ancienne interface)
-const INSIDE_SETTINGS: Partial<Record<DialogName, string>> = {
-  connections: "Connexions (Ollama",
-  agents: "Gérer les agents",
-  knowledge: "Voir les fiches",
-  "rag-projects": "Projets du RAG intégré",
+// Pages de l'ossature (menu de gauche) : entrée du menu, sous-entrée éventuelle
+const PAGES: Record<
+  DialogName,
+  { entry: string; sub?: string; route: string }
+> = {
+  settings: { entry: "Réglages", sub: "Général", route: "reglages/general" },
+  connections: {
+    entry: "Réglages",
+    sub: "Connexions",
+    route: "reglages/connexions",
+  },
+  agents: { entry: "Réglages", sub: "Agents", route: "reglages/agents" },
+  knowledge: {
+    entry: "Réglages",
+    sub: "Connaissances",
+    route: "reglages/connaissances",
+  },
+  "rag-projects": {
+    entry: "Réglages",
+    sub: "Projets RAG",
+    route: "reglages/projets-rag",
+  },
+  rehearsal: { entry: "Répétition", route: "repetition" },
 };
 
 export class NextAdapter implements UiAdapter {
+  // Écrans en pages (menu de gauche) et non en fenêtres
+  readonly pages = true;
+
   constructor(readonly page: Page) {}
 
+  // Page Conversation (l'accueil est le tableau de bord)
   async goto() {
-    await this.page.goto("./");
+    await this.page.goto("./#/conversation");
     await this.page.locator("[data-testid=app]").waitFor();
   }
 
   dialog(name: DialogName): Locator {
-    return this.page.getByRole("dialog", { name: TITLES[name] });
+    return this.page.getByRole("region", { name: TITLES[name], exact: true });
   }
 
   async openDialog(name: DialogName) {
-    if (INSIDE_SETTINGS[name] && !(await this.isDialogOpen("settings")))
-      await this.openDialog("settings");
-    const opener = INSIDE_SETTINGS[name] ?? TITLES[name];
-    const scope = INSIDE_SETTINGS[name] ? this.dialog("settings") : this.page;
-    await scope.getByRole("button", { name: opener }).first().click();
+    const { entry, sub } = PAGES[name];
+    await openPage(this.page, entry, sub);
     await this.dialog(name).waitFor();
-    // Fenêtre prête quand Radix y a déplacé le focus, puis deux images : le calque (Échap,
-    // clic extérieur) n'est inscrit qu'au rendu suivant. Un humain ne peut pas agir avant
-    await this.dialog(name).evaluate(
-      (dialog) =>
-        new Promise<void>((resolve) => {
-          const check = () =>
-            dialog.contains(document.activeElement)
-              ? requestAnimationFrame(() =>
-                  requestAnimationFrame(() => resolve()),
-                )
-              : requestAnimationFrame(check);
-          check();
-        }),
-    );
   }
 
-  async closeDialog(name: DialogName, how: CloseHow) {
-    if (how === "escape") {
-      await this.page.keyboard.press("Escape");
-    } else if (how === "outside") {
-      await this.page.mouse.click(5, 5);
-    } else {
-      await this.dialog(name)
-        .getByRole("button", { name: /Fermer|Annuler/ })
-        .first()
-        .click();
-    }
+  // Une page ne se ferme pas : retour à la Conversation
+  async closeDialog() {
+    await openPage(this.page, "Conversation");
+  }
+
+  async waitApplied() {
+    await this.dialog("settings")
+      .getByRole("status")
+      .filter({ hasText: "Réglages appliqués." })
+      .waitFor();
   }
 
   async isDialogOpen(name: DialogName) {
