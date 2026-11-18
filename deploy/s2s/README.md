@@ -561,6 +561,23 @@ docker compose run --rm antares-tasks schedule          # prochains passages, ma
   répondent 403 et sont masqués (mention « Lecture seule »). Accès complet pour
   `SHARE_OWNER_EMAIL` (`.env`) par le tunnel, et pour l'accès local
   (`GET /api/veille/access`, cf. `router/veille_access.py`).
+- **L'avatar en parle** (ADR 0014, cf. `router/veille_journal.py`) : une question sur
+  l'actualité, la veille, les idées, la météo ou un nom cité dans un titre (« tu as vu le
+  truc sur Nvidia ? ») ajoute à la consigne un résumé du dernier passage réussi (15
+  articles, cités d'abord) ; l'avatar raconte, donne son avis et demande le tien, sans
+  lire. La recherche web n'est alors faite que si tu la demandes (« cherche sur
+  internet »).
+- **Journal** : mini-fenêtre de l'avatar en haut à gauche de la Veille, bouton
+  « Lancer le journal » (ou « fais-moi le journal » en appel). L'avatar ouvre sur la
+  météo puis présente 5 sujets (aimés d'abord, une catégorie différente tant que
+  possible, jamais un article rejeté), donne son avis et attend le tien, rebondit, puis
+  enchaîne ; il finit par deux idées et une conclusion. « Raconte-m'en plus » ou une
+  question restent sur le sujet, « passe » ou « suivant » enchaînent sans réagir,
+  « stop » conclut. Le routeur tient le conducteur (`GET|PUT|DELETE
+/api/veille/journal`, phase en mémoire, 2 h au plus) et ne donne au modèle que l'étape
+  et le sujet du moment, dans une note de régie collée au dernier message (un petit
+  modèle se perd sinon). Le sujet présenté est marqué « À l'antenne » dans la liste.
+  Disponible pendant un partage (lecture seule).
 - **Ancienne interface** (`ui.sh legacy`) : pas de veille (nouvelle interface seulement).
 - `FEATURES.md` doit exister avant le premier `docker compose up` (sinon Docker crée un
   dossier à sa place) ; le tenir à jour à chaque fin de feature, sous 4 000 caractères :

@@ -48,6 +48,10 @@
                    Pendant un partage : lecture pour tous, écriture pour le
                    propriétaire (SHARE_OWNER_EMAIL) et l'accès local seulement
                    (cf. veille_access.py, GET /api/veille/access).
+                   L'avatar connaît la veille (questions sur l'actualité, les idées,
+                   la météo) et présente le journal : /api/veille/journal (GET état,
+                   PUT lancement, DELETE arrêt), phase appliquée au relais vocal
+                   (cf. veille_journal.py).
 - /healthz       : sonde de santé.
 """
 
@@ -88,6 +92,7 @@ import veille_runs
 import veille_stats
 import veille_translate
 import veille_access
+import veille_journal
 import veille_sources
 import veille_votes
 import voicecode
@@ -741,6 +746,45 @@ def veille_latest() -> dict:
     )
 
 
+def veille_snapshot() -> dict:
+    """Dernier passage avec des articles (un passage en échec est sauté), votes
+    compris : contexte de l'avatar et sujets du journal."""
+    settings = veille_prompt.load_settings(TASKS_CONFIG)
+    categories = veille_prompt.categories(settings)
+    votes = veille_votes_db()
+    snapshot = veille.latest(VEILLE_DB, votes=votes, categories=categories)
+    if (snapshot.get("run") or {}).get("items"):
+        return snapshot
+    for day in snapshot.get("days") or []:
+        found = veille.day(VEILLE_DB, day, votes=votes, categories=categories)
+        runs = [r for r in found.get("runs") or [] if r.get("items")]
+        if runs:
+            return {**snapshot, "run": runs[-1], "weather": found.get("weather")}
+    return snapshot
+
+
+@app.get("/api/veille/journal")
+def veille_journal_state() -> dict:
+    return veille_journal.state()
+
+
+@app.put("/api/veille/journal")
+def veille_journal_start() -> dict:
+    """Prépare le journal ; l'interface lance ensuite l'appel (marqueur du journal)."""
+    try:
+        started = veille_journal.start(veille_snapshot())
+    except ValueError as exc:
+        raise HTTPException(409, str(exc)) from exc
+    logger.info("Journal de la veille : %d sujets", started["total"])
+    return started
+
+
+@app.delete("/api/veille/journal", status_code=204)
+def veille_journal_stop() -> Response:
+    veille_journal.stop()
+    return Response(status_code=204)
+
+
 @app.get("/api/veille")
 def veille_day(date: str) -> dict:
     if not veille.valid_date(date):
@@ -1273,6 +1317,8 @@ last_turn: dict = {
     "skipped": [],
     # Recherche web : {"query", "sources"}, {"offline": True} ou None ; mots-clés
     "web": None,
+    # Réponse appuyée sur la veille du jour (cf. veille_journal.py)
+    "veille": False,
     # Remarque affichée sous la réponse (ex. Claude remplacé hors ligne)
     "notice": None,
 }
@@ -1331,7 +1377,18 @@ async def prepare(
     messages = await rag.augment(messages, project, spoken)
     found, prefix = None, ""
     asked = rag.question(messages)
-    if asked and web.wanted(asked):
+    # La veille du jour répond aux questions d'actualité, sauf recherche demandée
+    from_veille = False
+    if asked:
+        snapshot = await asyncio.to_thread(veille_snapshot)
+        if veille_journal.wanted(asked, snapshot):
+            messages = rag.add_system(messages, veille_journal.context(snapshot, asked))
+            from_veille = True
+    if (
+        asked
+        and web.wanted(asked)
+        and not (from_veille and not web.EXPLICIT.search(web.normalize(asked)))
+    ):
         if web.online():
             found = await web.search(asked)
             if found:
@@ -1352,6 +1409,7 @@ async def prepare(
         ),
         notice=notice,
         at=time.time(),
+        veille=from_veille,
         agent=agent.name if agent else None,
         model=model,
         projects=rag.last_usage["projects"],
@@ -1781,8 +1839,20 @@ async def relay(path: str, request: Request) -> StreamingResponse:
     elif chat and "messages" in payload:
         # Voix : l'historique du moteur ne contient que le texte prononcé
         messages = voicecode.restore(payload["messages"])
-        payload["messages"], model, usage = await prepare(messages, settings)
-        prefix = usage["prefix"]
+        said = veille_journal.last_said(messages)
+        if not veille_journal.active() and veille_journal.journal_asked(said):
+            try:
+                veille_journal.start(await asyncio.to_thread(veille_snapshot))
+            except ValueError as exc:
+                logger.info("Journal de la veille impossible : %s", exc)
+        if veille_journal.active():
+            # Journal : étape du conducteur, personnage du moteur, fin de l'échange
+            payload["messages"] = veille_journal.messages_for(messages)
+            model = await usable_model(settings.model, settings)
+            veille_journal.finish_if_done()
+        else:
+            payload["messages"], model, usage = await prepare(messages, settings)
+            prefix = usage["prefix"]
     if claude.is_claude(model):
         if not chat:
             raise HTTPException(501, f"/v1/{path} non disponible avec {model}")

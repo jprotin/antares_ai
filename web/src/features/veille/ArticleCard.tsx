@@ -4,6 +4,7 @@
 // relative, j'aime / je n'aime pas. Carte rejetée : atténuée, avec
 // « Annuler ». Passage ancien (sans identifiant) : pas de vote.
 import { ThumbsDown, ThumbsUp, Undo2 } from "lucide-react";
+import { useEffect, useRef } from "react";
 
 import type { VeilleItem, VeilleVoteValue } from "@/types/api";
 
@@ -14,6 +15,7 @@ export function ArticleCard({
   categoryLabel,
   vote,
   isNew,
+  onAir = false,
   now,
   onVote,
   onOpen,
@@ -23,6 +25,8 @@ export function ArticleCard({
   categoryLabel: string;
   vote: VeilleVoteValue | null;
   isNew: boolean;
+  // Sujet présenté par l'avatar pendant le journal
+  onAir?: boolean;
   now: Date;
   onVote: (value: VeilleVoteValue) => void;
   onOpen: () => void;
@@ -31,9 +35,16 @@ export function ArticleCard({
 }) {
   const when = relativeTime(item.published_at, now);
   const rejected = vote === "dislike";
+  const card = useRef<HTMLLIElement>(null);
+  useEffect(() => {
+    if (onAir)
+      card.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }, [onAir]);
   return (
     <li
+      ref={card}
       className="veille-card"
+      data-on-air={onAir ? "true" : undefined}
       data-cat={categoryColor(item.category)}
       data-vote={vote ?? undefined}
       data-testid="veille-article"
@@ -54,6 +65,9 @@ export function ArticleCard({
           </span>
         )}
         {isNew && <span className="veille-tag veille-tag--new">Nouveau</span>}
+        {onAir && (
+          <span className="veille-tag veille-tag--on-air">À l'antenne</span>
+        )}
       </div>
       <h4 className="veille-card__title">
         <button type="button" className="veille-card__open" onClick={onOpen}>

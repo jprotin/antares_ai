@@ -16,7 +16,13 @@ import {
   X,
 } from "lucide-react";
 import { Dialog } from "radix-ui";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { useStore } from "zustand";
 
 import { getJson } from "@/lib/api";
@@ -49,6 +55,7 @@ import { ArticleCard } from "./ArticleCard";
 import { ArticleDialog } from "./ArticleDialog";
 import { IdeaCard } from "./IdeaCard";
 import { IdeaPromptDialog, type PromptState } from "./IdeaPromptDialog";
+import { JournalPanel } from "./JournalPanel";
 import { OtherList } from "./OtherList";
 import { SourcesDialog } from "./SourcesDialog";
 import { StatsDialog } from "./StatsDialog";
@@ -129,6 +136,9 @@ const errorText = (error: unknown) =>
 
 export function VeilleDialog() {
   const latest = useStore(veilleStore, (s) => s.latest);
+  // Article présenté par l'avatar pendant le journal (mis en évidence)
+  const [onAir, setOnAir] = useState<string | null>(null);
+  const showOnAir = useCallback((id: string | null) => setOnAir(id), []);
   // Ouverture précédente, lue avant markOpened() : badge « Nouveau »
   const [previousOpened] = useState(() => veilleStore.getState().lastOpened);
   const [now] = useState(() => new Date());
@@ -443,11 +453,15 @@ export function VeilleDialog() {
       )
     : [];
   const busy = runBusy(runStatus);
+  const journalAvailable = Boolean(
+    latest && (latest.run?.items.length || latest.days.length),
+  );
 
   return (
     <div className="veille__frame" ref={frame}>
       <header className="veille__header" ref={header}>
         <div className="veille__bar">
+          <JournalPanel available={journalAvailable} onCurrent={showOnAir} />
           <div className="veille__titles">
             <Dialog.Title asChild>
               <h2>{VEILLE_LABEL}</h2>
@@ -677,6 +691,7 @@ export function VeilleDialog() {
                           )}
                           vote={voteOf("article", item)}
                           isNew={hasNews(freshAt.get(item), previousOpened)}
+                          onAir={item.id !== null && item.id === onAir}
                           now={now}
                           onVote={(value) => void vote("article", item, value)}
                           onOpen={() => setDetail(item)}

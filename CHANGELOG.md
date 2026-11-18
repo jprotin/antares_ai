@@ -24,6 +24,11 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
   « Statistiques » (goûts, choix de l'IA, taux d'accord, articles ratés). Pendant un
   partage ngrok : veille lisible par les invités, modifiable par le propriétaire
   (`SHARE_OWNER_EMAIL`).
+- Journal de la veille (ADR 0014) : l'avatar parle de la veille du jour quand on l'interroge
+  (sans lire les articles : il raconte, donne son avis et demande le vôtre) et présente
+  un journal à la voix depuis une mini-fenêtre en haut à gauche de la Veille, ou sur
+  « fais-moi le journal » : météo, 5 sujets avec échange, idées, conclusion ; sujet en
+  cours marqué « À l'antenne ».
 - `FEATURES.md` (fonctionnalités et backlog d'Antares) et `deploy/s2s/.env.example`.
 
 ### Modifié

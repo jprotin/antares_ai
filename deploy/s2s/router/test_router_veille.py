@@ -34,6 +34,7 @@ from fastapi.testclient import TestClient  # noqa: E402
 import router  # noqa: E402
 import veille  # noqa: E402
 import veille_access  # noqa: E402
+import veille_journal  # noqa: E402
 import veille_prompt  # noqa: E402
 import veille_runs  # noqa: E402
 import veille_sources  # noqa: E402
@@ -1417,6 +1418,131 @@ class Access(unittest.TestCase):
         self.assertEqual(len(answer.summary), veille_translate.MAX_SUMMARY)
         with self.assertRaises(ValueError):
             veille_translate.parse_answer("", True)
+
+
+class FakeUpstream:
+    status_code = 200
+
+    async def aiter_raw(self):
+        yield b"data: [DONE]\n\n"
+
+    async def aclose(self):
+        return None
+
+
+class Journal(unittest.TestCase):
+    """Journal de la veille (veille_journal.py) : routes et relais vocal."""
+
+    client: TestClient
+
+    @classmethod
+    def setUpClass(cls):
+        cls.client = TestClient(router.app)
+
+    def setUp(self):
+        reset_votes()
+        veille_journal.stop()
+        self.sent: list[dict] = []
+
+        async def open_stream(model, payload, native_ctx=None):
+            self.sent.append(payload)
+            return FakeUpstream()
+
+        async def usable(model, settings, local_only=False):
+            return "ollama/gemma4:e4b"
+
+        self.patches = [
+            mock.patch.object(router.providers, "open_stream", open_stream),
+            mock.patch.object(router, "usable_model", usable),
+        ]
+        for patch in self.patches:
+            patch.start()
+
+    def tearDown(self):
+        for patch in self.patches:
+            patch.stop()
+        veille_journal.stop()
+
+    def speak(self, *said: str):
+        messages = [{"role": "system", "content": "Tu es Bender."}]
+        for text in said:
+            messages.append({"role": "user", "content": text})
+        response = self.client.post(
+            "/v1/chat/completions", json={"model": "x", "messages": messages}
+        )
+        self.assertEqual(response.status_code, 200)
+        return self.sent[-1]["messages"]
+
+    def test_routes(self):
+        self.assertEqual(
+            self.client.get("/api/veille/journal").json(), {"active": False}
+        )
+        started = self.client.put("/api/veille/journal").json()
+        # Dernier passage en échec : celui d'avant, avec ses articles
+        self.assertEqual(started["total"], 1)
+        self.assertEqual(started["topics"][0]["id"], ARTICLE_ID)
+        self.assertTrue(self.client.get("/api/veille/journal").json()["active"])
+        self.assertEqual(self.client.delete("/api/veille/journal").status_code, 204)
+        self.assertFalse(self.client.get("/api/veille/journal").json()["active"])
+
+    def test_no_veille_409(self):
+        with mock.patch.object(router, "veille_snapshot", return_value={"run": None}):
+            self.assertEqual(self.client.put("/api/veille/journal").status_code, 409)
+
+    def test_button_then_voice(self):
+        self.client.put("/api/veille/journal")
+        sent = self.speak(f"{veille_journal.MARKER} Lance le journal.")
+        self.assertTrue(sent[0]["content"].startswith("Tu es Bender."))
+        cue = sent[-1]["content"]
+        self.assertTrue(cue.startswith("[Régie : Ouvre le journal"))
+        self.assertIn("Le Pellerin : 6 à 12 °C", cue)
+        self.assertIn(ITEM["title"], cue)
+        self.assertNotIn(veille_journal.MARKER, cue)
+        state = self.client.get("/api/veille/journal").json()
+        self.assertEqual(state["current_id"], ARTICLE_ID)
+        # Un seul sujet : son avis, puis les idées, puis la conclusion
+        ideas = self.speak("C'est utile pour nous")[-1]["content"]
+        self.assertIn("Comparatif de reconnaissance vocale", ideas)
+        outro = self.speak("La première")[-1]["content"]
+        self.assertIn("onclus le journal", outro)
+        self.assertFalse(self.client.get("/api/veille/journal").json()["active"])
+
+    def test_voice_request_starts_journal(self):
+        sent = self.speak("Fais-moi le journal")
+        self.assertIn("JOURNAL DE LA VEILLE", sent[0]["content"])
+        self.assertIn("Ouvre le journal", sent[-1]["content"])
+
+    def test_question_gets_veille_context_not_web(self):
+        search = mock.AsyncMock()
+        with (
+            mock.patch.object(
+                router.rag,
+                "augment",
+                mock.AsyncMock(side_effect=lambda m, p, s=True: m),
+            ),
+            mock.patch.object(router.web, "wanted", return_value=True),
+            mock.patch.object(router.web, "online", return_value=True),
+            mock.patch.object(router.web, "search", search),
+        ):
+            sent = self.speak("Quoi de neuf dans la veille aujourd'hui ?")
+        system = next(m["content"] for m in sent if m["role"] == "system")
+        self.assertIn("VEILLE DU JOUR", system)
+        self.assertIn("ne lis jamais", system)
+        search.assert_not_called()
+        self.assertTrue(router.last_turn["veille"])
+
+    def test_unrelated_question_untouched(self):
+        with (
+            mock.patch.object(
+                router.rag,
+                "augment",
+                mock.AsyncMock(side_effect=lambda m, p, s=True: m),
+            ),
+            mock.patch.object(router.web, "wanted", return_value=False),
+        ):
+            sent = self.speak("Explique-moi les closures en Python")
+        self.assertNotIn("VEILLE DU JOUR", json.dumps(sent, ensure_ascii=False))
+        self.assertFalse(router.last_turn["veille"])
 
 
 if __name__ == "__main__":
