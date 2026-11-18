@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>OpenAI News</title>
+    <link>https://openai.com/news</link>
+    <item>
+      <title>Introducing GPT-6 mini</title>
+      <link>https://openai.com/index/gpt-6-mini/?utm_source=rss&amp;utm_medium=feed</link>
+      <description>A smaller, faster model for agents.</description>
+      <pubDate>Mon, 16 Nov 2026 09:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Introducing GPT-6 mini (doublon)</title>
+      <link>https://openai.com/index/gpt-6-mini</link>
+      <description>Same article without tracking parameters.</description>
+      <pubDate>Mon, 16 Nov 2026 08:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Realtime API: new voices</title>
+      <link>https://openai.com/index/realtime-voices/</link>
+      <description>Two new voices for speech to speech.</description>
+      <pubDate>Sun, 15 Nov 2026 18:30:00 +0100</pubDate>
+    </item>
+    <item>
+      <title>Old announcement</title>
+      <link>https://openai.com/index/old/</link>
+      <description>More than 48 hours old.</description>
+      <pubDate>Fri, 13 Nov 2026 08:00:00 GMT</pubDate>
+    </item>
+    <item>
+      <title>Undated note</title>
+      <link>https://openai.com/index/undated</link>
+      <description>No date at all.</description>
+    </item>
+  </channel>
+</rss>

@@ -8,6 +8,7 @@ import { ragProjectsFeature } from "@/features/rag-projects";
 import { rehearsalFeature } from "@/features/rehearsal";
 import { settingsFeature } from "@/features/settings";
 import { themeFeature } from "@/features/theme";
+import { veilleFeature } from "@/features/veille";
 
 export const features: FeatureDef[] = [
   themeFeature,
@@ -17,4 +18,5 @@ export const features: FeatureDef[] = [
   knowledgeFeature,
   ragProjectsFeature,
   rehearsalFeature,
+  veilleFeature,
 ];

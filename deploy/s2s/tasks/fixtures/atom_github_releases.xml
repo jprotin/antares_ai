@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en-US">
+  <id>tag:github.com,2008:https://github.com/ollama/ollama/releases</id>
+  <title>Release notes from ollama</title>
+  <updated>2026-11-16T10:00:00Z</updated>
+  <entry>
+    <id>tag:github.com,2008:Repository/1/v0.20.0</id>
+    <updated>2026-11-16T10:00:00Z</updated>
+    <link rel="alternate" type="text/html" href="https://github.com/ollama/ollama/releases/tag/v0.20.0"/>
+    <title>v0.20.0</title>
+    <content type="html">&lt;p&gt;New &lt;b&gt;engine&lt;/b&gt; for Gemma 4.&lt;/p&gt;</content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Repository/1/v0.19.9</id>
+    <updated>2026-11-15T07:00:00+01:00</updated>
+    <link rel="alternate" type="text/html" href="https://github.com/ollama/ollama/releases/tag/v0.19.9"/>
+    <title>v0.19.9</title>
+    <content type="html">Bug fixes.</content>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Repository/1/v0.19.8</id>
+    <updated>2026-11-15T06:00:00</updated>
+    <link rel="alternate" type="text/html" href="https://github.com/ollama/ollama/releases/tag/v0.19.8"/>
+    <title>v0.19.8</title>
+    <summary>Date without timezone.</summary>
+  </entry>
+</feed>

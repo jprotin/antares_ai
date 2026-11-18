@@ -88,6 +88,15 @@ ensure_tokens() {
   )
 }
 
+# Base des veilles (antares-tasks) : volume externe à Compose, créé ici s'il manque
+# (jamais supprimé par « docker compose down -v »)
+ensure_volumes() {
+  docker volume inspect antares-tasks-data >/dev/null 2>&1 || {
+    docker volume create antares-tasks-data >/dev/null
+    log "Volume antares-tasks-data créé"
+  }
+}
+
 wait_healthy() {
   local container="$1" elapsed=0 state
   while ((elapsed < READY_TIMEOUT_S)); do
@@ -128,6 +137,7 @@ warmup_rag() {
 main() {
   check_prerequisites
   ensure_tokens
+  ensure_volumes
   # Image de l'ancienne interface : ./ui.sh legacy fonctionne ensuite hors ligne
   docker pull nginx:1.29-alpine >/dev/null
   log "Construction des images (dont l'interface : npm, en ligne)"

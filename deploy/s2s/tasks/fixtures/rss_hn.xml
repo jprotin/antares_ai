@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>Hacker News</title>
+    <link>https://news.ycombinator.com/</link>
+    <item><title>Show HN: an AI agent for my terminal</title><link>https://example.com/ai-agent</link><pubDate>Mon, 16 Nov 2026 10:00:00 +0000</pubDate></item>
+    <item><title>He said no to the merger</title><link>https://example.com/said</link><pubDate>Mon, 16 Nov 2026 10:00:00 +0000</pubDate></item>
+    <item><title>Kaizen in small teams</title><link>https://example.com/kaizen</link><pubDate>Mon, 16 Nov 2026 10:00:00 +0000</pubDate></item>
+    <item><title>Running a local LLM on a laptop</title><link>https://example.com/llm</link><pubDate>Mon, 16 Nov 2026 10:00:00 +0000</pubDate></item>
+    <item><title>What Claude Code changed for us</title><link>https://example.com/claude</link><pubDate>Mon, 16 Nov 2026 10:00:00 +0000</pubDate></item>
+    <item><title>The email client I always wanted</title><link>https://example.com/email</link><pubDate>Mon, 16 Nov 2026 10:00:00 +0000</pubDate></item>
+    <item><title>Claudette, a recipe app</title><link>https://example.com/claudette</link><pubDate>Mon, 16 Nov 2026 10:00:00 +0000</pubDate></item>
+  </channel>
+</rss>

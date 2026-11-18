@@ -145,7 +145,10 @@ ngrok dans un conteneur (`ngrok/ngrok`, version figée). Une fois, ajouter son j
 Le script affiche l'URL à envoyer ; Ctrl+C ferme le partage.
 
 - **Accès** : connexion Google obligatoire, puis refus de toute adresse non listée
-  (traffic policy ngrok, générée à chaque partage).
+  (traffic policy ngrok, générée à chaque partage). `SHARE_OWNER_EMAIL=ton@adresse`
+  dans `.env` t'ajoute d'office : par le tunnel, tu gardes la veille complète, les
+  autres invités la lisent seulement (ngrok transmet l'adresse Google de chacun dans
+  l'en-tête `x-antares-user`, après avoir retiré celui du navigateur).
 - **Pendant le partage** : Claude (ton abonnement) et l'écriture dans le RAG (fiches)
   sont désactivés pour tout le monde ; le pictogramme de connexion affiche
   « Internet · partagé ». Tout revient à la normale à la fermeture.
@@ -446,15 +449,171 @@ ex. `{"temperature": 0.6, "top_k": 30}`) : il ne vaut que pour elle, les autres 
 le réglage global. Le catalogue est relu quand il change, sans redémarrer le moteur.
 Tests : `test_qwen3_sampling.py` (commande en tête du fichier) et `router/test_voices.py`.
 
+## Veille IA et météo (tâches planifiées)
+
+Le service `antares-tasks` prépare une **veille informatique** à 8 h, 13 h et 18 h (heure
+de Paris) : il lit 65 flux RSS et Atom français et anglais (IA, cloud AWS, Azure et
+Google Cloud, développement et outils, sécurité, matériel, monde de l'informatique, Hacker
+News filtré par mots-clés), dont 4 recherches Google News pour les éditeurs sans flux ou au flux incomplet
+(Anthropic, Mistral AI, cloud français, brèves de Korben via `site:korben.info` ; ajouter une recherche = copier une entrée de
+`tasks.yaml` et changer `q=`), plus les **sources ajoutées depuis l'interface** (bouton
+« Sources » de la veille : site, flux RSS ou sujet Google News, testés avant ajout, 50 au
+plus ; les sources fournies s'y désactivent une à une), range les articles selon les votes passés, puis appelle le
+modèle deux fois : **une trentaine d'articles à la une** (titre d'origine, catégorie,
+langue, extrait du site, une phrase en français, écartée si elle cite un nom absent de l'article ou n'en partage aucun
+mot : `digest.check_summaries`) puis **6 idées** de fonctionnalités pour Antares, contrôlées contre
+`FEATURES.md` (racine du dépôt) et les idées rejetées. La **météo** (Open-Meteo, sans clé)
+est relevée à chaque passage : temps actuel illustré, mini et maxi, pluie, vent et
+12 prochaines heures. Tout se lit dans l'interface : bouton « journal » à côté des
+Réglages, avec une pastille quand un passage est plus récent que la dernière ouverture ;
+fenêtre plein écran, lisible sur téléphone, avec les passages précédents (30 jours gardés).
+Les boutons ‹ › passent d'un passage du jour à l'autre (le dernier à l'ouverture) ;
+« Toute la journée » les additionne sans doublon dans l'onglet « À la une » ;
+l'onglet **« Tous les articles »** liste les articles lus mais non retenus par le modèle
+(600 au plus par passage), votables comme les autres. Un clic sur un article ouvre sa
+**fiche** (phrase, extrait du site, votes, étoile, lien vers l'original) ; un article en
+anglais s'y traduit en français d'un clic (titre et extrait, par le modèle des prompts
+d'idées, une seule fois puis gardé dans `veille.db` : `POST
+/api/veille/article/<id>/translate`, 180 s laissés par nginx). Le bouton
+**« Nouveau passage »** lance une veille complète tout de suite, et **« Statistiques »**
+montre vos goûts et les choix de l'IA sur 7 jours, 30 jours ou un an.
+
+```bash
+docker compose up -d antares-tasks                      # démarré avec la pile (restart)
+docker compose run --rm antares-tasks veille --dry-run  # essai à blanc : rien n'est noté
+docker compose run --rm antares-tasks veille            # une veille maintenant
+docker compose run --rm antares-tasks meteo             # la météo du jour
+docker compose run --rm antares-tasks schedule          # prochains passages, manqués
+```
+
+- **Toujours une sous-commande** avec `run` : sans argument, le conteneur ouvrirait une
+  seconde boucle planifiée. Un lancement manuel ne prend pas de créneau : le passage
+  planifié suivant a lieu normalement.
+- **Réglages** dans `tasks/tasks.yaml` (horaires, fuseau, coordonnées, flux, catégories et
+  mots-clés, sélection, apprentissage, prompts d'idées, limites), relus au démarrage :
+  `docker compose restart antares-tasks` après modification (le routeur relit
+  `categories` et `idea_prompt` à chaque requête). Aucun secret. Un flux ajouté se
+  vérifie avec `veille --dry-run` : aucune ligne « Flux … indisponible » attendue.
+- **Votes** : j'aime / je n'aime pas sur chaque article, intéressé / pas intéressé sur
+  chaque idée (`POST /api/veille/vote`). Ils sont enregistrés par le routeur dans
+  `veille.db` (volume `antares-router-data`, journal SQLite en mode DELETE pour rester
+  lisible depuis un volume en lecture seule) et lus par `antares-tasks` : score des
+  candidats par source, catégorie et mots du titre (demi-vie de 30 jours, poids bornés,
+  10 % des places réservées aux sources peu notées, 5 aux meilleurs articles de chaque
+  catégorie pour qu'aucune ne disparaisse, `limits.candidates_per_category`), derniers
+  titres aimés et rejetés montrés au modèle en exemple. Seuls les articles affichés
+  deviennent « déjà vus » (adresse et titre : le même article lu dans son flux et par
+  Google News n'apparaît qu'une fois) ; un candidat non retenu peut revenir au passage
+  suivant tant qu'il a moins de 48 h. Une idée « Pas intéressé » écarte les idées proches.
+  Base absente ou illisible : scores neutres, signalé dans le journal.
+- **Prompt d'une idée** : au clic « Intéressé », le routeur fait rédiger par le modèle
+  un prompt prêt à coller dans Claude Code (`POST /api/veille/idea/<id>/prompt` :
+  contexte tiré de `FEATURES.md`, objectif, fichiers probables, démarche, contraintes du
+  projet, critères de fin), une seule fois puis gardé en cache dans `veille.db`. Les
+  fichiers cités sont pris dans le dépôt monté en lecture seule sous `/repo` (préfixes de
+  `idea_prompt.project_map`, voix personnelles exclues) : un nom inventé est écarté.
+- **Sources privilégiées** (étoile, dans la fiche d'un article ou dans « Sources », 10 au
+  plus, table `favorite_sources` de `veille.db`) : 3 places garanties parmi les candidats
+  (`limits.candidates_per_favorite`), en tête de la liste donnée au modèle, et un article
+  à la une garanti par passage quand la source en a un (ajouté sans phrase, avec
+  l'extrait du site, si le modèle l'a laissé de côté).
+- **Passage manuel** (`GET|POST /api/veille/run`) : le routeur dépose une demande
+  (table `run_requests` de `veille.db`), antares-tasks la prend en 10 s au plus et note
+  l'avancement dans `tasks.db` (`manual_runs`). Un passage à la fois, 5 minutes au moins
+  entre deux demandes (429), refusé pendant un appel vocal (409) ; une demande non prise
+  en 10 minutes (service arrêté) est abandonnée.
+- **Statistiques** (`GET /api/veille/stats?days=7|30|365`, cf. `router/veille_stats.py`) :
+  j'aime par catégorie, sources préférées, mots qui reviennent ; articles à la une par
+  catégorie et par source, taux de sélection ; par jour, taux d'accord (part de « j'aime »
+  parmi les votes sur des articles à la une) et articles ratés (aimés dans « Tous les
+  articles »). Le service tient un résumé chiffré par jour (`daily_stats` de `tasks.db`,
+  gardé un an) ; chaque vote note si l'article était à la une (`votes.placement`).
+- **Articles non retenus** : `GET /api/veille/others?date=AAAA-MM-JJ` (colonne
+  `runs.others_json`, extraits de 600 caractères au plus : `limits.extract_chars`, le
+  prompt n'en reçoit que `limits.summary_chars`).
+- **Sources de l'interface** : `GET|POST /api/veille/sources`, `POST
+/api/veille/sources/test` (lecture d'essai), `PATCH|DELETE /api/veille/sources/<id>`,
+  `POST /api/veille/sources/builtin` (désactiver une source fournie). Rangées dans
+  `veille.db` (tables `sources`, `disabled_sources`), lues par antares-tasks à chaque
+  passage. Le routeur lit la source avec le code de collecte du service (monté sous
+  `/repo/deploy/s2s/tasks`) : https et adresse publique seulement, y compris pour la
+  première adresse ; une page de site est acceptée si elle déclare son flux. Les flux
+  d'un même site sont lus l'un après l'autre, à 2 s d'intervalle.
+  nginx laisse 180 s à cette route (modèle à charger).
+- **Modèle** : vide par défaut, la veille prend le modèle actif des Réglages (celui de la
+  voix), ou son repli s'il s'agit de Claude (refusé ici). Fixer un autre modèle dans
+  `tasks.yaml` peut faire **recharger Ollama** (latence et mémoire graphique pendant un
+  appel) : à éviter sur 12 Go. Le contexte (`num_ctx`) n'est jamais forcé.
+- **Appel en cours** : si un tour de conversation date de moins de 2 minutes, la veille
+  attend par tranches d'une minute, 15 minutes au plus. Limite connue : un long silence
+  pendant un appel n'est pas vu, et une conversation écrite récente reporte aussi la veille.
+- **Créneau manqué** (service arrêté, poste en veille plus de 15 minutes) : noté
+  « manqué » dans la fenêtre, jamais rattrapé.
+- **Réseau** : le service sort vers Internet (flux, Open-Meteo) par `antares-search` et
+  joint Ollama par `ai-assistant-net` ; il n'est jamais sur `antares-local`
+  (`check-local.sh` le vérifie). Aucun port publié, code monté en lecture seule.
+- **Connexions** : le service lit `connections.json` (clés d'API comprises) dans le volume
+  du routeur, avec la même image et le même code ; il ne l'écrit jamais. Routeur jamais
+  démarré (fichier absent) ou configuration incomplète : passage en échec, message clair.
+- **Partage public** (`share.sh`) : la veille reste visible. Les invités la lisent
+  (articles, fiches, idées, statistiques, traductions et prompts déjà faits) ; votes,
+  étoiles, sources, passage manuel, nouvelles traductions et nouveaux prompts leur
+  répondent 403 et sont masqués (mention « Lecture seule »). Accès complet pour
+  `SHARE_OWNER_EMAIL` (`.env`) par le tunnel, et pour l'accès local
+  (`GET /api/veille/access`, cf. `router/veille_access.py`).
+- **L'avatar en parle** (ADR 0014, cf. `router/veille_journal.py`) : une question sur
+  l'actualité, la veille, les idées, la météo ou un nom cité dans un titre (« tu as vu le
+  truc sur Nvidia ? ») ajoute à la consigne un résumé du dernier passage réussi (15
+  articles, cités d'abord) ; l'avatar raconte, donne son avis et demande le tien, sans
+  lire. La recherche web n'est alors faite que si tu la demandes (« cherche sur
+  internet »).
+- **Journal** : mini-fenêtre de l'avatar en haut à gauche de la Veille, bouton
+  « Lancer le journal » (ou « fais-moi le journal » en appel). L'avatar ouvre sur la
+  météo puis présente 5 sujets (aimés d'abord, une catégorie différente tant que
+  possible, jamais un article rejeté), donne son avis et attend le tien, rebondit, puis
+  enchaîne ; il finit par deux idées et une conclusion. « Raconte-m'en plus » ou une
+  question restent sur le sujet, « passe » ou « suivant » enchaînent sans réagir,
+  « stop » conclut. Le routeur tient le conducteur (`GET|PUT|DELETE
+/api/veille/journal`, phase en mémoire, 2 h au plus) et ne donne au modèle que l'étape
+  et le sujet du moment, dans une note de régie collée au dernier message (un petit
+  modèle se perd sinon). Le sujet présenté est marqué « À l'antenne » dans la liste.
+  Disponible pendant un partage (lecture seule).
+- **Ancienne interface** (`ui.sh legacy`) : pas de veille (nouvelle interface seulement).
+- `FEATURES.md` doit exister avant le premier `docker compose up` (sinon Docker crée un
+  dossier à sa place) ; le tenir à jour à chaque fin de feature, sous 4 000 caractères :
+  une idée qui y figure déjà n'est plus proposée.
+- Données : base `tasks.db` dans le volume `antares-tasks-data` (passages, météo, adresses
+  déjà vues, idées), lue en lecture seule par le routeur (`GET /api/veille/latest`,
+  `GET /api/veille?date=AAAA-MM-JJ`) ; le volume du routeur (Réglages, Connexions, votes,
+  drapeau de partage) n'est monté qu'en lecture seule dans `antares-tasks`. Passages
+  gardés 30 jours ; adresses vues, votes et prompts gardés sans limite. Redirections des
+  flux : 3 au plus, vers une adresse https publique seulement.
+- **Volume `antares-tasks-data` externe** : il a été créé hors de Compose ; déclaré
+  `external: true`, il ne provoque plus l'avertissement « already exists but was not
+  created by Docker Compose » et n'est jamais effacé par `docker compose down -v`.
+  `install.sh` le crée s'il manque ; sur un poste installé avant cette version :
+  `docker volume create antares-tasks-data` (sans effet sur un volume existant).
+
+Tests (dans l'image, sans réseau ni vrai modèle) :
+
+```bash
+docker run --rm --entrypoint python -v "$PWD/tasks:/app:ro" -v "$PWD/router:/router:ro" \
+  -v "$PWD/../../web/tests/fixtures/api:/web-fixtures:ro" -e VEILLE_FIXTURE=/web-fixtures/veille_latest.json \
+  -w /app -e PYTHONPATH=/app:/router antares/s2s:1.0.0 -m unittest discover -p 'test_tasks_*.py'
+docker run --rm --entrypoint python -v "$PWD/router:/router:ro" -w /router \
+  antares/s2s:1.0.0 -m unittest discover -p 'test_*.py'
+```
+
 ## Vérifications
 
-| Script                              | Rôle                                                                    |
-| ----------------------------------- | ----------------------------------------------------------------------- |
-| `./check-local.sh`                  | Prouve l'isolation : Internet bloqué, seul Ollama joignable             |
-| `./rag-index.sh <projet> <dossier>` | Indexe un dossier dans le RAG intégré                                   |
-| `./smoke-test.sh`                   | Appel de bout en bout sans micro, mesure la latence (`out/reponse.wav`) |
-| `./voice-samples.sh`                | Banc d'écoute de toutes les voix (`out/voix/index.html`)                |
-| `python3 llm_bench.py <modèles…>`   | Compare des LLM Ollama en conditions réelles (`out/llm/index.html`)     |
+| Script                                           | Rôle                                                                    |
+| ------------------------------------------------ | ----------------------------------------------------------------------- |
+| `./check-local.sh`                               | Prouve l'isolation : Internet bloqué, seul Ollama joignable             |
+| `docker compose run --rm antares-tasks schedule` | Prochains passages de la veille, dernier succès, créneaux manqués       |
+| `./rag-index.sh <projet> <dossier>`              | Indexe un dossier dans le RAG intégré                                   |
+| `./smoke-test.sh`                                | Appel de bout en bout sans micro, mesure la latence (`out/reponse.wav`) |
+| `./voice-samples.sh`                             | Banc d'écoute de toutes les voix (`out/voix/index.html`)                |
+| `python3 llm_bench.py <modèles…>`                | Compare des LLM Ollama en conditions réelles (`out/llm/index.html`)     |
 
 ## Architecture
 
@@ -466,6 +625,11 @@ Navigateur ──> web (nginx + interface web/, 127.0.0.1:8765) ──> s2s (ré
                                                   │ réécrit `model` selon les réglages
                                                   └──> rag + qdrant (ai-to-boost)
                                                        extraits des projets
+
+antares-tasks (8 h, 13 h, 18 h) ──> flux RSS, Open-Meteo (Internet, antares-search)
+       │  ▲                    └──> modèle des Réglages (Connexions, ai-assistant-net)
+       │  └── veille.db (votes, lecture seule) <── llm-router /api/veille/vote
+       └── tasks.db (volume tasks-data) ──> llm-router /api/veille ──> fenêtre Veille
 ```
 
 Le LLM est appelé directement sur Ollama (via `llm-router`) : LiteLLM perd

@@ -23,6 +23,9 @@ export default defineConfig({
         // Répétition : logique pure (les composants relèvent de Playwright)
         "src/features/rehearsal/rehearsalMachine.ts",
         "src/features/rehearsal/audio/**",
+        // Veille IA et météo : logique pure (cible 100 %)
+        "src/features/veille/veille.ts",
+        "src/features/veille/stats.ts",
       ],
       thresholds: { lines: 85 },
     },

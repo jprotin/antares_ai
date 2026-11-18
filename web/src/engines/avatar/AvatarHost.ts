@@ -55,6 +55,7 @@ type Settings = {
 export class AvatarHost {
   kind: AvatarKind = DEFAULT;
   private container: HTMLElement | null = null;
+  private mounted: HTMLElement[] = [];
   private current: AvatarRenderer | null = null;
   private readonly settings: Settings = {
     state: "idle",
@@ -73,16 +74,31 @@ export class AvatarHost {
     return WEBGL.has(kind) && !webglAvailable() ? "orb" : kind;
   }
 
+  // Un seul rendu à la fois : le dernier conteneur monté l'emporte (mini-fenêtre du
+  // journal de la veille) ; à son démontage, l'avatar revient dans le précédent
   mount(container: HTMLElement) {
-    this.container = container;
-    this.render();
+    this.mounted.push(container);
+    this.show(container);
     return () => {
+      this.mounted = this.mounted.filter((c) => c !== container);
       if (this.container !== container) return;
       this.current?.stop();
       this.current = null;
       container.replaceChildren();
       this.container = null;
+      const previous = this.mounted.at(-1);
+      if (previous) this.show(previous);
     };
+  }
+
+  private show(container: HTMLElement) {
+    if (this.container && this.container !== container) {
+      this.current?.stop();
+      this.current = null;
+      this.container.replaceChildren();
+    }
+    this.container = container;
+    this.render();
   }
 
   // `remember` : choix explicite de l'utilisateur, mémorisé dans le navigateur

@@ -86,6 +86,16 @@ server {
         client_max_body_size 16m;
     }
 
+    # Veille : prompt d'une idée ou traduction d'un article par le modèle (délai du
+    # routeur : idea_prompt.timeout_s de tasks.yaml, 120 s par défaut, plus le chargement
+    # éventuel du modèle)
+    location ~ "^/api/veille/(idea/[0-9a-f]{16}/prompt|article/[0-9a-f]{16}/translate)$" {
+        proxy_pass $router_upstream;
+        proxy_set_header Host $host;
+        proxy_read_timeout 180s;
+        client_max_body_size 1k;
+    }
+
     # Réglages (modèle, voix, agent, mode…) et agents : routeur LLM
     location /api/ {
         proxy_pass $router_upstream;

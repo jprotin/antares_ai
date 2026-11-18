@@ -5,6 +5,8 @@ export const STORAGE_KEYS = {
   theme: "antares-theme",
   avatar: "antares-avatar",
   noiseFilter: "antares.noiseFilter",
+  // Dernière ouverture de la fenêtre Veille IA et météo (pastille)
+  veilleLastOpened: "antares.veille.lastOpened",
 } as const;
 
 export function readPreference(key: string): string | null {

@@ -1,0 +1,65 @@
+{
+  "builtin": [
+    {
+      "name": "OpenAI",
+      "url": "https://openai.com/news/rss.xml",
+      "lang": "en",
+      "category": "ia",
+      "filter_keywords": false,
+      "enabled": true,
+      "favorite": false
+    },
+    {
+      "name": "AWS News Blog",
+      "url": "https://aws.amazon.com/blogs/aws/feed/",
+      "lang": "en",
+      "category": "cloud",
+      "filter_keywords": false,
+      "enabled": true,
+      "favorite": false
+    },
+    {
+      "name": "Korben",
+      "url": "https://korben.info/feed",
+      "lang": "fr",
+      "category": "informatique",
+      "filter_keywords": false,
+      "enabled": false,
+      "favorite": false
+    }
+  ],
+  "custom": [
+    {
+      "id": 1,
+      "kind": "search",
+      "name": "Raspberry Pi (Google News)",
+      "url": "https://news.google.com/rss/search?q=Raspberry%20Pi%20when%3A1d&hl=fr&gl=FR&ceid=FR:fr",
+      "query": "Raspberry Pi",
+      "lang": "fr",
+      "category": "materiel",
+      "filter_keywords": false,
+      "created_at": "2026-11-17T01:30:00+00:00",
+      "favorite": false
+    }
+  ],
+  "categories": [
+    {
+      "slug": "ia",
+      "label": "IA"
+    },
+    {
+      "slug": "cloud",
+      "label": "Cloud"
+    },
+    {
+      "slug": "materiel",
+      "label": "Matériel"
+    },
+    {
+      "slug": "informatique",
+      "label": "Monde de l'informatique"
+    }
+  ],
+  "max_custom": 50,
+  "max_favorites": 10
+}
