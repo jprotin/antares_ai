@@ -2,7 +2,7 @@
 // (WebSocket) -> voix + sous-titres ; hors appel, réponse écrite en flux (SSE).
 // Impératif, sans React : lit et écrit le store, pilote l'avatar par appels directs.
 // L'appel ne démarre que sur un clic (start), une seule session à la fois.
-import { failureReason, httpError } from "@/lib/api";
+import { failureReason, httpError, WRITE_HEADERS } from "@/lib/api";
 import { base64FromPcm, floatFromBase64Pcm } from "@/lib/pcm";
 import { instructionsFor, writtenInstructionsFor } from "@/lib/persona";
 import { readChatStream } from "@/lib/sse";
@@ -555,7 +555,7 @@ export class CallEngine {
     try {
       const response = await fetch("api/chat", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { ...WRITE_HEADERS, "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: [
             { role: "system", content: instructions },

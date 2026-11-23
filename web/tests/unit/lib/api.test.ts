@@ -73,7 +73,7 @@ describe("api", () => {
     expect(fetch).toHaveBeenLastCalledWith("api/settings", {
       cache: "no-store",
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { "X-Antares": "1", "Content-Type": "application/json" },
       body: '{"model":"m"}',
     });
   });

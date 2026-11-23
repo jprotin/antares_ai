@@ -5,9 +5,40 @@ map $http_upgrade $connection_upgrade {
     ''      close;
 }
 
+# Origine des requêtes vers le moteur (/v1/, WebSocket) et le routeur (/api/) : une page
+# tierce ouverte dans le navigateur peut viser 127.0.0.1 (WebSocket intersite, sans CORS).
+# Admises : aucune Origin (outils locaux : curl, scripts), l'interface locale, ou l'adresse
+# publique du partage : x-antares-origin égal à l'Origin et x-antares-user présent, tous
+# deux écrits par ngrok après la connexion Google (share.sh, router/write_guard.py).
+map $http_origin $origin_local {
+    default                 0;
+    ""                      1;
+    "http://127.0.0.1:8765" 1;
+    "http://localhost:8765" 1;
+}
+
+map "$http_origin|$http_x_antares_origin|$http_x_antares_user" $origin_share {
+    default                       0;
+    "~*^(https://[^|]+)\|\1\|.+$" 1;
+}
+
+map "$origin_local$origin_share" $origin_allowed {
+    default 1;
+    "00"    0;
+}
+
+# Serveur par défaut : tout Host autre que 127.0.0.1 ou localhost (DNS rebinding : un nom
+# piégé qui pointe vers 127.0.0.1) reçoit une connexion fermée sans réponse. Le partage
+# ngrok (share.sh, --host-header=rewrite) arrive sous le nom local.
+server {
+    listen 8765 default_server;
+    server_name _;
+    return 444;
+}
+
 server {
     listen 8765;
-    server_name _;
+    server_name 127.0.0.1 localhost;
 
     # DNS de Docker, re-résolu à chaque requête : un service recréé change d'IP
     resolver 127.0.0.11 valid=10s ipv6=off;
@@ -27,6 +58,10 @@ server {
     add_header X-Frame-Options DENY always;
 
     location /v1/ {
+        # Origine étrangère (cf. map $origin_allowed) : refusée
+        if ($origin_allowed = 0) {
+            return 403;
+        }
         proxy_pass $s2s_upstream;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
@@ -52,6 +87,10 @@ server {
     # réponse arrive en flux (SSE) : pas de mise en tampon, délai long (Claude, réponses
     # longues). 4 Ko (limite de /api/) bloquait la conversation dès quelques échanges.
     location = /api/chat {
+        # Origine étrangère (cf. map $origin_allowed) : refusée
+        if ($origin_allowed = 0) {
+            return 403;
+        }
         proxy_pass $router_upstream;
         proxy_set_header Host $host;
         proxy_http_version 1.1;
@@ -62,6 +101,10 @@ server {
 
     # Documents joints (PDF, Word, texte, images) : 15 Mo au plus, cf. documents.py
     location = /api/documents {
+        # Origine étrangère (cf. map $origin_allowed) : refusée
+        if ($origin_allowed = 0) {
+            return 403;
+        }
         proxy_pass $router_upstream;
         proxy_set_header Host $host;
         proxy_read_timeout 180s;
@@ -71,6 +114,10 @@ server {
     # Documents du RAG intégré : même taille que les documents joints ; l'indexation
     # (embeddings sur le processeur) prend jusqu'à une minute pour un long document
     location ~ ^/api/rag/projects/[a-z0-9_-]+/documents$ {
+        # Origine étrangère (cf. map $origin_allowed) : refusée
+        if ($origin_allowed = 0) {
+            return 403;
+        }
         proxy_pass $router_upstream;
         proxy_set_header Host $host;
         proxy_read_timeout 300s;
@@ -80,6 +127,10 @@ server {
     # Répétitions : slides en PDF (15 Mo), discours transcrit, rapport rédigé par le
     # modèle (jusqu'à quelques minutes sur un long discours)
     location ~ ^/api/rehearsals/.+ {
+        # Origine étrangère (cf. map $origin_allowed) : refusée
+        if ($origin_allowed = 0) {
+            return 403;
+        }
         proxy_pass $router_upstream;
         proxy_set_header Host $host;
         proxy_read_timeout 300s;
@@ -90,6 +141,10 @@ server {
     # routeur : idea_prompt.timeout_s de tasks.yaml, 120 s par défaut, plus le chargement
     # éventuel du modèle)
     location ~ "^/api/veille/(idea/[0-9a-f]{16}/prompt|article/[0-9a-f]{16}/translate)$" {
+        # Origine étrangère (cf. map $origin_allowed) : refusée
+        if ($origin_allowed = 0) {
+            return 403;
+        }
         proxy_pass $router_upstream;
         proxy_set_header Host $host;
         proxy_read_timeout 180s;
@@ -98,6 +153,10 @@ server {
 
     # Réglages (modèle, voix, agent, mode…) et agents : routeur LLM
     location /api/ {
+        # Défense en profondeur (le routeur contrôle aussi les écritures, write_guard.py)
+        if ($origin_allowed = 0) {
+            return 403;
+        }
         proxy_pass $router_upstream;
         proxy_set_header Host $host;
         proxy_read_timeout 60s;

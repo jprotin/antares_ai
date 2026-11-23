@@ -104,6 +104,7 @@ import veille_votes
 import voicecode
 import voices
 import web
+import write_guard
 
 SETTINGS_PATH = Path(os.environ.get("SETTINGS_PATH", "/data/settings.json"))
 # Partage en cours (tunnel ngrok, cf. share.sh) : fichier posé le temps du partage.
@@ -140,6 +141,8 @@ logging.basicConfig(
 logger = logging.getLogger("router")
 
 app = FastAPI(title="antares llm-router", docs_url=None, redoc_url=None)
+# Écritures sur /api/ : origine locale ou du partage, en-tête X-Antares (cf. write_guard.py)
+app.add_middleware(write_guard.WriteGuard)
 
 
 class Settings(BaseModel):
