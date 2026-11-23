@@ -1,0 +1,45 @@
+{
+  "$defs": {
+    "Rattachement": {
+      "additionalProperties": false,
+      "properties": {
+        "question": {
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+          "title": "Question",
+          "type": "string"
+        },
+        "candidat": {
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+          "title": "Candidat",
+          "type": "string"
+        },
+        "option": {
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+          "title": "Option",
+          "type": "string"
+        },
+        "mesure_id": {
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+          "title": "Mesure Id",
+          "type": "string"
+        }
+      },
+      "required": ["question", "candidat", "option", "mesure_id"],
+      "title": "Rattachement",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "rattachements": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Rattachement"
+      },
+      "title": "Rattachements",
+      "type": "array"
+    }
+  },
+  "title": "Rattachements",
+  "type": "object"
+}

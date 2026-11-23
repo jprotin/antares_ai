@@ -184,6 +184,10 @@ services:
       # Sources du dépôt (lecture seule) : seuls les fichiers qui existent sont cités
       # dans le prompt d'une idée (voix personnelles exclues : donnée biométrique)
       REPO_ROOT: /repo
+      # Présidentielle 2027 : base montée en lecture seule (PRESIDENTIELLE_DATA du .env,
+      # vide = jeu fictif) ; cible du déploiement (cloud : bandeau « modèle distant »)
+      PRESIDENTIELLE_DIR: /presidentielle
+      ANTARES_TARGET: ${ANTARES_TARGET:-local}
     extra_hosts:
       - host.docker.internal:host-gateway
     volumes:
@@ -201,6 +205,7 @@ services:
       - ../../web/tests:/repo/web/tests:ro
       - ../../docs:/repo/docs:ro
       - ../../FEATURES.md:/repo/FEATURES.md:ro
+      - ${PRESIDENTIELLE_DATA:-./router/fixtures/presidentielle/demo}:/presidentielle:ro
     healthcheck:
       test:
         - CMD
@@ -230,9 +235,12 @@ services:
       # Votes de la veille (base du routeur, journal DELETE), lus en lecture seule
       VOTES_DB: /data/veille.db
       ROUTER_URL: http://llm-router:11434
+      # Présidentielle 2027 : même base que le routeur, en lecture seule
+      PRESIDENTIELLE_DIR: /presidentielle
     volumes:
       - ./tasks:/app:ro
       - ./router:/router:ro
+      - ${PRESIDENTIELLE_DATA:-./router/fixtures/presidentielle/demo}:/presidentielle:ro
       - ../../FEATURES.md:/features/FEATURES.md:ro
       # Réglages, Connexions et votes du routeur en lecture seule (moindre privilège : ni
       # clés, ni drapeau de partage, ni votes modifiables d'ici) ; base des veilles dans

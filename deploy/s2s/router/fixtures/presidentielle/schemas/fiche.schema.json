@@ -1,0 +1,277 @@
+{
+  "$defs": {
+    "Declaration": {
+      "additionalProperties": false,
+      "properties": {
+        "date": {
+          "format": "date",
+          "title": "Date",
+          "type": "string"
+        },
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        }
+      },
+      "required": ["date", "source_id"],
+      "title": "Declaration",
+      "type": "object"
+    },
+    "Description": {
+      "additionalProperties": false,
+      "properties": {
+        "texte": {
+          "maxLength": 300,
+          "minLength": 1,
+          "title": "Texte",
+          "type": "string"
+        },
+        "nature": {
+          "const": "redaction",
+          "default": "redaction",
+          "title": "Nature",
+          "type": "string"
+        }
+      },
+      "required": ["texte"],
+      "title": "Description",
+      "type": "object"
+    },
+    "LignePhare": {
+      "additionalProperties": false,
+      "properties": {
+        "texte": {
+          "minLength": 1,
+          "title": "Texte",
+          "type": "string"
+        },
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        }
+      },
+      "required": ["texte", "source_id"],
+      "title": "LignePhare",
+      "type": "object"
+    },
+    "Mesure": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "theme": {
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+          "title": "Theme",
+          "type": "string"
+        },
+        "citation": {
+          "minLength": 1,
+          "title": "Citation",
+          "type": "string"
+        },
+        "resume": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Resume"
+        },
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        },
+        "page": {
+          "anyOf": [
+            {
+              "minimum": 1,
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Page"
+        },
+        "ajoutee_le": {
+          "format": "date",
+          "title": "Ajoutee Le",
+          "type": "string"
+        },
+        "a_verifier": {
+          "default": false,
+          "title": "A Verifier",
+          "type": "boolean"
+        }
+      },
+      "required": ["id", "theme", "citation", "source_id", "ajoutee_le"],
+      "title": "Mesure",
+      "type": "object"
+    },
+    "Vote": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "scrutin": {
+          "minLength": 1,
+          "title": "Scrutin",
+          "type": "string"
+        },
+        "date": {
+          "format": "date",
+          "title": "Date",
+          "type": "string"
+        },
+        "position": {
+          "enum": ["pour", "contre", "abstention"],
+          "title": "Position",
+          "type": "string"
+        },
+        "theme": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Theme"
+        },
+        "source_id": {
+          "title": "Source Id",
+          "type": "string"
+        }
+      },
+      "required": ["id", "scrutin", "date", "position", "source_id"],
+      "title": "Vote",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+      "title": "Id",
+      "type": "string"
+    },
+    "nom_affiche": {
+      "minLength": 1,
+      "title": "Nom Affiche",
+      "type": "string"
+    },
+    "initiales": {
+      "pattern": "^[A-Z]{2,4}$",
+      "title": "Initiales",
+      "type": "string"
+    },
+    "alias": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Alias",
+      "type": "array"
+    },
+    "fictif": {
+      "default": false,
+      "title": "Fictif",
+      "type": "boolean"
+    },
+    "statut": {
+      "enum": ["declare", "officiel", "retire", "non_qualifie"],
+      "title": "Statut",
+      "type": "string"
+    },
+    "statut_source": {
+      "title": "Statut Source",
+      "type": "string"
+    },
+    "declaration": {
+      "$ref": "#/$defs/Declaration"
+    },
+    "description": {
+      "$ref": "#/$defs/Description"
+    },
+    "lignes_phares": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/LignePhare"
+      },
+      "maxItems": 5,
+      "title": "Lignes Phares",
+      "type": "array"
+    },
+    "mesures": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Mesure"
+      },
+      "title": "Mesures",
+      "type": "array"
+    },
+    "parlementaire": {
+      "default": false,
+      "title": "Parlementaire",
+      "type": "boolean"
+    },
+    "votes": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/Vote"
+      },
+      "title": "Votes",
+      "type": "array"
+    },
+    "version": {
+      "minimum": 1,
+      "title": "Version",
+      "type": "integer"
+    },
+    "mise_a_jour": {
+      "format": "date",
+      "title": "Mise A Jour",
+      "type": "string"
+    },
+    "relue_le": {
+      "anyOf": [
+        {
+          "format": "date",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Relue Le"
+    }
+  },
+  "required": [
+    "id",
+    "nom_affiche",
+    "initiales",
+    "statut",
+    "statut_source",
+    "declaration",
+    "description",
+    "version",
+    "mise_a_jour"
+  ],
+  "title": "Fiche",
+  "type": "object"
+}

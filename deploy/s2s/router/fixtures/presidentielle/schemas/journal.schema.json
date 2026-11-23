@@ -1,0 +1,83 @@
+{
+  "$defs": {
+    "EntreeJournal": {
+      "additionalProperties": false,
+      "properties": {
+        "date": {
+          "format": "date",
+          "title": "Date",
+          "type": "string"
+        },
+        "objet": {
+          "enum": [
+            "fiche",
+            "rattachement",
+            "gel_grille",
+            "correction_grille",
+            "base"
+          ],
+          "title": "Objet",
+          "type": "string"
+        },
+        "cible": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Cible"
+        },
+        "version": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Version"
+        },
+        "motif": {
+          "minLength": 1,
+          "title": "Motif",
+          "type": "string"
+        },
+        "empreinte": {
+          "anyOf": [
+            {
+              "pattern": "^sha256:[0-9a-f]{64}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Empreinte"
+        }
+      },
+      "required": ["date", "objet", "motif"],
+      "title": "EntreeJournal",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "entrees": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/EntreeJournal"
+      },
+      "title": "Entrees",
+      "type": "array"
+    }
+  },
+  "title": "Journal",
+  "type": "object"
+}

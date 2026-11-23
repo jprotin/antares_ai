@@ -5,6 +5,7 @@ import type { FeatureDef } from "./types";
 import { callFeature } from "@/features/call";
 import { homeFeature } from "@/features/home";
 import { knowledgeFeature } from "@/features/knowledge";
+import { presidentielleFeature } from "@/features/presidentielle";
 import { rehearsalFeature } from "@/features/rehearsal";
 import { settingsFeature } from "@/features/settings";
 import { veilleFeature } from "@/features/veille";
@@ -14,6 +15,7 @@ export const features: FeatureDef[] = [
   callFeature,
   rehearsalFeature,
   veilleFeature,
+  presidentielleFeature,
   settingsFeature,
   knowledgeFeature,
 ];

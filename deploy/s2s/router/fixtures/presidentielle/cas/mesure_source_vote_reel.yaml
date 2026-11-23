@@ -1,0 +1,84 @@
+---
+# Cas en défaut : mesure citant un vote réel
+id: aline-fictiva
+nom_affiche: Aline Fictiva
+initiales: AF
+alias:
+  - A. Fictiva
+fictif: true
+statut: declare
+statut_source: etat-declarations
+declaration:
+  date: 2026-10-12
+  source_id: etat-declarations
+description:
+  texte: Candidate inventée pour la démonstration, députée fictive depuis 2022. Ses positions servent à montrer la fiche.
+  nature: redaction
+lignes_phares:
+  - texte: Un médecin traitant pour chaque habitant
+    source_id: aline-site
+  - texte: Une fiscalité plus progressive
+    source_id: aline-site
+  - texte: Des classes de vingt élèves en primaire
+    source_id: aline-site
+mesures:
+  - id: eco-impot
+    theme: economie
+    citation: Nous créerons deux tranches d'impôt supplémentaires pour les revenus les plus élevés.
+    resume: Deux tranches d'impôt de plus pour les hauts revenus.
+    source_id: aline-votes
+    page: 4
+    ajoutee_le: 2026-11-20
+  - id: eco-dette
+    theme: economie
+    citation: Le déficit sera réduit par une hausse ciblée de certains impôts, et non par des coupes dans les services publics.
+    source_id: aline-programme
+    page: 5
+    ajoutee_le: 2026-11-20
+  - id: sante-installation
+    theme: sante
+    citation: Les jeunes médecins exerceront leurs trois premières années dans un territoire qui en manque.
+    source_id: aline-programme
+    page: 9
+    ajoutee_le: 2026-11-20
+  - id: educ-classes
+    theme: education
+    citation: Aucune classe de primaire ne dépassera vingt élèves.
+    source_id: aline-programme
+    page: 12
+    ajoutee_le: 2026-11-20
+  - id: ecolo-nucleaire
+    theme: ecologie
+    citation: Nous lancerons la construction de six nouveaux réacteurs.
+    source_id: aline-programme
+    page: 15
+    ajoutee_le: 2026-11-20
+  - id: securite-police
+    theme: securite
+    citation: Nous recruterons dix mille policiers et gendarmes de proximité.
+    source_id: aline-programme
+    page: 18
+    ajoutee_le: 2026-11-20
+  - id: europe-defense
+    theme: europe
+    citation: La France proposera un budget européen commun pour la défense.
+    source_id: aline-programme
+    page: 21
+    ajoutee_le: 2026-11-20
+parlementaire: true
+votes:
+  - id: vote-energie
+    scrutin: Scrutin fictif n° 101 sur la loi de programmation de l'énergie
+    date: 2025-03-12
+    position: pour
+    theme: ecologie
+    source_id: aline-votes
+  - id: vote-franchises
+    scrutin: Scrutin fictif n° 214 sur les franchises médicales
+    date: 2025-10-28
+    position: contre
+    theme: sante
+    source_id: aline-votes
+version: 1
+mise_a_jour: 2026-11-20
+relue_le: 2026-11-20

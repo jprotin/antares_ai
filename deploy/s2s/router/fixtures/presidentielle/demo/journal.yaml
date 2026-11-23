@@ -1,0 +1,33 @@
+---
+# Journal des mises à jour de la base de démonstration, du plus ancien au plus récent
+entrees:
+  - date: 2026-11-18
+    objet: base
+    motif: Création du jeu de démonstration (données inventées)
+  - date: 2026-11-20
+    objet: fiche
+    cible: aline-fictiva
+    version: 1
+    motif: Publication de la fiche fictive
+  - date: 2026-11-20
+    objet: fiche
+    cible: bruno-demonstra
+    version: 1
+    motif: Publication de la fiche fictive
+  - date: 2026-11-20
+    objet: fiche
+    cible: carla-exemplia
+    version: 2
+    motif: Ajout d'une mesure sur les institutions
+  - date: 2026-11-20
+    objet: fiche
+    cible: gaston-fictorin
+    version: 1
+    motif: Candidature fictive retirée le 10 novembre 2026
+  - date: 2026-11-20
+    objet: rattachement
+    motif: Rattachements des quatre candidats fictifs
+  - date: 2026-11-20
+    objet: gel_grille
+    motif: Gel de la grille de démonstration
+    empreinte: sha256:9b1719d9d56159dfa7178a2b40215f2a85f83bf437eff780baf5d25bc123bafb

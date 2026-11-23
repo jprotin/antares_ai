@@ -1,0 +1,64 @@
+---
+# Documents inventés : adresses en exemple.invalid, empreintes SHA-256 fictives
+sources:
+  - id: etat-declarations
+    titre: Liste fictive des déclarations de candidature
+    url: https://etat.exemple.invalid/declarations
+    niveau: officiel_etat
+    publie_le: 2026-11-02
+    consulte_le: 2026-11-20
+    sha256: f1233a9c1f17fee5cbd8147e219afb9edfc61a90178fc96af75e4c7762d14b99
+  - id: aline-programme
+    titre: Programme fictif d'Aline Fictiva
+    url: https://aline-fictiva.exemple.invalid/programme.pdf
+    niveau: candidat
+    publie_le: 2026-10-15
+    consulte_le: 2026-11-20
+    sha256: 146888cc14a5b2041c6a0fe159d878a52aa6d5837bb0c01cbb3d0f75c514dda0
+    candidat: aline-fictiva
+  - id: aline-site
+    titre: Site fictif d'Aline Fictiva, page des priorités
+    url: https://aline-fictiva.exemple.invalid/priorites
+    niveau: candidat
+    consulte_le: 2026-11-20
+    sha256: bc603be791cc5dcbc22b5f1a8aac12f55683b49913f385cb69debb14f84d600f
+    candidat: aline-fictiva
+  - id: aline-votes
+    titre: Scrutins fictifs de l'Assemblée, votes d'Aline Fictiva
+    url: https://assemblee.exemple.invalid/deputes/aline-fictiva/votes
+    niveau: vote_reel
+    consulte_le: 2026-11-20
+    sha256: bf97db211b36f931f7485f410199bd48702f266e6b544c33bf1731c6a686150b
+    candidat: aline-fictiva
+  - id: bruno-programme
+    titre: Programme fictif de Bruno Démonstra
+    url: https://bruno-demonstra.exemple.invalid/programme.pdf
+    niveau: candidat
+    publie_le: 2026-09-30
+    consulte_le: 2026-11-20
+    sha256: f922304330b16adf1391cbe0ff2d380462c70fa4136a4875b36935194116df2a
+    candidat: bruno-demonstra
+  - id: carla-programme
+    titre: Programme fictif de Carla Exemplia
+    url: https://carla-exemplia.exemple.invalid/programme.pdf
+    niveau: candidat
+    publie_le: 2026-11-05
+    consulte_le: 2026-11-20
+    sha256: 01e82940cf8199b8b6773fa54c9108647799d544224a216aab360ad37ca43503
+    candidat: carla-exemplia
+  - id: gaston-programme
+    titre: Programme fictif de Gaston Fictorin
+    url: https://gaston-fictorin.exemple.invalid/programme.pdf
+    niveau: candidat
+    publie_le: 2026-09-01
+    consulte_le: 2026-11-20
+    sha256: a2f434cd81dcd7ce3f309ceb27ade4794e215b6f15f3a8ac652918bc3d774bf6
+    candidat: gaston-fictorin
+  - id: gaston-retrait
+    titre: Communiqué fictif de retrait de Gaston Fictorin
+    url: https://gaston-fictorin.exemple.invalid/communique-retrait
+    niveau: candidat
+    publie_le: 2026-11-10
+    consulte_le: 2026-11-20
+    sha256: 61e69c2a821cb9e07f5ba1d04a85955a63e1e7a663df476fe396debe39d8a871
+    candidat: gaston-fictorin

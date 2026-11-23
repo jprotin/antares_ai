@@ -38,6 +38,10 @@ export class MockApi {
     "veille/access": { read_only: false, sharing: false },
     // Journal de la veille : aucun en cours
     "veille/journal": { active: false },
+    // Présidentielle 2027 : sortie du routeur sur le jeu fictif (lot 1 ; quiz : lot 3)
+    presidentielle: fixture("presidentielle"),
+    "presidentielle/meta": fixture("presidentielle_meta"),
+    "presidentielle/quiz": fixture("presidentielle_quiz"),
   };
   // Veille : prompts d'idées fabriqués pendant le test (POST), en plus de ceux que le
   // dernier passage annonce (`has_prompt`)

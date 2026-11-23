@@ -1,0 +1,22 @@
+{
+  "disponible": true,
+  "message": null,
+  "jeu": "demonstration",
+  "liste": "declares",
+  "phase": "declares",
+  "version": "f992981426f9",
+  "sharing": false,
+  "guest": false,
+  "appel_en_cours": false,
+  "assistant": {
+    "modele": "ollama/gemma4:e4b",
+    "modeles_autorises": [
+      "litellm-ai-to-boost/gemma4:e4b",
+      "ollama/gemma4:e4b"
+    ],
+    "message": null
+  },
+  "cible": "local",
+  "fiches": 4,
+  "erreurs": []
+}

@@ -1,0 +1,151 @@
+---
+# Un fichier en défaut par règle : il remplace `cible` dans une copie du jeu fictif,
+# et chaque erreur produite contient `erreur`
+cas:
+  - fichier: fiche_6_lignes.yaml
+    cible: candidats/aline-fictiva.yaml
+    erreur: lignes_phares
+    regle: six lignes phares (cinq au plus)
+  - fichier: fiche_description_301.yaml
+    cible: candidats/bruno-demonstra.yaml
+    erreur: description.texte
+    regle: description de 301 caractères
+  - fichier: fiche_description_nature_candidat.yaml
+    cible: candidats/bruno-demonstra.yaml
+    erreur: description.nature
+    regle: description attribuée au candidat
+  - fichier: fiche_sans_declaration.yaml
+    cible: candidats/bruno-demonstra.yaml
+    erreur: declaration
+    regle: candidat pressenti, sans déclaration
+  - fichier: fiche_statut_pressenti.yaml
+    cible: candidats/bruno-demonstra.yaml
+    erreur: statut
+    regle: statut inconnu
+  - fichier: fiche_a_verifier.yaml
+    cible: candidats/bruno-demonstra.yaml
+    erreur: a_verifier
+    regle: fiche publiée avec une mesure à vérifier
+  - fichier: fiche_identifiant_different.yaml
+    cible: candidats/bruno-demonstra.yaml
+    erreur: différent du nom du fichier
+    regle: identifiant différent du nom du fichier
+  - fichier: fiche_identifiant_majuscules.yaml
+    cible: candidats/bruno-demonstra.yaml
+    erreur: "id :"
+    regle: identifiant en majuscules
+  - fichier: fiche_demo_non_fictive.yaml
+    cible: candidats/bruno-demonstra.yaml
+    erreur: "fictif: true"
+    regle: jeu de démonstration avec une fiche non marquée fictive
+  - fichier: mesure_source_vote_reel.yaml
+    cible: candidats/aline-fictiva.yaml
+    erreur: « vote_reel » interdit
+    regle: mesure citant un vote réel
+  - fichier: vote_source_candidat.yaml
+    cible: candidats/aline-fictiva.yaml
+    erreur: « candidat » interdit
+    regle: vote citant un document du candidat
+  - fichier: mesure_source_inconnue.yaml
+    cible: candidats/aline-fictiva.yaml
+    erreur: source-inconnue
+    regle: source_id inconnu
+  - fichier: mesure_source_autre_candidat.yaml
+    cible: candidats/aline-fictiva.yaml
+    erreur: d'un autre candidat
+    regle: mesure citant le document d'un autre candidat
+  - fichier: sources_niveau_presse.yaml
+    cible: sources.yaml
+    erreur: niveau
+    regle: niveau presse
+  - fichier: sources_niveau_reperage.yaml
+    cible: sources.yaml
+    erreur: niveau
+    regle: niveau repérage
+  - fichier: sources_adresse_http.yaml
+    cible: sources.yaml
+    erreur: non https
+    regle: adresse en http
+  - fichier: sources_adresse_hors_exemple.yaml
+    cible: sources.yaml
+    erreur: hors exemple.invalid
+    regle: jeu de démonstration avec une adresse réelle
+  - fichier: base_jeu_reel.yaml
+    cible: base.yaml
+    erreur: fiche fictive interdite
+    erreur_dans: candidats/
+    regle: jeu réel contenant des fiches fictives
+  - fichier: base_modele_claude.yaml
+    cible: base.yaml
+    erreur: claude/sonnet
+    regle: liste blanche hors gemma4:e4b
+  - fichier: grille_2_options.yaml
+    cible: quiz/grille.yaml
+    erreur: 2 options
+    regle: question à deux options
+  - fichier: grille_6_options.yaml
+    cible: quiz/grille.yaml
+    erreur: 6 options
+    regle: question à six options
+  - fichier: grille_sans_avis_absent.yaml
+    cible: quiz/grille.yaml
+    erreur: sans-avis
+    regle: option « sans avis » absente
+  - fichier: grille_9_themes.yaml
+    cible: quiz/grille.yaml
+    erreur: 9 thèmes
+    regle: neuf thèmes
+    # Thèmes relus dans la grille en défaut : la mesure du thème retiré est signalée
+    ignorer:
+      - candidats/
+  - fichier: grille_theme_3_questions.yaml
+    cible: quiz/grille.yaml
+    erreur: 3 questions
+    regle: thème à trois questions
+  - fichier: grille_nom_candidat.yaml
+    cible: quiz/grille.yaml
+    erreur: nom de candidat ou de parti interdit
+    regle: nom de candidat dans un énoncé
+  - fichier: grille_nom_parti.yaml
+    cible: quiz/grille.yaml
+    erreur: nom de candidat ou de parti interdit
+    regle: nom de parti dans une option
+  - fichier: grille_gelee_modifiee.yaml
+    cible: quiz/grille.yaml
+    erreur: sans ligne de correction
+    regle: énoncé modifié après le gel, sans correction au journal
+  - fichier: grille_axes_statut_inconnu.yaml
+    cible: quiz/grille.yaml
+    erreur: axes_statut
+    regle: statut des axes inconnu
+  - fichier: rattachement_deux_options.yaml
+    cible: quiz/rattachements.yaml
+    erreur: deux options
+    regle: deux options pour un candidat sur une question
+  - fichier: rattachement_mesure_autre_candidat.yaml
+    cible: quiz/rattachements.yaml
+    erreur: absente de la fiche
+    regle: mesure d'un autre candidat
+  - fichier: rattachement_mesure_autre_theme.yaml
+    cible: quiz/rattachements.yaml
+    erreur: du thème economie
+    regle: mesure d'un autre thème
+  - fichier: rattachement_mesure_inconnue.yaml
+    cible: quiz/rattachements.yaml
+    erreur: mesure-inconnue
+    regle: mesure_id inconnu
+  - fichier: rattachement_option_speciale.yaml
+    cible: quiz/rattachements.yaml
+    erreur: option « sans-avis » invalide
+    regle: rattachement à « sans avis »
+  - fichier: fiche_cle_non_hashable.txt
+    cible: candidats/bruno-demonstra.yaml
+    erreur: clé non hashable
+    regle: YAML piégé, clé liste (écartée, les autres fiches servies)
+  - fichier: journal_imbrication_excessive.txt
+    cible: journal.yaml
+    erreur: structure refusée
+    regle: YAML piégé, 5 000 crochets imbriqués
+    # Sans journal lisible, le gel de la grille n'est plus vérifiable
+    ignorer:
+      - quiz/grille.yaml

@@ -1,0 +1,458 @@
+---
+# Cas en défaut : option « sans avis » absente
+axes_statut: gelee
+gel:
+  le: 2026-11-20
+  empreinte: sha256:9b1719d9d56159dfa7178a2b40215f2a85f83bf437eff780baf5d25bc123bafb
+themes:
+  - id: economie
+    libelle: Économie et fiscalité
+    mots_cles:
+      - impôt
+      - fiscalité
+      - dette
+      - déficit
+      - économie
+    axe:
+      pole_a: plus de redistribution par l'impôt
+      pole_b: moins d'impôts et de dépense publique
+    questions:
+      - id: economie-1
+        enonce: Comment faire évoluer l'impôt sur le revenu ?
+        statut: validee
+        options:
+          - id: economie-1-a
+            libelle: Ajouter des tranches pour les plus hauts revenus
+            pole: a
+          - id: economie-1-b
+            libelle: Baisser l'impôt des classes moyennes
+            pole: b
+          - id: economie-1-c
+            libelle: Garder le barème actuel
+            pole: mixte
+          - id: aucune
+            libelle: Aucune de ces propositions
+      - id: economie-2
+        enonce: Comment réduire le déficit public ?
+        statut: validee
+        options:
+          - id: economie-2-a
+            libelle: Accepter plus de déficit pour investir
+            pole: a
+          - id: economie-2-b
+            libelle: Réduire la dépense publique
+            pole: b
+          - id: economie-2-c
+            libelle: Augmenter certains impôts
+            pole: mixte
+          - id: aucune
+            libelle: Aucune de ces propositions
+          - id: sans-avis
+            libelle: Sans avis
+  - id: travail
+    libelle: Travail et retraites
+    mots_cles:
+      - retraite
+      - travail
+      - emploi
+      - salaire
+    axe:
+      pole_a: plus de protection collective
+      pole_b: plus de liberté de négocier
+    questions:
+      - id: travail-1
+        enonce: Quel âge légal de départ à la retraite ?
+        statut: validee
+        options:
+          - id: travail-1-a
+            libelle: Revenir à 62 ans
+            pole: a
+          - id: travail-1-b
+            libelle: Garder 64 ans
+            pole: mixte
+          - id: travail-1-c
+            libelle: Passer à 65 ans ou plus
+            pole: b
+          - id: aucune
+            libelle: Aucune de ces propositions
+          - id: sans-avis
+            libelle: Sans avis
+      - id: travail-2
+        enonce: Faut-il changer la durée légale du travail ?
+        statut: validee
+        options:
+          - id: travail-2-a
+            libelle: La réduire à 32 heures
+            pole: a
+          - id: travail-2-b
+            libelle: La garder à 35 heures
+            pole: mixte
+          - id: travail-2-c
+            libelle: La laisser fixer par accord d'entreprise
+            pole: b
+          - id: aucune
+            libelle: Aucune de ces propositions
+          - id: sans-avis
+            libelle: Sans avis
+  - id: sante
+    libelle: Santé
+    mots_cles:
+      - santé
+      - médecin
+      - hôpital
+      - soins
+    axe:
+      pole_a: plus d'organisation publique
+      pole_b: plus d'incitations et de libre choix
+    questions:
+      - id: sante-1
+        enonce: Comment lutter contre les déserts médicaux ?
+        statut: validee
+        options:
+          - id: sante-1-a
+            libelle: Obliger les jeunes médecins à s'installer où ils manquent
+            pole: a
+          - id: sante-1-b
+            libelle: Augmenter les aides à l'installation
+            pole: b
+          - id: sante-1-c
+            libelle: Ouvrir des centres de santé publics
+            pole: a
+          - id: aucune
+            libelle: Aucune de ces propositions
+          - id: sans-avis
+            libelle: Sans avis
+      - id: sante-2
+        enonce: Que faire des franchises médicales ?
+        statut: validee
+        options:
+          - id: sante-2-a
+            libelle: Les supprimer
+            pole: a
+          - id: sante-2-b
+            libelle: Les garder telles quelles
+            pole: mixte
+          - id: sante-2-c
+            libelle: Les augmenter pour financer l'hôpital
+            pole: b
+          - id: aucune
+            libelle: Aucune de ces propositions
+          - id: sans-avis
+            libelle: Sans avis
+  - id: education
+    libelle: Éducation
+    mots_cles:
+      - école
+      - éducation
+      - enseignant
+      - classe
+    axe:
+      pole_a: plus de cadre national
+      pole_b: plus d'autonomie des établissements
+    questions:
+      - id: education-1
+        enonce: Quelle taille pour les classes de primaire ?
+        statut: validee
+        options:
+          - id: education-1-a
+            libelle: Vingt élèves au plus partout
+            pole: a
+          - id: education-1-b
+            libelle: Laisser chaque école décider
+            pole: b
+          - id: education-1-c
+            libelle: Garder les règles actuelles
+            pole: mixte
+          - id: aucune
+            libelle: Aucune de ces propositions
+          - id: sans-avis
+            libelle: Sans avis
+      - id: education-2
+        enonce: Comment rémunérer les enseignants ?
+        statut: validee
+        options:
+          - id: education-2-a
+            libelle: Une hausse égale pour tous
+            pole: a
+          - id: education-2-b
+            libelle: Une part liée aux résultats
+            pole: b
+          - id: education-2-c
+            libelle: Une hausse liée à de nouvelles missions
+            pole: mixte
+          - id: aucune
+            libelle: Aucune de ces propositions
+          - id: sans-avis
+            libelle: Sans avis
+  - id: ecologie
+    libelle: Écologie et énergie
+    mots_cles:
+      - écologie
+      - énergie
+      - climat
+      - nucléaire
+      - transport
+    axe:
+      pole_a: priorité à la sobriété
+      pole_b: priorité à la production d'énergie
+    questions:
+      - id: ecologie-1
+        enonce: Quelle place pour le nucléaire ?
+        statut: validee
+        options:
+          - id: ecologie-1-a
+            libelle: En sortir progressivement
+            pole: a
+          - id: ecologie-1-b
+            libelle: Construire de nouveaux réacteurs
+            pole: b
+          - id: ecologie-1-c
+            libelle: Garder le parc actuel sans en construire
+            pole: mixte
+          - id: aucune
+            libelle: Aucune de ces propositions
+          - id: sans-avis
+            libelle: Sans avis
+      - id: ecologie-2
+        enonce: Comment réduire les émissions des transports ?
+        statut: validee
+        options:
+          - id: ecologie-2-a
+            libelle: Baisser fortement le prix du train
+            pole: a
+          - id: ecologie-2-b
+            libelle: Aider l'achat de voitures électriques
+            pole: b
+          - id: ecologie-2-c
+            libelle: Taxer davantage l'avion
+            pole: a
+          - id: aucune
+            libelle: Aucune de ces propositions
+          - id: sans-avis
+            libelle: Sans avis
+  - id: immigration
+    libelle: Immigration
+    mots_cles:
+      - immigration
+      - titre de séjour
+      - asile
+      - frontière
+    axe:
+      pole_a: plus d'accueil
+      pole_b: plus de contrôle
+    questions:
+      - id: immigration-1
+        enonce: Comment traiter les demandes de titre de séjour ?
+        statut: validee
+        options:
+          - id: immigration-1-a
+            libelle: Raccourcir les délais d'examen
+            pole: mixte
+          - id: immigration-1-b
+            libelle: Durcir les conditions d'obtention
+            pole: b
+          - id: immigration-1-c
+            libelle: Élargir les régularisations par le travail
+            pole: a
+          - id: aucune
+            libelle: Aucune de ces propositions
+          - id: sans-avis
+            libelle: Sans avis
+      - id: immigration-2
+        enonce: Que faire de l'aide médicale de l'État ?
+        statut: validee
+        options:
+          - id: immigration-2-a
+            libelle: La garder telle quelle
+            pole: a
+          - id: immigration-2-b
+            libelle: La limiter aux soins urgents
+            pole: b
+          - id: immigration-2-c
+            libelle: La transformer en aide d'urgence étendue
+            pole: mixte
+          - id: aucune
+            libelle: Aucune de ces propositions
+          - id: sans-avis
+            libelle: Sans avis
+  - id: securite
+    libelle: Sécurité et justice
+    mots_cles:
+      - sécurité
+      - police
+      - justice
+      - prison
+    axe:
+      pole_a: plus de prévention
+      pole_b: plus de sanction
+    questions:
+      - id: securite-1
+        enonce: Quels moyens pour la sécurité du quotidien ?
+        statut: validee
+        options:
+          - id: securite-1-a
+            libelle: Recruter des policiers de proximité
+            pole: mixte
+          - id: securite-1-b
+            libelle: Renforcer les associations de prévention
+            pole: a
+          - id: securite-1-c
+            libelle: Construire de nouvelles places de prison
+            pole: b
+          - id: aucune
+            libelle: Aucune de ces propositions
+          - id: sans-avis
+            libelle: Sans avis
+      - id: securite-2
+        enonce: Faut-il changer les peines pour les mineurs ?
+        statut: validee
+        options:
+          - id: securite-2-a
+            libelle: Garder la justice des mineurs actuelle
+            pole: a
+          - id: securite-2-b
+            libelle: Juger les mineurs de seize ans comme des majeurs
+            pole: b
+          - id: securite-2-c
+            libelle: Accélérer les jugements sans changer les peines
+            pole: mixte
+          - id: aucune
+            libelle: Aucune de ces propositions
+          - id: sans-avis
+            libelle: Sans avis
+  - id: logement
+    libelle: Logement
+    mots_cles:
+      - logement
+      - loyer
+      - HLM
+      - immobilier
+    axe:
+      pole_a: plus de logement public
+      pole_b: plus d'initiative privée
+    questions:
+      - id: logement-1
+        enonce: Comment loger davantage de ménages ?
+        statut: validee
+        options:
+          - id: logement-1-a
+            libelle: Construire plus de logements sociaux
+            pole: a
+          - id: logement-1-b
+            libelle: Alléger les règles de construction
+            pole: b
+          - id: logement-1-c
+            libelle: Taxer les logements vides
+            pole: mixte
+          - id: aucune
+            libelle: Aucune de ces propositions
+          - id: sans-avis
+            libelle: Sans avis
+      - id: logement-2
+        enonce: Faut-il encadrer les loyers ?
+        statut: validee
+        options:
+          - id: logement-2-a
+            libelle: L'étendre à toutes les grandes villes
+            pole: a
+          - id: logement-2-b
+            libelle: Le supprimer
+            pole: b
+          - id: logement-2-c
+            libelle: Le laisser au choix des communes
+            pole: mixte
+          - id: aucune
+            libelle: Aucune de ces propositions
+          - id: sans-avis
+            libelle: Sans avis
+  - id: institutions
+    libelle: Institutions et démocratie
+    mots_cles:
+      - institutions
+      - référendum
+      - démocratie
+      - vote
+      - Parlement
+    axe:
+      pole_a: plus de démocratie directe
+      pole_b: plus de démocratie représentative
+    questions:
+      - id: institutions-1
+        enonce: Comment associer les citoyens aux décisions ?
+        statut: validee
+        options:
+          - id: institutions-1-a
+            libelle: Un référendum d'initiative citoyenne
+            pole: a
+          - id: institutions-1-b
+            libelle: Garder le référendum actuel
+            pole: b
+          - id: institutions-1-c
+            libelle: Des assemblées de citoyens tirés au sort
+            pole: mixte
+          - id: aucune
+            libelle: Aucune de ces propositions
+          - id: sans-avis
+            libelle: Sans avis
+      - id: institutions-2
+        enonce: Quel mode d'élection des députés ?
+        statut: validee
+        options:
+          - id: institutions-2-a
+            libelle: La proportionnelle intégrale
+            pole: a
+          - id: institutions-2-b
+            libelle: Le scrutin majoritaire actuel
+            pole: b
+          - id: institutions-2-c
+            libelle: Une dose de proportionnelle
+            pole: mixte
+          - id: aucune
+            libelle: Aucune de ces propositions
+          - id: sans-avis
+            libelle: Sans avis
+  - id: europe
+    libelle: Europe et international
+    mots_cles:
+      - Europe
+      - européen
+      - international
+      - défense
+    axe:
+      pole_a: plus d'intégration européenne
+      pole_b: plus de souveraineté nationale
+    questions:
+      - id: europe-1
+        enonce: Faut-il une défense européenne commune ?
+        statut: validee
+        options:
+          - id: europe-1-a
+            libelle: Un budget commun de défense
+            pole: a
+          - id: europe-1-b
+            libelle: Une défense seulement nationale
+            pole: b
+          - id: europe-1-c
+            libelle: Des achats d'armement en commun
+            pole: mixte
+          - id: aucune
+            libelle: Aucune de ces propositions
+          - id: sans-avis
+            libelle: Sans avis
+      - id: europe-2
+        enonce: Quelle règle de vote au Conseil de l'Union ?
+        statut: validee
+        options:
+          - id: europe-2-a
+            libelle: Étendre la majorité qualifiée
+            pole: a
+          - id: europe-2-b
+            libelle: Garder l'unanimité
+            pole: b
+          - id: europe-2-c
+            libelle: Changer selon les sujets
+            pole: mixte
+          - id: aucune
+            libelle: Aucune de ces propositions
+          - id: sans-avis
+            libelle: Sans avis
