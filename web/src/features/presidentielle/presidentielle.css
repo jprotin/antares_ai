@@ -1,0 +1,68 @@
+/* Présidentielle 2027 : ce que les utilitaires Tailwind et les composants shadcn ne
+   couvrent pas seuls (grille des cartes, sources, citations, textes secondaires).
+   Mêmes classes pour chaque candidat, aucune couleur propre à l'un d'eux. */
+@layer components {
+  .presidentielle {
+    display: grid;
+    gap: 1rem;
+    width: 100%;
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 1rem;
+  }
+
+  @media (min-width: 768px) {
+    .presidentielle {
+      padding: 1.5rem;
+    }
+  }
+
+  .presidentielle-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 20rem), 1fr));
+    gap: 1rem;
+  }
+
+  .presidentielle-meta,
+  .presidentielle-source {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem;
+  }
+
+  .presidentielle-source {
+    font-size: 0.8rem;
+    color: var(--muted-foreground);
+  }
+
+  .presidentielle-source__lien {
+    color: var(--foreground);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    overflow-wrap: anywhere;
+  }
+
+  .presidentielle-note,
+  .presidentielle-manque {
+    font-size: 0.85rem;
+    color: var(--muted-foreground);
+  }
+
+  .presidentielle-manque {
+    font-style: italic;
+  }
+
+  .presidentielle-liste {
+    display: grid;
+    gap: 0.4rem;
+    padding-left: 1.25rem;
+  }
+
+  .presidentielle-citation {
+    padding-left: 0.75rem;
+    border-left: 3px solid var(--border);
+    font-style: italic;
+    overflow-wrap: anywhere;
+  }
+}

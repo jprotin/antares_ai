@@ -1,0 +1,34 @@
+---
+# Personne inventée (jeu de démonstration), candidature retirée
+id: gaston-fictorin
+nom_affiche: Gaston Fictorin
+initiales: GF
+fictif: true
+statut: retire
+statut_source: gaston-retrait
+declaration:
+  date: 2026-09-01
+  source_id: etat-declarations
+description:
+  texte: Candidat inventé pour la démonstration ; il a retiré sa candidature fictive le 10 novembre 2026.
+  nature: redaction
+lignes_phares:
+  - texte: Le train à moitié prix pour les moins de vingt-cinq ans
+    source_id: gaston-programme
+mesures:
+  - id: eco-tva
+    theme: economie
+    citation: La TVA sur les produits de première nécessité sera ramenée à zéro.
+    source_id: gaston-programme
+    page: 2
+    ajoutee_le: 2026-11-20
+  - id: ecolo-train
+    theme: ecologie
+    citation: Le billet de train coûtera moitié prix pour les moins de vingt-cinq ans.
+    source_id: gaston-programme
+    page: 5
+    ajoutee_le: 2026-11-20
+parlementaire: false
+version: 1
+mise_a_jour: 2026-11-20
+relue_le: 2026-11-20

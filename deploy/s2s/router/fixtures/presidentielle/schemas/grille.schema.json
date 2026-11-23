@@ -1,0 +1,168 @@
+{
+  "$defs": {
+    "Axe": {
+      "additionalProperties": false,
+      "properties": {
+        "pole_a": {
+          "minLength": 1,
+          "title": "Pole A",
+          "type": "string"
+        },
+        "pole_b": {
+          "minLength": 1,
+          "title": "Pole B",
+          "type": "string"
+        }
+      },
+      "required": ["pole_a", "pole_b"],
+      "title": "Axe",
+      "type": "object"
+    },
+    "Gel": {
+      "additionalProperties": false,
+      "properties": {
+        "le": {
+          "format": "date",
+          "title": "Le",
+          "type": "string"
+        },
+        "empreinte": {
+          "pattern": "^sha256:[0-9a-f]{64}$",
+          "title": "Empreinte",
+          "type": "string"
+        }
+      },
+      "required": ["le", "empreinte"],
+      "title": "Gel",
+      "type": "object"
+    },
+    "Option": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "libelle": {
+          "minLength": 1,
+          "title": "Libelle",
+          "type": "string"
+        },
+        "pole": {
+          "anyOf": [
+            {
+              "enum": ["a", "b", "mixte"],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Pole"
+        }
+      },
+      "required": ["id", "libelle"],
+      "title": "Option",
+      "type": "object"
+    },
+    "Question": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "enonce": {
+          "minLength": 1,
+          "title": "Enonce",
+          "type": "string"
+        },
+        "statut": {
+          "default": "brouillon",
+          "enum": ["brouillon", "validee"],
+          "title": "Statut",
+          "type": "string"
+        },
+        "options": {
+          "items": {
+            "$ref": "#/$defs/Option"
+          },
+          "title": "Options",
+          "type": "array"
+        }
+      },
+      "required": ["id", "enonce", "options"],
+      "title": "Question",
+      "type": "object"
+    },
+    "Theme": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "libelle": {
+          "minLength": 1,
+          "title": "Libelle",
+          "type": "string"
+        },
+        "mots_cles": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "title": "Mots Cles",
+          "type": "array"
+        },
+        "axe": {
+          "$ref": "#/$defs/Axe"
+        },
+        "questions": {
+          "items": {
+            "$ref": "#/$defs/Question"
+          },
+          "title": "Questions",
+          "type": "array"
+        }
+      },
+      "required": ["id", "libelle", "axe", "questions"],
+      "title": "Theme",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "axes_statut": {
+      "default": "brouillon",
+      "enum": ["brouillon", "validee", "gelee"],
+      "title": "Axes Statut",
+      "type": "string"
+    },
+    "gel": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Gel"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "themes": {
+      "items": {
+        "$ref": "#/$defs/Theme"
+      },
+      "title": "Themes",
+      "type": "array"
+    }
+  },
+  "required": ["themes"],
+  "title": "Grille",
+  "type": "object"
+}

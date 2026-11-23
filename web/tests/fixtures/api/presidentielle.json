@@ -1,0 +1,702 @@
+{
+  "disponible": true,
+  "message": null,
+  "jeu": "demonstration",
+  "liste": "declares",
+  "phase": "declares",
+  "version": "f992981426f9",
+  "tours": {
+    "premier": "2027-04-18",
+    "second": "2027-05-02"
+  },
+  "archive_apres": "2027-05-02",
+  "axes_statut": "gelee",
+  "themes": [
+    {
+      "id": "economie",
+      "libelle": "Économie et fiscalité",
+      "axe": {
+        "pole_a": "plus de redistribution par l'impôt",
+        "pole_b": "moins d'impôts et de dépense publique"
+      }
+    },
+    {
+      "id": "travail",
+      "libelle": "Travail et retraites",
+      "axe": {
+        "pole_a": "plus de protection collective",
+        "pole_b": "plus de liberté de négocier"
+      }
+    },
+    {
+      "id": "sante",
+      "libelle": "Santé",
+      "axe": {
+        "pole_a": "plus d'organisation publique",
+        "pole_b": "plus d'incitations et de libre choix"
+      }
+    },
+    {
+      "id": "education",
+      "libelle": "Éducation",
+      "axe": {
+        "pole_a": "plus de cadre national",
+        "pole_b": "plus d'autonomie des établissements"
+      }
+    },
+    {
+      "id": "ecologie",
+      "libelle": "Écologie et énergie",
+      "axe": {
+        "pole_a": "priorité à la sobriété",
+        "pole_b": "priorité à la production d'énergie"
+      }
+    },
+    {
+      "id": "immigration",
+      "libelle": "Immigration",
+      "axe": {
+        "pole_a": "plus d'accueil",
+        "pole_b": "plus de contrôle"
+      }
+    },
+    {
+      "id": "securite",
+      "libelle": "Sécurité et justice",
+      "axe": {
+        "pole_a": "plus de prévention",
+        "pole_b": "plus de sanction"
+      }
+    },
+    {
+      "id": "logement",
+      "libelle": "Logement",
+      "axe": {
+        "pole_a": "plus de logement public",
+        "pole_b": "plus d'initiative privée"
+      }
+    },
+    {
+      "id": "institutions",
+      "libelle": "Institutions et démocratie",
+      "axe": {
+        "pole_a": "plus de démocratie directe",
+        "pole_b": "plus de démocratie représentative"
+      }
+    },
+    {
+      "id": "europe",
+      "libelle": "Europe et international",
+      "axe": {
+        "pole_a": "plus d'intégration européenne",
+        "pole_b": "plus de souveraineté nationale"
+      }
+    }
+  ],
+  "candidats": [
+    {
+      "id": "aline-fictiva",
+      "nom_affiche": "Aline Fictiva",
+      "initiales": "AF",
+      "alias": [
+        "A. Fictiva"
+      ],
+      "fictif": true,
+      "statut": "declare",
+      "statut_source": {
+        "id": "etat-declarations",
+        "titre": "Liste fictive des déclarations de candidature",
+        "url": "https://etat.exemple.invalid/declarations",
+        "niveau": "officiel_etat",
+        "publie_le": "2026-11-02",
+        "consulte_le": "2026-11-20"
+      },
+      "declaration": {
+        "date": "2026-10-12",
+        "source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        }
+      },
+      "description": {
+        "texte": "Candidate inventée pour la démonstration, députée fictive depuis 2022. Ses positions servent à montrer la fiche.",
+        "nature": "redaction"
+      },
+      "lignes_phares": [
+        {
+          "texte": "Un médecin traitant pour chaque habitant",
+          "nature": "candidat",
+          "source": {
+            "id": "aline-site",
+            "titre": "Site fictif d'Aline Fictiva, page des priorités",
+            "url": "https://aline-fictiva.exemple.invalid/priorites",
+            "niveau": "candidat",
+            "publie_le": null,
+            "consulte_le": "2026-11-20"
+          }
+        },
+        {
+          "texte": "Une fiscalité plus progressive",
+          "nature": "candidat",
+          "source": {
+            "id": "aline-site",
+            "titre": "Site fictif d'Aline Fictiva, page des priorités",
+            "url": "https://aline-fictiva.exemple.invalid/priorites",
+            "niveau": "candidat",
+            "publie_le": null,
+            "consulte_le": "2026-11-20"
+          }
+        },
+        {
+          "texte": "Des classes de vingt élèves en primaire",
+          "nature": "candidat",
+          "source": {
+            "id": "aline-site",
+            "titre": "Site fictif d'Aline Fictiva, page des priorités",
+            "url": "https://aline-fictiva.exemple.invalid/priorites",
+            "niveau": "candidat",
+            "publie_le": null,
+            "consulte_le": "2026-11-20"
+          }
+        }
+      ],
+      "mesures": [
+        {
+          "id": "eco-impot",
+          "theme": "economie",
+          "citation": "Nous créerons deux tranches d'impôt supplémentaires pour les revenus les plus élevés.",
+          "nature": "candidat",
+          "resume": "Deux tranches d'impôt de plus pour les hauts revenus.",
+          "source": {
+            "id": "aline-programme",
+            "titre": "Programme fictif d'Aline Fictiva",
+            "url": "https://aline-fictiva.exemple.invalid/programme.pdf",
+            "niveau": "candidat",
+            "publie_le": "2026-10-15",
+            "consulte_le": "2026-11-20"
+          },
+          "page": 4,
+          "ajoutee_le": "2026-11-20"
+        },
+        {
+          "id": "eco-dette",
+          "theme": "economie",
+          "citation": "Le déficit sera réduit par une hausse ciblée de certains impôts, et non par des coupes dans les services publics.",
+          "nature": "candidat",
+          "resume": null,
+          "source": {
+            "id": "aline-programme",
+            "titre": "Programme fictif d'Aline Fictiva",
+            "url": "https://aline-fictiva.exemple.invalid/programme.pdf",
+            "niveau": "candidat",
+            "publie_le": "2026-10-15",
+            "consulte_le": "2026-11-20"
+          },
+          "page": 5,
+          "ajoutee_le": "2026-11-20"
+        },
+        {
+          "id": "sante-installation",
+          "theme": "sante",
+          "citation": "Les jeunes médecins exerceront leurs trois premières années dans un territoire qui en manque.",
+          "nature": "candidat",
+          "resume": null,
+          "source": {
+            "id": "aline-programme",
+            "titre": "Programme fictif d'Aline Fictiva",
+            "url": "https://aline-fictiva.exemple.invalid/programme.pdf",
+            "niveau": "candidat",
+            "publie_le": "2026-10-15",
+            "consulte_le": "2026-11-20"
+          },
+          "page": 9,
+          "ajoutee_le": "2026-11-20"
+        },
+        {
+          "id": "educ-classes",
+          "theme": "education",
+          "citation": "Aucune classe de primaire ne dépassera vingt élèves.",
+          "nature": "candidat",
+          "resume": null,
+          "source": {
+            "id": "aline-programme",
+            "titre": "Programme fictif d'Aline Fictiva",
+            "url": "https://aline-fictiva.exemple.invalid/programme.pdf",
+            "niveau": "candidat",
+            "publie_le": "2026-10-15",
+            "consulte_le": "2026-11-20"
+          },
+          "page": 12,
+          "ajoutee_le": "2026-11-20"
+        },
+        {
+          "id": "ecolo-nucleaire",
+          "theme": "ecologie",
+          "citation": "Nous lancerons la construction de six nouveaux réacteurs.",
+          "nature": "candidat",
+          "resume": null,
+          "source": {
+            "id": "aline-programme",
+            "titre": "Programme fictif d'Aline Fictiva",
+            "url": "https://aline-fictiva.exemple.invalid/programme.pdf",
+            "niveau": "candidat",
+            "publie_le": "2026-10-15",
+            "consulte_le": "2026-11-20"
+          },
+          "page": 15,
+          "ajoutee_le": "2026-11-20"
+        },
+        {
+          "id": "securite-police",
+          "theme": "securite",
+          "citation": "Nous recruterons dix mille policiers et gendarmes de proximité.",
+          "nature": "candidat",
+          "resume": null,
+          "source": {
+            "id": "aline-programme",
+            "titre": "Programme fictif d'Aline Fictiva",
+            "url": "https://aline-fictiva.exemple.invalid/programme.pdf",
+            "niveau": "candidat",
+            "publie_le": "2026-10-15",
+            "consulte_le": "2026-11-20"
+          },
+          "page": 18,
+          "ajoutee_le": "2026-11-20"
+        },
+        {
+          "id": "europe-defense",
+          "theme": "europe",
+          "citation": "La France proposera un budget européen commun pour la défense.",
+          "nature": "candidat",
+          "resume": null,
+          "source": {
+            "id": "aline-programme",
+            "titre": "Programme fictif d'Aline Fictiva",
+            "url": "https://aline-fictiva.exemple.invalid/programme.pdf",
+            "niveau": "candidat",
+            "publie_le": "2026-10-15",
+            "consulte_le": "2026-11-20"
+          },
+          "page": 21,
+          "ajoutee_le": "2026-11-20"
+        }
+      ],
+      "parlementaire": true,
+      "votes": [
+        {
+          "id": "vote-energie",
+          "scrutin": "Scrutin fictif n° 101 sur la loi de programmation de l'énergie",
+          "date": "2025-03-12",
+          "position": "pour",
+          "theme": "ecologie",
+          "source": {
+            "id": "aline-votes",
+            "titre": "Scrutins fictifs de l'Assemblée, votes d'Aline Fictiva",
+            "url": "https://assemblee.exemple.invalid/deputes/aline-fictiva/votes",
+            "niveau": "vote_reel",
+            "publie_le": null,
+            "consulte_le": "2026-11-20"
+          }
+        },
+        {
+          "id": "vote-franchises",
+          "scrutin": "Scrutin fictif n° 214 sur les franchises médicales",
+          "date": "2025-10-28",
+          "position": "contre",
+          "theme": "sante",
+          "source": {
+            "id": "aline-votes",
+            "titre": "Scrutins fictifs de l'Assemblée, votes d'Aline Fictiva",
+            "url": "https://assemblee.exemple.invalid/deputes/aline-fictiva/votes",
+            "niveau": "vote_reel",
+            "publie_le": null,
+            "consulte_le": "2026-11-20"
+          }
+        }
+      ],
+      "version": 1,
+      "mise_a_jour": "2026-11-20",
+      "relue_le": "2026-11-20"
+    },
+    {
+      "id": "bruno-demonstra",
+      "nom_affiche": "Bruno Démonstra",
+      "initiales": "BD",
+      "alias": [],
+      "fictif": true,
+      "statut": "declare",
+      "statut_source": {
+        "id": "etat-declarations",
+        "titre": "Liste fictive des déclarations de candidature",
+        "url": "https://etat.exemple.invalid/declarations",
+        "niveau": "officiel_etat",
+        "publie_le": "2026-11-02",
+        "consulte_le": "2026-11-20"
+      },
+      "declaration": {
+        "date": "2026-09-28",
+        "source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        }
+      },
+      "description": {
+        "texte": "Candidat inventé pour la démonstration, chef d'entreprise fictif, sans mandat électif.",
+        "nature": "redaction"
+      },
+      "lignes_phares": [],
+      "mesures": [
+        {
+          "id": "eco-impot",
+          "theme": "economie",
+          "citation": "L'impôt sur le revenu baissera de dix pour cent pour les classes moyennes.",
+          "nature": "candidat",
+          "resume": null,
+          "source": {
+            "id": "bruno-programme",
+            "titre": "Programme fictif de Bruno Démonstra",
+            "url": "https://bruno-demonstra.exemple.invalid/programme.pdf",
+            "niveau": "candidat",
+            "publie_le": "2026-09-30",
+            "consulte_le": "2026-11-20"
+          },
+          "page": 3,
+          "ajoutee_le": "2026-11-20"
+        },
+        {
+          "id": "travail-retraite",
+          "theme": "travail",
+          "citation": "L'âge légal de départ restera fixé à soixante-quatre ans.",
+          "nature": "candidat",
+          "resume": null,
+          "source": {
+            "id": "bruno-programme",
+            "titre": "Programme fictif de Bruno Démonstra",
+            "url": "https://bruno-demonstra.exemple.invalid/programme.pdf",
+            "niveau": "candidat",
+            "publie_le": "2026-09-30",
+            "consulte_le": "2026-11-20"
+          },
+          "page": 6,
+          "ajoutee_le": "2026-11-20"
+        },
+        {
+          "id": "sante-aides",
+          "theme": "sante",
+          "citation": "Une prime de cinquante mille euros sera versée à chaque médecin qui s'installe à la campagne.",
+          "nature": "candidat",
+          "resume": null,
+          "source": {
+            "id": "bruno-programme",
+            "titre": "Programme fictif de Bruno Démonstra",
+            "url": "https://bruno-demonstra.exemple.invalid/programme.pdf",
+            "niveau": "candidat",
+            "publie_le": "2026-09-30",
+            "consulte_le": "2026-11-20"
+          },
+          "page": 8,
+          "ajoutee_le": "2026-11-20"
+        },
+        {
+          "id": "ecolo-nucleaire",
+          "theme": "ecologie",
+          "citation": "Nous fermerons progressivement les centrales nucléaires d'ici 2050.",
+          "nature": "candidat",
+          "resume": null,
+          "source": {
+            "id": "bruno-programme",
+            "titre": "Programme fictif de Bruno Démonstra",
+            "url": "https://bruno-demonstra.exemple.invalid/programme.pdf",
+            "niveau": "candidat",
+            "publie_le": "2026-09-30",
+            "consulte_le": "2026-11-20"
+          },
+          "page": 10,
+          "ajoutee_le": "2026-11-20"
+        },
+        {
+          "id": "logement-construction",
+          "theme": "logement",
+          "citation": "L'État financera la construction de cent cinquante mille logements sociaux par an.",
+          "nature": "candidat",
+          "resume": null,
+          "source": {
+            "id": "bruno-programme",
+            "titre": "Programme fictif de Bruno Démonstra",
+            "url": "https://bruno-demonstra.exemple.invalid/programme.pdf",
+            "niveau": "candidat",
+            "publie_le": "2026-09-30",
+            "consulte_le": "2026-11-20"
+          },
+          "page": 13,
+          "ajoutee_le": "2026-11-20"
+        }
+      ],
+      "parlementaire": false,
+      "votes": [],
+      "version": 1,
+      "mise_a_jour": "2026-11-20",
+      "relue_le": "2026-11-20"
+    },
+    {
+      "id": "carla-exemplia",
+      "nom_affiche": "Carla Exemplia",
+      "initiales": "CE",
+      "alias": [],
+      "fictif": true,
+      "statut": "declare",
+      "statut_source": {
+        "id": "etat-declarations",
+        "titre": "Liste fictive des déclarations de candidature",
+        "url": "https://etat.exemple.invalid/declarations",
+        "niveau": "officiel_etat",
+        "publie_le": "2026-11-02",
+        "consulte_le": "2026-11-20"
+      },
+      "declaration": {
+        "date": "2026-11-03",
+        "source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        }
+      },
+      "description": {
+        "texte": "Candidate inventée pour la démonstration, maire fictive d'une ville moyenne.",
+        "nature": "redaction"
+      },
+      "lignes_phares": [
+        {
+          "texte": "Des centres de santé dans chaque canton",
+          "nature": "candidat",
+          "source": {
+            "id": "carla-programme",
+            "titre": "Programme fictif de Carla Exemplia",
+            "url": "https://carla-exemplia.exemple.invalid/programme.pdf",
+            "niveau": "candidat",
+            "publie_le": "2026-11-05",
+            "consulte_le": "2026-11-20"
+          }
+        }
+      ],
+      "mesures": [
+        {
+          "id": "eco-bareme",
+          "theme": "economie",
+          "citation": "« Le barème de l’impôt sur le revenu ne sera pas modifié pendant le quinquennat. »",
+          "nature": "candidat",
+          "resume": null,
+          "source": {
+            "id": "carla-programme",
+            "titre": "Programme fictif de Carla Exemplia",
+            "url": "https://carla-exemplia.exemple.invalid/programme.pdf",
+            "niveau": "candidat",
+            "publie_le": "2026-11-05",
+            "consulte_le": "2026-11-20"
+          },
+          "page": 2,
+          "ajoutee_le": "2026-11-20"
+        },
+        {
+          "id": "sante-centres",
+          "theme": "sante",
+          "citation": "Chaque canton aura son centre de santé public, avec des médecins salariés.",
+          "nature": "candidat",
+          "resume": null,
+          "source": {
+            "id": "carla-programme",
+            "titre": "Programme fictif de Carla Exemplia",
+            "url": "https://carla-exemplia.exemple.invalid/programme.pdf",
+            "niveau": "candidat",
+            "publie_le": "2026-11-05",
+            "consulte_le": "2026-11-20"
+          },
+          "page": 7,
+          "ajoutee_le": "2026-11-20"
+        },
+        {
+          "id": "immigration-titres",
+          "theme": "immigration",
+          "citation": "Les demandes de titre de séjour seront traitées en trois mois au plus.",
+          "nature": "candidat",
+          "resume": null,
+          "source": {
+            "id": "carla-programme",
+            "titre": "Programme fictif de Carla Exemplia",
+            "url": "https://carla-exemplia.exemple.invalid/programme.pdf",
+            "niveau": "candidat",
+            "publie_le": "2026-11-05",
+            "consulte_le": "2026-11-20"
+          },
+          "page": 11,
+          "ajoutee_le": "2026-11-20"
+        },
+        {
+          "id": "institutions-referendum",
+          "theme": "institutions",
+          "citation": "Un référendum d'initiative citoyenne sera possible avec un million de signatures.",
+          "nature": "candidat",
+          "resume": null,
+          "source": {
+            "id": "carla-programme",
+            "titre": "Programme fictif de Carla Exemplia",
+            "url": "https://carla-exemplia.exemple.invalid/programme.pdf",
+            "niveau": "candidat",
+            "publie_le": "2026-11-05",
+            "consulte_le": "2026-11-20"
+          },
+          "page": 14,
+          "ajoutee_le": "2026-11-20"
+        }
+      ],
+      "parlementaire": false,
+      "votes": [],
+      "version": 2,
+      "mise_a_jour": "2026-11-20",
+      "relue_le": "2026-11-20"
+    },
+    {
+      "id": "gaston-fictorin",
+      "nom_affiche": "Gaston Fictorin",
+      "initiales": "GF",
+      "alias": [],
+      "fictif": true,
+      "statut": "retire",
+      "statut_source": {
+        "id": "gaston-retrait",
+        "titre": "Communiqué fictif de retrait de Gaston Fictorin",
+        "url": "https://gaston-fictorin.exemple.invalid/communique-retrait",
+        "niveau": "candidat",
+        "publie_le": "2026-11-10",
+        "consulte_le": "2026-11-20"
+      },
+      "declaration": {
+        "date": "2026-09-01",
+        "source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        }
+      },
+      "description": {
+        "texte": "Candidat inventé pour la démonstration ; il a retiré sa candidature fictive le 10 novembre 2026.",
+        "nature": "redaction"
+      },
+      "lignes_phares": [
+        {
+          "texte": "Le train à moitié prix pour les moins de vingt-cinq ans",
+          "nature": "candidat",
+          "source": {
+            "id": "gaston-programme",
+            "titre": "Programme fictif de Gaston Fictorin",
+            "url": "https://gaston-fictorin.exemple.invalid/programme.pdf",
+            "niveau": "candidat",
+            "publie_le": "2026-09-01",
+            "consulte_le": "2026-11-20"
+          }
+        }
+      ],
+      "mesures": [
+        {
+          "id": "eco-tva",
+          "theme": "economie",
+          "citation": "La TVA sur les produits de première nécessité sera ramenée à zéro.",
+          "nature": "candidat",
+          "resume": null,
+          "source": {
+            "id": "gaston-programme",
+            "titre": "Programme fictif de Gaston Fictorin",
+            "url": "https://gaston-fictorin.exemple.invalid/programme.pdf",
+            "niveau": "candidat",
+            "publie_le": "2026-09-01",
+            "consulte_le": "2026-11-20"
+          },
+          "page": 2,
+          "ajoutee_le": "2026-11-20"
+        },
+        {
+          "id": "ecolo-train",
+          "theme": "ecologie",
+          "citation": "Le billet de train coûtera moitié prix pour les moins de vingt-cinq ans.",
+          "nature": "candidat",
+          "resume": null,
+          "source": {
+            "id": "gaston-programme",
+            "titre": "Programme fictif de Gaston Fictorin",
+            "url": "https://gaston-fictorin.exemple.invalid/programme.pdf",
+            "niveau": "candidat",
+            "publie_le": "2026-09-01",
+            "consulte_le": "2026-11-20"
+          },
+          "page": 5,
+          "ajoutee_le": "2026-11-20"
+        }
+      ],
+      "parlementaire": false,
+      "votes": [],
+      "version": 1,
+      "mise_a_jour": "2026-11-20",
+      "relue_le": "2026-11-20"
+    }
+  ],
+  "journal": [
+    {
+      "date": "2026-11-20",
+      "objet": "fiche",
+      "cible": "aline-fictiva",
+      "version": 1,
+      "motif": "Publication de la fiche fictive"
+    },
+    {
+      "date": "2026-11-20",
+      "objet": "fiche",
+      "cible": "bruno-demonstra",
+      "version": 1,
+      "motif": "Publication de la fiche fictive"
+    },
+    {
+      "date": "2026-11-20",
+      "objet": "fiche",
+      "cible": "carla-exemplia",
+      "version": 2,
+      "motif": "Ajout d'une mesure sur les institutions"
+    },
+    {
+      "date": "2026-11-20",
+      "objet": "fiche",
+      "cible": "gaston-fictorin",
+      "version": 1,
+      "motif": "Candidature fictive retirée le 10 novembre 2026"
+    },
+    {
+      "date": "2026-11-20",
+      "objet": "rattachement",
+      "motif": "Rattachements des quatre candidats fictifs"
+    },
+    {
+      "date": "2026-11-20",
+      "objet": "gel_grille",
+      "motif": "Gel de la grille de démonstration",
+      "empreinte": "sha256:9b1719d9d56159dfa7178a2b40215f2a85f83bf437eff780baf5d25bc123bafb"
+    },
+    {
+      "date": "2026-11-18",
+      "objet": "base",
+      "motif": "Création du jeu de démonstration (données inventées)"
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+---
+# Cas en défaut : niveau repérage
+sources:
+  - id: etat-declarations
+    titre: Liste fictive des déclarations de candidature
+    url: https://etat.exemple.invalid/declarations
+    niveau: officiel_etat
+    publie_le: 2026-11-02
+    consulte_le: 2026-11-20
+  - id: aline-programme
+    titre: Programme fictif d'Aline Fictiva
+    url: https://aline-fictiva.exemple.invalid/programme.pdf
+    niveau: candidat
+    publie_le: 2026-10-15
+    consulte_le: 2026-11-20
+    candidat: aline-fictiva
+  - id: aline-site
+    titre: Site fictif d'Aline Fictiva, page des priorités
+    url: https://aline-fictiva.exemple.invalid/priorites
+    niveau: candidat
+    consulte_le: 2026-11-20
+    candidat: aline-fictiva
+  - id: aline-votes
+    titre: Scrutins fictifs de l'Assemblée, votes d'Aline Fictiva
+    url: https://assemblee.exemple.invalid/deputes/aline-fictiva/votes
+    niveau: vote_reel
+    consulte_le: 2026-11-20
+    candidat: aline-fictiva
+  - id: bruno-programme
+    titre: Programme fictif de Bruno Démonstra
+    url: https://bruno-demonstra.exemple.invalid/programme.pdf
+    niveau: candidat
+    publie_le: 2026-09-30
+    consulte_le: 2026-11-20
+    candidat: bruno-demonstra
+  - id: carla-programme
+    titre: Programme fictif de Carla Exemplia
+    url: https://carla-exemplia.exemple.invalid/programme.pdf
+    niveau: candidat
+    publie_le: 2026-11-05
+    consulte_le: 2026-11-20
+    candidat: carla-exemplia
+  - id: gaston-programme
+    titre: Programme fictif de Gaston Fictorin
+    url: https://gaston-fictorin.exemple.invalid/programme.pdf
+    niveau: candidat
+    publie_le: 2026-09-01
+    consulte_le: 2026-11-20
+    candidat: gaston-fictorin
+  - id: gaston-retrait
+    titre: Communiqué fictif de retrait de Gaston Fictorin
+    url: https://gaston-fictorin.exemple.invalid/communique-retrait
+    niveau: candidat
+    publie_le: 2026-11-10
+    consulte_le: 2026-11-20
+    candidat: gaston-fictorin
+  - id: source-en-trop
+    titre: Source en défaut
+    url: https://etat.exemple.invalid/x
+    niveau: reperage
+    consulte_le: "2026-11-20"

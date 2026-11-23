@@ -1,0 +1,17 @@
+---
+# Cas en défaut : liste blanche hors gemma4:e4b
+jeu: demonstration
+liste: declares
+phase: declares
+archive_apres: 2027-05-02
+tours:
+  premier: 2027-04-18
+  second: 2027-05-02
+partis:
+  - Mouvement Fictivien
+  - MFV
+  - Alliance Démonstrative
+  - ADM
+assistant:
+  modeles_autorises:
+    - claude/sonnet

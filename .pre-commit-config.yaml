@@ -45,8 +45,10 @@ repos:
       - id: detect-secrets
         args: ["--baseline", ".secrets.baseline"]
         # Créer baseline : detect-secrets scan > .secrets.baseline
-        # Exclut les templates de secrets (.dist, .example) qui contiennent des placeholders
-        exclude: \.(tfvars|env|yaml|yml|ini|conf)\.(dist|example|sample|template)$|\.env\.example$|\.env\.dist$
+        # Exclut les templates de secrets (.dist, .example) qui contiennent des placeholders,
+        # et les manifestes de sources de la présidentielle (empreintes SHA-256 des documents,
+        # pas des secrets ; gitleaks reste actif sur ces fichiers)
+        exclude: \.(tfvars|env|yaml|yml|ini|conf)\.(dist|example|sample|template)$|\.env\.example$|\.env\.dist$|^deploy/s2s/router/fixtures/presidentielle/.*sources\.yaml$
 
   # ---------- Markdown ----------
   - repo: https://github.com/igorshubovych/markdownlint-cli

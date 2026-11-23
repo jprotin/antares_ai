@@ -1,0 +1,47 @@
+---
+# Cas en défaut : candidat pressenti, sans déclaration
+id: bruno-demonstra
+nom_affiche: Bruno Démonstra
+initiales: BD
+fictif: true
+statut: declare
+statut_source: etat-declarations
+description:
+  texte: Candidat inventé pour la démonstration, chef d'entreprise fictif, sans mandat électif.
+  nature: redaction
+lignes_phares: []
+mesures:
+  - id: eco-impot
+    theme: economie
+    citation: L'impôt sur le revenu baissera de dix pour cent pour les classes moyennes.
+    source_id: bruno-programme
+    page: 3
+    ajoutee_le: 2026-11-20
+  - id: travail-retraite
+    theme: travail
+    citation: L'âge légal de départ restera fixé à soixante-quatre ans.
+    source_id: bruno-programme
+    page: 6
+    ajoutee_le: 2026-11-20
+  - id: sante-aides
+    theme: sante
+    citation: Une prime de cinquante mille euros sera versée à chaque médecin qui s'installe à la campagne.
+    source_id: bruno-programme
+    page: 8
+    ajoutee_le: 2026-11-20
+  - id: ecolo-nucleaire
+    theme: ecologie
+    citation: Nous fermerons progressivement les centrales nucléaires d'ici 2050.
+    source_id: bruno-programme
+    page: 10
+    ajoutee_le: 2026-11-20
+  - id: logement-construction
+    theme: logement
+    citation: L'État financera la construction de cent cinquante mille logements sociaux par an.
+    source_id: bruno-programme
+    page: 13
+    ajoutee_le: 2026-11-20
+parlementaire: false
+version: 1
+mise_a_jour: 2026-11-20
+relue_le: 2026-11-20

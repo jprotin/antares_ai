@@ -52,6 +52,10 @@
                    la météo) et présente le journal : /api/veille/journal (GET état,
                    PUT lancement, DELETE arrêt), phase appliquée au relais vocal
                    (cf. veille_journal.py).
+- /api/presidentielle : base « Présidentielle 2027 » en lecture seule (fiches, thèmes,
+                   journal), /meta (partage, appel en cours, modèle de l'assistant,
+                   cible, erreurs de fichiers pour le propriétaire) et /quiz (grille,
+                   rattachements, éligibilité) ; cf. presidentielle_api.py.
 - /healthz       : sonde de santé.
 """
 
@@ -82,6 +86,8 @@ import documents
 import knowledge
 import mcp
 import modes
+import presidentielle_api
+import presidentielle_common
 import providers
 import rag
 import ragstore
@@ -1324,6 +1330,11 @@ last_turn: dict = {
 }
 
 
+# Heure du dernier tour vocal (relais /v1/chat/completions : voix, Répétition, journal) ;
+# un tour écrit (/api/chat) ne la pose pas. Lue par la présidentielle (appel en cours).
+last_voice: dict = {"at": 0.0}
+
+
 def keep_code(blocks: list[dict]) -> None:
     last_turn["code"] = blocks
 
@@ -1809,6 +1820,8 @@ async def written_chat(request: ChatRequest) -> StreamingResponse:
 @app.api_route("/v1/{path:path}", methods=["GET", "POST"])
 async def relay(path: str, request: Request) -> StreamingResponse:
     start = time.monotonic()
+    if path == "chat/completions" and request.method == "POST":
+        last_voice["at"] = time.time()
     body = await request.body()
     settings = load_settings()
     model = settings.model
@@ -1878,6 +1891,21 @@ async def relay(path: str, request: Request) -> StreamingResponse:
         media_type="text/event-stream",
         background=BackgroundTask(upstream.aclose),
     )
+
+
+# Présidentielle 2027 : dépendances lues à chaque requête (les tests les remplacent)
+app.include_router(
+    presidentielle_api.construire(
+        presidentielle_api.Dependances(
+            sharing=lambda: sharing(),
+            owner=lambda: SHARE_OWNER_EMAIL,
+            load_settings=lambda: load_settings(),
+            model_available=lambda name: model_available(name),
+            last_voice_at=lambda: last_voice["at"],
+            idle_seconds=lambda: presidentielle_common.delai_appel(TASKS_CONFIG),
+        )
+    )
+)
 
 
 if __name__ == "__main__":

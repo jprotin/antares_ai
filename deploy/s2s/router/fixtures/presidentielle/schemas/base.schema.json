@@ -1,0 +1,98 @@
+{
+  "$defs": {
+    "Assistant": {
+      "additionalProperties": false,
+      "properties": {
+        "modeles_autorises": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Modeles Autorises",
+          "type": "array"
+        }
+      },
+      "title": "Assistant",
+      "type": "object"
+    },
+    "Tours": {
+      "additionalProperties": false,
+      "properties": {
+        "premier": {
+          "format": "date",
+          "title": "Premier",
+          "type": "string"
+        },
+        "second": {
+          "format": "date",
+          "title": "Second",
+          "type": "string"
+        }
+      },
+      "required": ["premier", "second"],
+      "title": "Tours",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "jeu": {
+      "enum": ["demonstration", "reel"],
+      "title": "Jeu",
+      "type": "string"
+    },
+    "liste": {
+      "default": "declares",
+      "enum": ["declares", "officielle"],
+      "title": "Liste",
+      "type": "string"
+    },
+    "liste_source": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Liste Source"
+    },
+    "phase": {
+      "default": "declares",
+      "enum": ["declares", "officiel", "entre_tours"],
+      "title": "Phase",
+      "type": "string"
+    },
+    "qualifies": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Qualifies",
+      "type": "array"
+    },
+    "archive_apres": {
+      "format": "date",
+      "title": "Archive Apres",
+      "type": "string"
+    },
+    "tours": {
+      "$ref": "#/$defs/Tours"
+    },
+    "partis": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Partis",
+      "type": "array"
+    },
+    "assistant": {
+      "$ref": "#/$defs/Assistant"
+    }
+  },
+  "required": ["jeu", "archive_apres", "tours"],
+  "title": "Base",
+  "type": "object"
+}

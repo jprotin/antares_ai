@@ -1,0 +1,75 @@
+---
+# Cas en défaut : rattachement à « sans avis »
+rattachements:
+  - question: economie-1
+    candidat: aline-fictiva
+    option: economie-1-a
+    mesure_id: eco-impot
+  - question: economie-1
+    candidat: bruno-demonstra
+    option: economie-1-b
+    mesure_id: eco-impot
+  - question: economie-1
+    candidat: carla-exemplia
+    option: economie-1-c
+    mesure_id: eco-bareme
+  - question: economie-2
+    candidat: aline-fictiva
+    option: economie-2-c
+    mesure_id: eco-dette
+  - question: travail-1
+    candidat: bruno-demonstra
+    option: travail-1-b
+    mesure_id: travail-retraite
+  - question: sante-1
+    candidat: aline-fictiva
+    option: sante-1-a
+    mesure_id: sante-installation
+  - question: sante-1
+    candidat: bruno-demonstra
+    option: sante-1-b
+    mesure_id: sante-aides
+  - question: sante-1
+    candidat: carla-exemplia
+    option: sante-1-c
+    mesure_id: sante-centres
+  - question: education-1
+    candidat: aline-fictiva
+    option: education-1-a
+    mesure_id: educ-classes
+  - question: ecologie-1
+    candidat: aline-fictiva
+    option: ecologie-1-b
+    mesure_id: ecolo-nucleaire
+  - question: ecologie-1
+    candidat: bruno-demonstra
+    option: ecologie-1-a
+    mesure_id: ecolo-nucleaire
+  - question: ecologie-2
+    candidat: gaston-fictorin
+    option: ecologie-2-a
+    mesure_id: ecolo-train
+  - question: immigration-1
+    candidat: carla-exemplia
+    option: immigration-1-a
+    mesure_id: immigration-titres
+  - question: securite-1
+    candidat: aline-fictiva
+    option: securite-1-a
+    mesure_id: securite-police
+  - question: logement-1
+    candidat: bruno-demonstra
+    option: logement-1-a
+    mesure_id: logement-construction
+  - question: institutions-1
+    candidat: carla-exemplia
+    option: institutions-1-a
+    mesure_id: institutions-referendum
+  - question: europe-1
+    candidat: aline-fictiva
+    option: europe-1-a
+    mesure_id: europe-defense
+  - question: travail-2
+    candidat: carla-exemplia
+    option: sans-avis
+    mesure_id: eco-bareme

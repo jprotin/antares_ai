@@ -1,0 +1,18 @@
+---
+# Cas en défaut : jeu réel contenant des fiches fictives
+jeu: reel
+liste: declares
+phase: declares
+archive_apres: 2027-05-02
+tours:
+  premier: 2027-04-18
+  second: 2027-05-02
+partis:
+  - Mouvement Fictivien
+  - MFV
+  - Alliance Démonstrative
+  - ADM
+assistant:
+  modeles_autorises:
+    - litellm-ai-to-boost/gemma4:e4b
+    - ollama/gemma4:e4b

@@ -26,6 +26,8 @@ export default defineConfig({
         // Veille IA et météo : logique pure (cible 100 %)
         "src/features/veille/veille.ts",
         "src/features/veille/stats.ts",
+        // Présidentielle 2027 : tirage au sort de l'ordre des candidats (cible 100 %)
+        "src/features/presidentielle/shuffle.ts",
       ],
       thresholds: { lines: 85 },
     },
