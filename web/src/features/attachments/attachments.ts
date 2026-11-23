@@ -2,7 +2,7 @@
 // gardé par le routeur (documents.py), qui l'ajoute à chaque question.
 import { createStore } from "zustand/vanilla";
 
-import { detailMessage } from "@/lib/api";
+import { detailMessage, WRITE_HEADERS } from "@/lib/api";
 
 import { store } from "@/state/store";
 import type { AttachedDocument } from "@/types/api";
@@ -56,6 +56,7 @@ async function upload(file: File) {
     const response = await fetch("api/documents", {
       method: "POST",
       headers: {
+        ...WRITE_HEADERS,
         "Content-Type": file.type || "application/octet-stream",
         "X-Filename": encodeURIComponent(file.name),
       },
@@ -87,7 +88,10 @@ export async function uploadAll(files: File[]) {
 }
 
 export async function removeDocument(id: string) {
-  await fetch(`api/documents/${encodeURIComponent(id)}`, { method: "DELETE" });
+  await fetch(`api/documents/${encodeURIComponent(id)}`, {
+    method: "DELETE",
+    headers: { ...WRITE_HEADERS },
+  });
   attachments.setState((s) => ({
     documents: s.documents.filter((doc) => doc.id !== id),
   }));
@@ -102,6 +106,9 @@ export async function loadDocuments() {
 }
 
 export async function clearDocuments() {
-  await fetch("api/documents", { method: "DELETE" });
+  await fetch("api/documents", {
+    method: "DELETE",
+    headers: { ...WRITE_HEADERS },
+  });
   attachments.setState({ documents: [] });
 }

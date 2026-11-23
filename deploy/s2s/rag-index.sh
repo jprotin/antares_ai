@@ -33,7 +33,8 @@ curl -fsS "${API}/${project}/documents" >/dev/null 2>&1 ||
 indexed=0 failed=0 chunks=0
 while IFS= read -r -d '' file; do
   name="${file#"${folder%/}"/}"
-  if answer="$(curl -sS --max-time 300 -X POST \
+  # X-Antares : en-tête exigé par le routeur sur toute écriture (cf. router/write_guard.py)
+  if answer="$(curl -sS --max-time 300 -X POST -H "X-Antares: 1" \
     -H "X-Filename: $(jq -rn --arg n "${name}" '$n|@uri')" \
     --data-binary "@${file}" "${API}/${project}/documents")" &&
     count="$(jq -er '.chunks' <<<"${answer}" 2>/dev/null)"; then

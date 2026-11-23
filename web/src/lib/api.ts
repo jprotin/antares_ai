@@ -7,6 +7,13 @@ export const HTTP_ERRORS: Record<number, string> = {
   504: "le modèle a mis trop de temps à répondre",
 };
 
+// En-tête exigé par le routeur sur toute écriture sous /api/ (POST, PUT, PATCH, DELETE) :
+// une page tierce ne peut pas l'envoyer sans preflight CORS, jamais accepté (cf.
+// deploy/s2s/router/write_guard.py). À ajouter à chaque fetch d'écriture direct.
+export const WRITE_HEADERS: Readonly<Record<string, string>> = {
+  "X-Antares": "1",
+};
+
 type ValidationError = { loc?: (string | number)[]; msg: string };
 
 // Erreurs de validation : liste de champs refusés, « champ : message » séparés par « ; »
@@ -41,7 +48,7 @@ export function sendJson<T = unknown>(
 ): Promise<T> {
   return getJson<T>(url, {
     method,
-    headers: { "Content-Type": "application/json" },
+    headers: { ...WRITE_HEADERS, "Content-Type": "application/json" },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
 }
@@ -49,7 +56,10 @@ export function sendJson<T = unknown>(
 // Suppression : seul le statut compte (le corps d'un 204 est vide) ; message du serveur
 // en cas d'échec
 export async function deleteResource(url: string): Promise<void> {
-  const response = await fetch(url, { method: "DELETE" });
+  const response = await fetch(url, {
+    method: "DELETE",
+    headers: { ...WRITE_HEADERS },
+  });
   if (response.ok) return;
   const { detail } = (await response.json().catch(() => ({}))) as {
     detail?: unknown;

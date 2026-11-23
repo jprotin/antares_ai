@@ -137,7 +137,7 @@ class Routes(Base):
         from fastapi.testclient import TestClient
 
         cls.router = routeur()
-        cls.client = TestClient(cls.router.app)
+        cls.client = TestClient(cls.router.app, headers={"x-antares": "1"})
 
     def setUp(self):
         super().setUp()
@@ -584,7 +584,7 @@ class TourVocal(unittest.TestCase):
         from fastapi.testclient import TestClient
 
         cls.router = routeur()
-        cls.client = TestClient(cls.router.app)
+        cls.client = TestClient(cls.router.app, headers={"x-antares": "1"})
 
     def setUp(self):
         router = self.router

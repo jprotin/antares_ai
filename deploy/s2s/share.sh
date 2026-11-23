@@ -8,6 +8,10 @@
 # - Chaque requête porte l'adresse Google de l'invité (en-tête x-antares-user, retiré
 #   puis réécrit par ngrok : impossible à falsifier) : la veille est en lecture seule
 #   sauf pour SHARE_OWNER_EMAIL (cf. router/veille_access.py).
+# - Les requêtes arrivent sous le nom local (--host-header=rewrite : nginx n'accepte que
+#   127.0.0.1 et localhost) ; l'adresse publique du tunnel est écrite par ngrok dans
+#   x-antares-origin, seule origine admise en plus de l'interface locale pour les
+#   écritures (cf. router/write_guard.py).
 # - Pendant le partage, Claude (ton abonnement) et l'écriture dans le RAG sont
 #   désactivés pour tout le monde (drapeau lu par le routeur).
 # - Le partage s'arrête avec Ctrl+C : tunnel fermé, drapeau retiré.
@@ -64,8 +68,11 @@ trap 'cleanup; exit 130' INT TERM HUP
 # action oauth : https://ngrok.com/docs/traffic-policy/actions/oauth/). Adresses en
 # minuscules, comme celles renvoyées par Google.
 allowed="$(printf "'%s', " "$@" | tr '[:upper:]' '[:lower:]')"
-# En-tête x-antares-user : celui de l'invité est retiré avant tout, puis ngrok écrit
-# l'adresse Google vérifiée (droits sur la veille, cf. router/veille_access.py)
+# En-têtes x-antares-user et x-antares-origin : ceux de l'invité sont retirés avant tout,
+# puis ngrok écrit l'adresse Google vérifiée (droits sur la veille, cf.
+# router/veille_access.py) et l'origine publique de la requête, schéma et hôte du tunnel
+# (origine admise pour les écritures, cf. router/write_guard.py). Variables : req.url.scheme
+# et req.host (https://ngrok.com/docs/traffic-policy/variables/req/).
 cat >"${policy}" <<EOF
 on_http_request:
   - actions:
@@ -73,6 +80,7 @@ on_http_request:
         config:
           headers:
             - x-antares-user
+            - x-antares-origin
       - type: oauth
         config:
           provider: google
@@ -87,6 +95,7 @@ on_http_request:
         config:
           headers:
             x-antares-user: "\${actions.ngrok.oauth.identity.email}"
+            x-antares-origin: "\${req.url.scheme}://\${req.host}"
 EOF
 chmod 644 "${policy}"
 
@@ -100,7 +109,7 @@ NGROK_AUTHTOKEN="${token}" docker run -d --name "${CONTAINER}" --network host \
   -e NGROK_AUTHTOKEN \
   -v "${policy}:/etc/antares-policy.yml:ro" \
   "${NGROK_IMAGE}" \
-  http "${LOCAL_URL}" --traffic-policy-file /etc/antares-policy.yml --log stdout >/dev/null
+  http "${LOCAL_URL}" --host-header=rewrite --traffic-policy-file /etc/antares-policy.yml --log stdout >/dev/null
 
 url=""
 for _ in $(seq 1 30); do

@@ -12,7 +12,12 @@ import type { CallEngine } from "@/engines/realtime/CallEngine";
 import type { CallPlugin } from "@/engines/realtime/plugins";
 import type { ServerEvent } from "@/engines/realtime/protocol";
 import { navigate } from "@/app/router";
-import { deleteResource, detailMessage, getJson } from "@/lib/api";
+import {
+  deleteResource,
+  detailMessage,
+  getJson,
+  WRITE_HEADERS,
+} from "@/lib/api";
 import { store } from "@/state/store";
 
 import { createNoiseGate } from "./audio/noiseGate";
@@ -100,7 +105,7 @@ async function send<T = Record<string, unknown>>(
 ): Promise<T> {
   const response = await fetch(url, {
     method,
-    headers: { "Content-Type": "application/json" },
+    headers: { ...WRITE_HEADERS, "Content-Type": "application/json" },
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   const data = (await response.json().catch(() => ({}))) as T & {
@@ -239,7 +244,7 @@ export class RehearsalController {
       });
       const response = await fetch(`api/rehearsals/${created.id}/slides`, {
         method: "POST",
-        headers: { "Content-Type": "application/pdf" },
+        headers: { ...WRITE_HEADERS, "Content-Type": "application/pdf" },
         body: form.pdf,
       });
       const data = (await response
@@ -248,7 +253,10 @@ export class RehearsalController {
         detail?: unknown;
       };
       if (!response.ok) {
-        await fetch(`api/rehearsals/${created.id}`, { method: "DELETE" });
+        await fetch(`api/rehearsals/${created.id}`, {
+          method: "DELETE",
+          headers: { ...WRITE_HEADERS },
+        });
         throw new Error(
           detailMessage(data.detail) ?? `HTTP ${response.status}`,
         );
@@ -740,7 +748,10 @@ export class RehearsalController {
       // La phase vocale est arrêtée ci-dessous : la discussion ne la relance pas
       this.session.talking = false;
     }
-    await fetch("api/rehearsals/live", { method: "DELETE" }).catch(() => {});
+    await fetch("api/rehearsals/live", {
+      method: "DELETE",
+      headers: { ...WRITE_HEADERS },
+    }).catch(() => {});
     if (this.engine.inCall()) this.engine.hangUp("Répétition terminée");
     this.releaseMic();
     this.hidePanel();
@@ -839,7 +850,10 @@ export class RehearsalController {
         talking: this.session.talking,
       };
     // Phase oubliée par un onglet fermé en pleine répétition : l'appel suivant parlerait
-    fetch("api/rehearsals/live", { method: "DELETE" }).catch(() => {});
+    fetch("api/rehearsals/live", {
+      method: "DELETE",
+      headers: { ...WRITE_HEADERS },
+    }).catch(() => {});
     return {
       id: "rehearsal",
       onEvent: (event) => this.onEvent(event),

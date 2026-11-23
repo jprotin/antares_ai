@@ -82,6 +82,16 @@ export class MockApi {
       }
       const recorded = { method: request.method(), path, body };
       this.calls.push(recorded);
+      // Comme le routeur (write_guard.py) : écriture sans en-tête X-Antares refusée
+      if (
+        recorded.method !== "GET" &&
+        (await request.headerValue("x-antares")) !== "1"
+      ) {
+        return route.fulfill({
+          status: 403,
+          json: { detail: "Requête refusée : en-tête X-Antares manquant" },
+        });
+      }
       const key = `${recorded.method} ${path}`;
       const override = this.overrides.find(({ pattern }) => pattern.test(key));
       if (override) return override.handler(route, recorded);

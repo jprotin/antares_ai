@@ -45,6 +45,8 @@ DB = DATA / "tasks.db"
 # Partage : requêtes du tunnel (en-têtes écrits par ngrok, cf. share.sh)
 OWNER = "proprio@example.fr"
 GUEST = {"x-antares-user": "invite@gmail.com", "x-forwarded-for": "203.0.113.5"}
+# En-tête de l'interface, exigé sur toute écriture (cf. write_guard.py)
+UI = {"x-antares": "1"}
 OWNER_HEADERS = {
     "x-antares-user": " Proprio@Example.fr",
     "x-forwarded-for": "203.0.113.5",
@@ -569,7 +571,7 @@ def model_reply(content: dict | str):
 class Routes(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.client = TestClient(router.app)
+        cls.client = TestClient(router.app, headers=UI)
 
     def setUp(self):
         reset_votes()
@@ -766,7 +768,7 @@ class Routes(unittest.TestCase):
         async def both():
             transport = httpx.ASGITransport(app=router.app)
             async with httpx.AsyncClient(
-                transport=transport, base_url="http://test"
+                transport=transport, base_url="http://test", headers=UI
             ) as client:
                 url = f"/api/veille/idea/{IDEA_ID}/prompt"
                 return await asyncio.gather(client.post(url), client.post(url))
@@ -834,7 +836,7 @@ PROBED = {
 class Sources(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.client = TestClient(router.app)
+        cls.client = TestClient(router.app, headers=UI)
 
     def setUp(self):
         reset_votes()
@@ -1088,7 +1090,7 @@ def build3(path: Path) -> None:
 class Others(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.client = TestClient(router.app)
+        cls.client = TestClient(router.app, headers=UI)
 
     def setUp(self):
         reset_votes()
@@ -1163,7 +1165,7 @@ class Others(unittest.TestCase):
 class ManualRun(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.client = TestClient(router.app)
+        cls.client = TestClient(router.app, headers=UI)
 
     def setUp(self):
         reset_votes()
@@ -1227,7 +1229,7 @@ class Favorites(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.client = TestClient(router.app)
+        cls.client = TestClient(router.app, headers=UI)
 
     def setUp(self):
         reset_votes()
@@ -1278,7 +1280,7 @@ class StatsRoute(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.client = TestClient(router.app)
+        cls.client = TestClient(router.app, headers=UI)
 
     def tearDown(self):
         router.SHARING_FLAG.unlink(missing_ok=True)
@@ -1315,7 +1317,7 @@ class Translate(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.client = TestClient(router.app)
+        cls.client = TestClient(router.app, headers=UI)
 
     def setUp(self):
         reset_votes()
@@ -1437,7 +1439,7 @@ class Journal(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.client = TestClient(router.app)
+        cls.client = TestClient(router.app, headers=UI)
 
     def setUp(self):
         reset_votes()

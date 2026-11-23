@@ -1,7 +1,7 @@
 // Appels de la veille : votes (articles, idées), prompt d'une idée, sources, articles
 // non retenus, passage manuel. Erreurs avec
 // leur statut HTTP (0 : serveur injoignable) pour proposer « Réessayer » à bon escient.
-import { detailMessage } from "@/lib/api";
+import { detailMessage, WRITE_HEADERS } from "@/lib/api";
 import type {
   VeilleCustomSource,
   VeilleFavorites,
@@ -46,8 +46,10 @@ async function call<T>(
     response = await fetch(url, {
       method,
       cache: "no-store",
-      headers:
-        body === undefined ? undefined : { "Content-Type": "application/json" },
+      headers: {
+        ...(method === "GET" ? {} : WRITE_HEADERS),
+        ...(body === undefined ? {} : { "Content-Type": "application/json" }),
+      },
       body: body === undefined ? undefined : JSON.stringify(body),
     });
   } catch {

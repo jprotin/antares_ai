@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { SurfaceClose, SurfaceTitle } from "@/components/Surface";
-import { detailMessage, getJson } from "@/lib/api";
+import { detailMessage, getJson, WRITE_HEADERS } from "@/lib/api";
 import { store } from "@/state/store";
 
 import "@/styles/legacy-dialogs.css";
@@ -44,6 +44,7 @@ async function upload(
     {
       method: "POST",
       headers: {
+        ...WRITE_HEADERS,
         "Content-Type": file.type || "application/octet-stream",
         "X-Filename": encodeURIComponent(file.name),
       },
@@ -164,7 +165,7 @@ export function RagProjectsDialog() {
     if (!window.confirm(`Retirer « ${doc.source} » de ${project} ?`)) return;
     const response = await fetch(
       `api/rag/projects/${encodeURIComponent(project)}/documents/${encodeURIComponent(doc.id)}`,
-      { method: "DELETE" },
+      { method: "DELETE", headers: { ...WRITE_HEADERS } },
     );
     if (!response.ok) {
       setStatus(await failure(response), true);
@@ -187,6 +188,7 @@ export function RagProjectsDialog() {
       `api/rag/projects/${encodeURIComponent(project)}`,
       {
         method: "DELETE",
+        headers: { ...WRITE_HEADERS },
       },
     );
     if (!response.ok) {
