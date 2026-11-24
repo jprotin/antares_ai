@@ -4,6 +4,9 @@
     python /app/__main__.py veille [--dry-run] une veille maintenant (sans créneau)
     python /app/__main__.py meteo  [--dry-run] la météo du jour
     python /app/__main__.py schedule           prochains passages, dernier succès, manqués
+    python /app/__main__.py presidentielle-watch [--dry-run]
+                                               surveillance des pages des candidats
+                                               maintenant (sans créneau, cf. watch.py)
 
 Avec Docker : `docker compose run --rm antares-tasks veille` (toujours une sous-commande :
 sans argument, `run` ouvrirait une seconde boucle planifiée). `--dry-run` affiche le
@@ -24,13 +27,14 @@ import feeds
 import jobs
 import providers
 import settings
+import watch
 from settings import Config, ConfigError, load_config
 from store import Store
 
 LOG_FORMAT = "%(asctime)s - tasks - %(levelname)s - %(message)s"
 # Touché à chaque tour de la boucle planifiée ; lu par la sonde de santé (compose.yaml)
 HEARTBEAT = Path("/tmp/antares-tasks.heartbeat")
-COMMANDS = ("serve", "veille", "meteo", "schedule")
+COMMANDS = ("serve", "veille", "meteo", "schedule", watch.TASK)
 logger = logging.getLogger("tasks")
 
 
@@ -44,7 +48,10 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         nargs="?",
         default="serve",
         choices=COMMANDS,
-        help="serve (défaut) : boucle planifiée ; veille, meteo, schedule : à la main",
+        help=(
+            "serve (défaut) : boucle planifiée ; veille, meteo, schedule, "
+            "presidentielle-watch : à la main"
+        ),
     )
     parser.add_argument(
         "--dry-run",
@@ -79,6 +86,7 @@ def build_context(
         features_path=settings.FEATURES_PATH,
         votes_path=settings.VOTES_DB,
         read_last_turn=lambda: calls.read_last_turn(http, settings.ROUTER_URL),
+        presidentielle_dir=settings.PRESIDENTIELLE_DIR,
     )
 
 
@@ -97,6 +105,10 @@ async def main_async(args: argparse.Namespace, config: Config) -> int:
             ctx.store.init(ctx.now())
         if args.command == "schedule":
             print(jobs.schedule_report(ctx))
+            return 0
+        if args.command == watch.TASK:
+            found = await watch.run_watch(ctx, dry_run=args.dry_run)
+            print(watch.report(found))
             return 0
         if args.command == "meteo":
             data, error = await jobs.run_meteo(ctx, args.dry_run)

@@ -9,7 +9,10 @@ Variables d'environnement (toutes avec une valeur par défaut, posées par compo
                   (défaut /features/FEATURES.md, absent ou vide toléré) ;
 - VOTES_DB      : votes de la veille, base du routeur lue en lecture seule
                   (défaut /data/veille.db, absente tolérée : scores neutres) ;
-- ROUTER_URL    : routeur, pour détecter un appel en cours (défaut http://llm-router:11434).
+- ROUTER_URL    : routeur, pour détecter un appel en cours (défaut http://llm-router:11434) ;
+- PRESIDENTIELLE_DIR : base de la présidentielle, en lecture seule, pour la liste des
+                  pages suivies (surveillance.yaml ; défaut /presidentielle, absente
+                  tolérée : surveillance sans objet).
 
 Une erreur de réglage donne un message d'une ligne (ConfigError), sans trace Python.
 """
@@ -36,6 +39,7 @@ SETTINGS_PATH = Path(os.environ.get("SETTINGS_PATH", "/data/settings.json"))
 FEATURES_PATH = Path(os.environ.get("FEATURES_PATH", "/features/FEATURES.md"))
 VOTES_DB = Path(os.environ.get("VOTES_DB", "/data/veille.db"))
 ROUTER_URL = os.environ.get("ROUTER_URL", "http://llm-router:11434").rstrip("/")
+PRESIDENTIELLE_DIR = Path(os.environ.get("PRESIDENTIELLE_DIR", "/presidentielle"))
 
 HHMM = re.compile(r"^([01]\d|2[0-3]):[0-5]\d$")
 HTTP_URL = re.compile(r"^https?://[^\s/]+", re.IGNORECASE)
@@ -180,6 +184,24 @@ class Call(Strict):
     max_wait_min: int = Field(15, ge=0)
 
 
+class PresidentielleWatch(Strict):
+    """Surveillance des pages des candidats (cf. watch.py) : un passage par jour."""
+
+    enabled: bool = True
+    # Heure locale du passage quotidien (rattrapé dans la journée si le service était
+    # arrêté à cette heure)
+    time: str = "07:30"
+    timeout_s: float = Field(15, gt=0, le=120)
+    max_bytes: int = Field(5_000_000, ge=1000, le=50_000_000)
+    # Pause entre deux pages (politesse envers les sites)
+    gap_s: float = Field(2, ge=0, le=60)
+
+    @field_validator("time")
+    @classmethod
+    def valid_time(cls, value: str) -> str:
+        return _check_hhmm(value)
+
+
 class Config(Strict):
     timezone: str = "Europe/Paris"
     slots: list[str] = Field(min_length=1)
@@ -196,6 +218,7 @@ class Config(Strict):
     idea_prompt: IdeaPrompt = IdeaPrompt()
     limits: Limits = Limits()
     call: Call = Call()
+    presidentielle_watch: PresidentielleWatch = PresidentielleWatch()
     feeds: list[Feed] = Field(min_length=1)
 
     @field_validator("timezone")

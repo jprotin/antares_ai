@@ -263,6 +263,17 @@ call:
   wait_step_s: 60
   max_wait_min: 15
 
+# Présidentielle 2027 : surveillance quotidienne des pages des candidats listées dans
+# surveillance.yaml de la base (liste gelée seulement). Empreinte comparée d'un jour à
+# l'autre ; aucun modèle, aucune publication ; « nouvelle source à relire » affiché au
+# propriétaire. Arrêtée en archive et sur le jeu de démonstration.
+presidentielle_watch:
+  enabled: true
+  time: "07:30"
+  timeout_s: 15
+  max_bytes: 5000000
+  gap_s: 2
+
 # Flux lus à chaque veille (vérifiés depuis le conteneur le 2026-11-17). `lang` : langue
 # d'origine ; `category` : catégorie par défaut ; `filter_keywords: true` : seuls les
 # titres qui contiennent un mot-clé d'une catégorie sont gardés.

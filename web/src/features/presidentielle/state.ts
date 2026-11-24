@@ -1,12 +1,13 @@
-// État de la page « Présidentielle 2027 » : base publiée, méta (partage, invité, cible)
-// et ordre des candidats tiré une fois par visite (chargement de l'application), partagé
-// par la liste, l'assistant et le rapport du quiz. Nouveau tirage à la visite suivante,
-// ou si la liste des candidats change.
+// État de la page « Présidentielle 2027 » : base publiée, méta (partage, invité, cible),
+// nouveautés de la surveillance (propriétaire seulement) et ordre des candidats tiré une
+// fois par visite (chargement de l'application), partagé par la liste, l'assistant et le
+// rapport du quiz. Nouveau tirage à la visite suivante, ou si la liste des candidats
+// change.
 import { createStore } from "zustand/vanilla";
 
-import { loadBase, loadMeta } from "./api";
+import { loadBase, loadMeta, loadNouveautes } from "./api";
 import { shuffle, type Rng } from "./shuffle";
-import type { BasePubliee, Candidat, Meta } from "./types";
+import type { BasePubliee, Candidat, Meta, Signalement } from "./types";
 
 type Status = "idle" | "loading" | "ready" | "error";
 
@@ -17,6 +18,8 @@ type PresidentielleState = {
   meta: Meta | null;
   // Identifiants des candidats dans l'ordre tiré
   order: string[] | null;
+  // Pages suivies modifiées (« nouvelle source à relire ») : jamais lues pour un invité
+  nouveautes: Signalement[];
 };
 
 const initial = (): PresidentielleState => ({
@@ -25,6 +28,7 @@ const initial = (): PresidentielleState => ({
   base: null,
   meta: null,
   order: null,
+  nouveautes: [],
 });
 
 export const presidentielleStore = createStore<PresidentielleState>()(initial);
@@ -77,9 +81,25 @@ export async function loadPresidentielle(): Promise<void> {
     return;
   }
   visitOrder(base.value.candidats.map((c) => c.id));
+  const knownMeta = meta.status === "fulfilled" ? meta.value : null;
   presidentielleStore.setState({
     status: "ready",
     base: base.value,
-    meta: meta.status === "fulfilled" ? meta.value : null,
+    meta: knownMeta,
   });
+  await loadSignalements(knownMeta);
+}
+
+// Nouveautés de la surveillance : demandées pour le propriétaire seulement (méta lue,
+// pas invité) ; refus (403) ou erreur : rien d'affiché
+export async function loadSignalements(meta: Meta | null): Promise<void> {
+  if (!meta || meta.guest) {
+    presidentielleStore.setState({ nouveautes: [] });
+    return;
+  }
+  try {
+    presidentielleStore.setState({ nouveautes: await loadNouveautes() });
+  } catch {
+    presidentielleStore.setState({ nouveautes: [] });
+  }
 }

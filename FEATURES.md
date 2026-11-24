@@ -45,6 +45,15 @@ fin de feature, sous 4 000 caractères.
   suivants ; prompt Claude Code d'une idée retenue, copiable en un clic.
 - Météo illustrée à chaque passage (temps actuel, 12 prochaines heures).
 
+## Présidentielle 2027
+
+- Fiches identiques des candidats, relues et publiées dans un dépôt séparé ; assistant
+  fait de citations relues (modèle local seul), quiz calculé dans le navigateur.
+- Votes réels à l'Assemblée, surveillance des sites ; deux qualifiés entre les tours,
+  base figée après le 2 mai 2027.
+- Onglet « Évolution » de chaque fiche : versions publiées et versions des programmes,
+  comparées mot pour mot, sans résumé ni qualificatif.
+
 ## Interface
 
 - Vite + React + shadcn/ui, CSP stricte, thème clair et sombre, tests Playwright.

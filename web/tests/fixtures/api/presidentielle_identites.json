@@ -1,0 +1,1366 @@
+{
+  "_commentaire": "Sortie du routeur sur 27 fiches d'identité fictives (exemple.invalid), dont une retirée, sans mesure ni grille (test_presidentielle_sans_grille.ecrire_jeu_identites).",
+  "presidentielle": {
+    "disponible": true,
+    "message": null,
+    "jeu": "demonstration",
+    "liste": "declares",
+    "phase": "declares",
+    "qualifies": [],
+    "version": "6fcdc3edd786",
+    "tours": {
+      "premier": "2027-04-18",
+      "second": "2027-05-02"
+    },
+    "archive_apres": "2027-05-02",
+    "axes_statut": null,
+    "themes": [],
+    "candidats": [
+      {
+        "id": "candidat-01",
+        "nom_affiche": "Adèle Fictilier",
+        "initiales": "AF",
+        "alias": [],
+        "fictif": true,
+        "statut": "declare",
+        "statut_source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-09-01",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Personne inventée pour les essais (1).",
+          "nature": "redaction"
+        },
+        "lignes_phares": [],
+        "mesures": [],
+        "parlementaire": false,
+        "votes": [],
+        "version": 1,
+        "mise_a_jour": "2026-11-20",
+        "relue_le": "2026-11-20"
+      },
+      {
+        "id": "candidat-02",
+        "nom_affiche": "Basile Exemplot",
+        "initiales": "BE",
+        "alias": [],
+        "fictif": true,
+        "statut": "declare",
+        "statut_source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-09-01",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Personne inventée pour les essais (2).",
+          "nature": "redaction"
+        },
+        "lignes_phares": [],
+        "mesures": [],
+        "parlementaire": false,
+        "votes": [],
+        "version": 1,
+        "mise_a_jour": "2026-11-20",
+        "relue_le": "2026-11-20"
+      },
+      {
+        "id": "candidat-03",
+        "nom_affiche": "Céleste Demontier",
+        "initiales": "CD",
+        "alias": [],
+        "fictif": true,
+        "statut": "declare",
+        "statut_source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-09-01",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Personne inventée pour les essais (3).",
+          "nature": "redaction"
+        },
+        "lignes_phares": [],
+        "mesures": [],
+        "parlementaire": false,
+        "votes": [],
+        "version": 1,
+        "mise_a_jour": "2026-11-20",
+        "relue_le": "2026-11-20"
+      },
+      {
+        "id": "candidat-04",
+        "nom_affiche": "Damien Simulard",
+        "initiales": "DS",
+        "alias": [],
+        "fictif": true,
+        "statut": "declare",
+        "statut_source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-09-01",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Personne inventée pour les essais (4).",
+          "nature": "redaction"
+        },
+        "lignes_phares": [],
+        "mesures": [],
+        "parlementaire": false,
+        "votes": [],
+        "version": 1,
+        "mise_a_jour": "2026-11-20",
+        "relue_le": "2026-11-20"
+      },
+      {
+        "id": "candidat-05",
+        "nom_affiche": "Elsa Inventin",
+        "initiales": "EI",
+        "alias": [],
+        "fictif": true,
+        "statut": "declare",
+        "statut_source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-09-01",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Personne inventée pour les essais (5).",
+          "nature": "redaction"
+        },
+        "lignes_phares": [],
+        "mesures": [],
+        "parlementaire": false,
+        "votes": [],
+        "version": 1,
+        "mise_a_jour": "2026-11-20",
+        "relue_le": "2026-11-20"
+      },
+      {
+        "id": "candidat-06",
+        "nom_affiche": "Firmin Supposier",
+        "initiales": "FS",
+        "alias": [],
+        "fictif": true,
+        "statut": "declare",
+        "statut_source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-09-01",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Personne inventée pour les essais (6).",
+          "nature": "redaction"
+        },
+        "lignes_phares": [],
+        "mesures": [],
+        "parlementaire": false,
+        "votes": [],
+        "version": 1,
+        "mise_a_jour": "2026-11-20",
+        "relue_le": "2026-11-20"
+      },
+      {
+        "id": "candidat-07",
+        "nom_affiche": "Gisèle Modelin",
+        "initiales": "GM",
+        "alias": [],
+        "fictif": true,
+        "statut": "declare",
+        "statut_source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-09-01",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Personne inventée pour les essais (7).",
+          "nature": "redaction"
+        },
+        "lignes_phares": [],
+        "mesures": [],
+        "parlementaire": false,
+        "votes": [],
+        "version": 1,
+        "mise_a_jour": "2026-11-20",
+        "relue_le": "2026-11-20"
+      },
+      {
+        "id": "candidat-08",
+        "nom_affiche": "Hector Essayot",
+        "initiales": "HE",
+        "alias": [],
+        "fictif": true,
+        "statut": "declare",
+        "statut_source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-09-01",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Personne inventée pour les essais (8).",
+          "nature": "redaction"
+        },
+        "lignes_phares": [],
+        "mesures": [],
+        "parlementaire": false,
+        "votes": [],
+        "version": 1,
+        "mise_a_jour": "2026-11-20",
+        "relue_le": "2026-11-20"
+      },
+      {
+        "id": "candidat-09",
+        "nom_affiche": "Iris Brouillet",
+        "initiales": "IB",
+        "alias": [],
+        "fictif": true,
+        "statut": "declare",
+        "statut_source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-09-01",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Personne inventée pour les essais (9).",
+          "nature": "redaction"
+        },
+        "lignes_phares": [],
+        "mesures": [],
+        "parlementaire": false,
+        "votes": [],
+        "version": 1,
+        "mise_a_jour": "2026-11-20",
+        "relue_le": "2026-11-20"
+      },
+      {
+        "id": "candidat-10",
+        "nom_affiche": "Jules Maquettin",
+        "initiales": "JM",
+        "alias": [],
+        "fictif": true,
+        "statut": "declare",
+        "statut_source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-09-01",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Personne inventée pour les essais (10).",
+          "nature": "redaction"
+        },
+        "lignes_phares": [],
+        "mesures": [],
+        "parlementaire": false,
+        "votes": [],
+        "version": 1,
+        "mise_a_jour": "2026-11-20",
+        "relue_le": "2026-11-20"
+      },
+      {
+        "id": "candidat-11",
+        "nom_affiche": "Katell Croquier",
+        "initiales": "KC",
+        "alias": [],
+        "fictif": true,
+        "statut": "declare",
+        "statut_source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-09-01",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Personne inventée pour les essais (11).",
+          "nature": "redaction"
+        },
+        "lignes_phares": [],
+        "mesures": [],
+        "parlementaire": false,
+        "votes": [],
+        "version": 1,
+        "mise_a_jour": "2026-11-20",
+        "relue_le": "2026-11-20"
+      },
+      {
+        "id": "candidat-12",
+        "nom_affiche": "Lucien Esquissot",
+        "initiales": "LE",
+        "alias": [],
+        "fictif": true,
+        "statut": "declare",
+        "statut_source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-09-01",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Personne inventée pour les essais (12).",
+          "nature": "redaction"
+        },
+        "lignes_phares": [],
+        "mesures": [],
+        "parlementaire": false,
+        "votes": [],
+        "version": 1,
+        "mise_a_jour": "2026-11-20",
+        "relue_le": "2026-11-20"
+      },
+      {
+        "id": "candidat-13",
+        "nom_affiche": "Maëlle Ebauchin",
+        "initiales": "ME",
+        "alias": [],
+        "fictif": true,
+        "statut": "retire",
+        "statut_source": {
+          "id": "candidat-13-retrait",
+          "titre": "Communiqué fictif de retrait de Maëlle Ebauchin",
+          "url": "https://candidat-13.exemple.invalid/retrait",
+          "niveau": "candidat",
+          "publie_le": "2026-11-10",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-09-01",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Personne inventée pour les essais (13).",
+          "nature": "redaction"
+        },
+        "lignes_phares": [],
+        "mesures": [],
+        "parlementaire": false,
+        "votes": [],
+        "version": 1,
+        "mise_a_jour": "2026-11-20",
+        "relue_le": "2026-11-20"
+      },
+      {
+        "id": "candidat-14",
+        "nom_affiche": "Nestor Calquier",
+        "initiales": "NC",
+        "alias": [],
+        "fictif": true,
+        "statut": "declare",
+        "statut_source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-09-01",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Personne inventée pour les essais (14).",
+          "nature": "redaction"
+        },
+        "lignes_phares": [],
+        "mesures": [],
+        "parlementaire": false,
+        "votes": [],
+        "version": 1,
+        "mise_a_jour": "2026-11-20",
+        "relue_le": "2026-11-20"
+      },
+      {
+        "id": "candidat-15",
+        "nom_affiche": "Odile Patronnet",
+        "initiales": "OP",
+        "alias": [],
+        "fictif": true,
+        "statut": "declare",
+        "statut_source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-09-01",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Personne inventée pour les essais (15).",
+          "nature": "redaction"
+        },
+        "lignes_phares": [],
+        "mesures": [],
+        "parlementaire": false,
+        "votes": [],
+        "version": 1,
+        "mise_a_jour": "2026-11-20",
+        "relue_le": "2026-11-20"
+      },
+      {
+        "id": "candidat-16",
+        "nom_affiche": "Pacôme Gabarin",
+        "initiales": "PG",
+        "alias": [],
+        "fictif": true,
+        "statut": "declare",
+        "statut_source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-09-01",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Personne inventée pour les essais (16).",
+          "nature": "redaction"
+        },
+        "lignes_phares": [],
+        "mesures": [],
+        "parlementaire": false,
+        "votes": [],
+        "version": 1,
+        "mise_a_jour": "2026-11-20",
+        "relue_le": "2026-11-20"
+      },
+      {
+        "id": "candidat-17",
+        "nom_affiche": "Quitterie Specimot",
+        "initiales": "QS",
+        "alias": [],
+        "fictif": true,
+        "statut": "declare",
+        "statut_source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-09-01",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Personne inventée pour les essais (17).",
+          "nature": "redaction"
+        },
+        "lignes_phares": [],
+        "mesures": [],
+        "parlementaire": false,
+        "votes": [],
+        "version": 1,
+        "mise_a_jour": "2026-11-20",
+        "relue_le": "2026-11-20"
+      },
+      {
+        "id": "candidat-18",
+        "nom_affiche": "Romain Echantier",
+        "initiales": "RE",
+        "alias": [],
+        "fictif": true,
+        "statut": "declare",
+        "statut_source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-09-01",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Personne inventée pour les essais (18).",
+          "nature": "redaction"
+        },
+        "lignes_phares": [],
+        "mesures": [],
+        "parlementaire": false,
+        "votes": [],
+        "version": 1,
+        "mise_a_jour": "2026-11-20",
+        "relue_le": "2026-11-20"
+      },
+      {
+        "id": "candidat-19",
+        "nom_affiche": "Solène Prototin",
+        "initiales": "SP",
+        "alias": [],
+        "fictif": true,
+        "statut": "declare",
+        "statut_source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-09-01",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Personne inventée pour les essais (19).",
+          "nature": "redaction"
+        },
+        "lignes_phares": [],
+        "mesures": [],
+        "parlementaire": false,
+        "votes": [],
+        "version": 1,
+        "mise_a_jour": "2026-11-20",
+        "relue_le": "2026-11-20"
+      },
+      {
+        "id": "candidat-20",
+        "nom_affiche": "Thibault Fantaisier",
+        "initiales": "TF",
+        "alias": [],
+        "fictif": true,
+        "statut": "declare",
+        "statut_source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-09-01",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Personne inventée pour les essais (20).",
+          "nature": "redaction"
+        },
+        "lignes_phares": [],
+        "mesures": [],
+        "parlementaire": false,
+        "votes": [],
+        "version": 1,
+        "mise_a_jour": "2026-11-20",
+        "relue_le": "2026-11-20"
+      },
+      {
+        "id": "candidat-21",
+        "nom_affiche": "Ursule Imaginot",
+        "initiales": "UI",
+        "alias": [],
+        "fictif": true,
+        "statut": "declare",
+        "statut_source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-09-01",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Personne inventée pour les essais (21).",
+          "nature": "redaction"
+        },
+        "lignes_phares": [],
+        "mesures": [],
+        "parlementaire": false,
+        "votes": [],
+        "version": 1,
+        "mise_a_jour": "2026-11-20",
+        "relue_le": "2026-11-20"
+      },
+      {
+        "id": "candidat-22",
+        "nom_affiche": "Valentin Chimerin",
+        "initiales": "VC",
+        "alias": [],
+        "fictif": true,
+        "statut": "declare",
+        "statut_source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-09-01",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Personne inventée pour les essais (22).",
+          "nature": "redaction"
+        },
+        "lignes_phares": [],
+        "mesures": [],
+        "parlementaire": false,
+        "votes": [],
+        "version": 1,
+        "mise_a_jour": "2026-11-20",
+        "relue_le": "2026-11-20"
+      },
+      {
+        "id": "candidat-23",
+        "nom_affiche": "Wanda Songeard",
+        "initiales": "WS",
+        "alias": [],
+        "fictif": true,
+        "statut": "declare",
+        "statut_source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-09-01",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Personne inventée pour les essais (23).",
+          "nature": "redaction"
+        },
+        "lignes_phares": [],
+        "mesures": [],
+        "parlementaire": false,
+        "votes": [],
+        "version": 1,
+        "mise_a_jour": "2026-11-20",
+        "relue_le": "2026-11-20"
+      },
+      {
+        "id": "candidat-24",
+        "nom_affiche": "Xavier Revelin",
+        "initiales": "XR",
+        "alias": [],
+        "fictif": true,
+        "statut": "declare",
+        "statut_source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-09-01",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Personne inventée pour les essais (24).",
+          "nature": "redaction"
+        },
+        "lignes_phares": [],
+        "mesures": [],
+        "parlementaire": false,
+        "votes": [],
+        "version": 1,
+        "mise_a_jour": "2026-11-20",
+        "relue_le": "2026-11-20"
+      },
+      {
+        "id": "candidat-25",
+        "nom_affiche": "Yvette Fablier",
+        "initiales": "YF",
+        "alias": [],
+        "fictif": true,
+        "statut": "declare",
+        "statut_source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-09-01",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Personne inventée pour les essais (25).",
+          "nature": "redaction"
+        },
+        "lignes_phares": [],
+        "mesures": [],
+        "parlementaire": false,
+        "votes": [],
+        "version": 1,
+        "mise_a_jour": "2026-11-20",
+        "relue_le": "2026-11-20"
+      },
+      {
+        "id": "candidat-26",
+        "nom_affiche": "Zacharie Contier",
+        "initiales": "ZC",
+        "alias": [],
+        "fictif": true,
+        "statut": "declare",
+        "statut_source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-09-01",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Personne inventée pour les essais (26).",
+          "nature": "redaction"
+        },
+        "lignes_phares": [],
+        "mesures": [],
+        "parlementaire": false,
+        "votes": [],
+        "version": 1,
+        "mise_a_jour": "2026-11-20",
+        "relue_le": "2026-11-20"
+      },
+      {
+        "id": "candidat-27",
+        "nom_affiche": "Armelle Legendot",
+        "initiales": "AL",
+        "alias": [],
+        "fictif": true,
+        "statut": "declare",
+        "statut_source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-09-01",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Personne inventée pour les essais (27).",
+          "nature": "redaction"
+        },
+        "lignes_phares": [],
+        "mesures": [],
+        "parlementaire": false,
+        "votes": [],
+        "version": 1,
+        "mise_a_jour": "2026-11-20",
+        "relue_le": "2026-11-20"
+      }
+    ],
+    "journal": [
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "candidat-01",
+        "version": 1,
+        "motif": "Fiche d'identité publiée"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "candidat-02",
+        "version": 1,
+        "motif": "Fiche d'identité publiée"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "candidat-03",
+        "version": 1,
+        "motif": "Fiche d'identité publiée"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "candidat-04",
+        "version": 1,
+        "motif": "Fiche d'identité publiée"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "candidat-05",
+        "version": 1,
+        "motif": "Fiche d'identité publiée"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "candidat-06",
+        "version": 1,
+        "motif": "Fiche d'identité publiée"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "candidat-07",
+        "version": 1,
+        "motif": "Fiche d'identité publiée"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "candidat-08",
+        "version": 1,
+        "motif": "Fiche d'identité publiée"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "candidat-09",
+        "version": 1,
+        "motif": "Fiche d'identité publiée"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "candidat-10",
+        "version": 1,
+        "motif": "Fiche d'identité publiée"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "candidat-11",
+        "version": 1,
+        "motif": "Fiche d'identité publiée"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "candidat-12",
+        "version": 1,
+        "motif": "Fiche d'identité publiée"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "candidat-13",
+        "version": 1,
+        "motif": "Fiche d'identité publiée"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "candidat-14",
+        "version": 1,
+        "motif": "Fiche d'identité publiée"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "candidat-15",
+        "version": 1,
+        "motif": "Fiche d'identité publiée"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "candidat-16",
+        "version": 1,
+        "motif": "Fiche d'identité publiée"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "candidat-17",
+        "version": 1,
+        "motif": "Fiche d'identité publiée"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "candidat-18",
+        "version": 1,
+        "motif": "Fiche d'identité publiée"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "candidat-19",
+        "version": 1,
+        "motif": "Fiche d'identité publiée"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "candidat-20",
+        "version": 1,
+        "motif": "Fiche d'identité publiée"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "candidat-21",
+        "version": 1,
+        "motif": "Fiche d'identité publiée"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "candidat-22",
+        "version": 1,
+        "motif": "Fiche d'identité publiée"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "candidat-23",
+        "version": 1,
+        "motif": "Fiche d'identité publiée"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "candidat-24",
+        "version": 1,
+        "motif": "Fiche d'identité publiée"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "candidat-25",
+        "version": 1,
+        "motif": "Fiche d'identité publiée"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "candidat-26",
+        "version": 1,
+        "motif": "Fiche d'identité publiée"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "candidat-27",
+        "version": 1,
+        "motif": "Fiche d'identité publiée"
+      },
+      {
+        "date": "2026-11-18",
+        "objet": "base",
+        "motif": "Création du jeu d'essai"
+      }
+    ]
+  },
+  "presidentielle/meta": {
+    "disponible": true,
+    "message": null,
+    "jeu": "demonstration",
+    "liste": "declares",
+    "phase": "declares",
+    "qualifies": [],
+    "version": "6fcdc3edd786",
+    "sharing": false,
+    "guest": false,
+    "appel_en_cours": false,
+    "assistant": {
+      "modele": "ollama/gemma4:e4b",
+      "modeles_autorises": [
+        "ollama/gemma4:e4b"
+      ],
+      "message": null
+    },
+    "cible": "local",
+    "fiches": 27,
+    "erreurs": []
+  },
+  "presidentielle/quiz": {
+    "disponible": false,
+    "message": "La grille du quiz n'est pas encore publiée.",
+    "jeu": "demonstration",
+    "liste": "declares",
+    "phase": "declares",
+    "qualifies": [],
+    "version": "6fcdc3edd786",
+    "grille_version": null,
+    "axes_statut": null,
+    "barres_visibles": false,
+    "gel": null,
+    "participants": [
+      "candidat-01",
+      "candidat-02",
+      "candidat-03",
+      "candidat-04",
+      "candidat-05",
+      "candidat-06",
+      "candidat-07",
+      "candidat-08",
+      "candidat-09",
+      "candidat-10",
+      "candidat-11",
+      "candidat-12",
+      "candidat-14",
+      "candidat-15",
+      "candidat-16",
+      "candidat-17",
+      "candidat-18",
+      "candidat-19",
+      "candidat-20",
+      "candidat-21",
+      "candidat-22",
+      "candidat-23",
+      "candidat-24",
+      "candidat-25",
+      "candidat-26",
+      "candidat-27"
+    ],
+    "themes": [],
+    "rattachements": []
+  },
+  "presidentielle/evolution/candidat-01": {
+    "candidat": "candidat-01",
+    "nom_affiche": "Adèle Fictilier",
+    "version": 1,
+    "versions": [
+      {
+        "version": 1,
+        "date": "2026-11-20",
+        "motif": "Fiche d'identité publiée",
+        "conservee": true,
+        "copie_en_defaut": false,
+        "comparee_a": null,
+        "changements": null,
+        "statut": "declare",
+        "mesures": 0
+      }
+    ],
+    "programmes": []
+  },
+  "ask_recherche": {
+    "kind": "recherche",
+    "introduction": "Je ne peux pas le confirmer depuis la base.",
+    "theme": null,
+    "ordre": [
+      "candidat-01",
+      "candidat-16",
+      "candidat-18",
+      "candidat-20",
+      "candidat-22",
+      "candidat-03",
+      "candidat-27",
+      "candidat-24",
+      "candidat-25",
+      "candidat-13",
+      "candidat-09",
+      "candidat-21",
+      "candidat-15",
+      "candidat-17",
+      "candidat-26",
+      "candidat-10",
+      "candidat-08",
+      "candidat-06",
+      "candidat-11",
+      "candidat-05",
+      "candidat-14",
+      "candidat-23",
+      "candidat-19",
+      "candidat-04",
+      "candidat-07",
+      "candidat-12",
+      "candidat-02"
+    ],
+    "passages": [],
+    "sans_position": [],
+    "model": null,
+    "moteur": null,
+    "base_version": "6fcdc3edd786"
+  }
+}

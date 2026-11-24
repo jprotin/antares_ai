@@ -1,0 +1,16 @@
+{
+  "kind": "refus",
+  "introduction": "Je ne donne pas de recommandation de vote. Je peux vous montrer ce que chaque candidat propose sur un thème.",
+  "theme": null,
+  "ordre": [
+    "carla-exemplia",
+    "gaston-fictorin",
+    "aline-fictiva",
+    "bruno-demonstra"
+  ],
+  "passages": [],
+  "sans_position": [],
+  "model": null,
+  "moteur": null,
+  "base_version": "f992981426f9"
+}

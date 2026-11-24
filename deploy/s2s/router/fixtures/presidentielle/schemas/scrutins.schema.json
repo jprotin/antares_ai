@@ -1,0 +1,83 @@
+{
+  "$defs": {
+    "ScrutinRetenu": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+          "title": "Id",
+          "type": "string"
+        },
+        "theme": {
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+          "title": "Theme",
+          "type": "string"
+        },
+        "legislature": {
+          "maximum": 99,
+          "minimum": 1,
+          "title": "Legislature",
+          "type": "integer"
+        },
+        "numero": {
+          "minimum": 1,
+          "title": "Numero",
+          "type": "integer"
+        },
+        "date": {
+          "format": "date",
+          "title": "Date",
+          "type": "string"
+        },
+        "titre": {
+          "maxLength": 300,
+          "minLength": 1,
+          "title": "Titre",
+          "type": "string"
+        },
+        "url": {
+          "title": "Url",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "theme",
+        "legislature",
+        "numero",
+        "date",
+        "titre",
+        "url"
+      ],
+      "title": "ScrutinRetenu",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Scrutins de l'Assemblée retenus, par thème, fixés avant de regarder les\ncandidats ; la même liste vaut pour tous les parlementaires (votes importer).",
+  "properties": {
+    "scrutins": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ScrutinRetenu"
+      },
+      "title": "Scrutins",
+      "type": "array"
+    },
+    "gelee_le": {
+      "anyOf": [
+        {
+          "format": "date",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Gelee Le"
+    }
+  },
+  "title": "Scrutins",
+  "type": "object"
+}

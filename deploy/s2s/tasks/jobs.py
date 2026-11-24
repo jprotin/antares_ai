@@ -28,6 +28,7 @@ import learning
 import manual
 import schedule
 import user_sources
+import watch
 import weather
 from settings import Config
 from store import RunRecord, Store
@@ -57,6 +58,9 @@ class Context:
     sleep: Callable[[float], Awaitable[None]] = asyncio.sleep
     # Fichier touché à chaque tour de la boucle (sonde de santé du conteneur)
     heartbeat: Path | None = None
+    # Base de la présidentielle (lecture seule) : surveillance des pages des candidats
+    # (watch.py) ; None : surveillance sans objet
+    presidentielle_dir: Path | None = None
 
 
 @dataclass
@@ -361,6 +365,10 @@ async def serve(ctx: Context, stop: Callable[[], bool] = lambda: False) -> None:
             await run_requested(ctx)
         except Exception:
             logger.exception("Passage manuel en échec")
+        try:
+            await watch.run_due(ctx)
+        except Exception:
+            logger.exception("Surveillance de la présidentielle en échec")
         if ctx.heartbeat:
             ctx.heartbeat.touch()
         now = ctx.now()
@@ -393,7 +401,9 @@ def schedule_report(ctx: Context, count: int = 3) -> str:
     missed = [
         s
         for s in ctx.store.slots_since(now - timedelta(hours=24))
-        if s["status"] in ("missed", "failed") and s["run_id"] is None
+        if s["task"] == schedule.TASK
+        and s["status"] in ("missed", "failed")
+        and s["run_id"] is None
     ]
     lines.append(
         "Créneaux manqués (24 h) : "

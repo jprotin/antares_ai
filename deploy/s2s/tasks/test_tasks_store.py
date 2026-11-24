@@ -6,6 +6,7 @@ from datetime import timedelta
 from typing import Any
 from unittest import mock
 
+import store as store_module
 from store import RunRecord
 from tasks_testing import Env, utc
 
@@ -40,7 +41,7 @@ class Schema(unittest.TestCase):
         self.store.init(NOW + timedelta(days=1))
         conn = sqlite3.connect(self.env.db)
         self.assertEqual(conn.execute("PRAGMA journal_mode").fetchone()[0], "wal")
-        self.assertEqual(conn.execute("PRAGMA user_version").fetchone()[0], 4)
+        self.assertEqual(conn.execute("PRAGMA user_version").fetchone()[0], 5)
         self.assertEqual(
             conn.execute(
                 "SELECT value FROM meta WHERE key = 'schema_items'"
@@ -150,6 +151,93 @@ class Schema(unittest.TestCase):
         self.assertEqual(self.store.count("slots"), 0)
         self.assertEqual(self.store.count("weather"), 0)
         self.assertEqual(self.store.count("seen_urls"), 2)
+
+
+class Migration4(unittest.TestCase):
+    def test_base_de_schema_4_migre_sans_perte(self):
+        env = Env()
+        # Base écrite par le code du schéma 4 : sans la table watched_pages
+        start = store_module.SCHEMA.index("CREATE TABLE IF NOT EXISTS watched_pages")
+        end = store_module.SCHEMA.index("CREATE TABLE IF NOT EXISTS meta")
+        old_schema = store_module.SCHEMA[:start] + store_module.SCHEMA[end:]
+        with (
+            mock.patch.object(store_module, "SCHEMA", old_schema),
+            mock.patch.object(store_module, "SCHEMA_VERSION", 4),
+        ):
+            store = env.store()
+            store.init(NOW)
+            store.record_run(run())
+            store.save_weather("2026-11-16", {"text": "x"}, NOW)
+        conn = sqlite3.connect(env.db)
+        self.assertEqual(conn.execute("PRAGMA user_version").fetchone()[0], 4)
+        tables = {r[0] for r in conn.execute("SELECT name FROM sqlite_master")}
+        self.assertNotIn("watched_pages", tables)
+        conn.close()
+        later = NOW + timedelta(days=1)
+        store = env.store()
+        store.init(later)
+        store.init(later)  # idempotent
+        conn = sqlite3.connect(env.db)
+        self.assertEqual(conn.execute("PRAGMA user_version").fetchone()[0], 5)
+        conn.close()
+        self.assertEqual(store.count("runs"), 1)
+        self.assertEqual(store.count("seen_urls"), 2)
+        self.assertEqual(store.count("ideas"), 1)
+        self.assertEqual(store.weather("2026-11-16")["text"], "x")
+        self.assertEqual(store.first_start(), NOW)
+        self.assertEqual(store.count("watched_pages"), 0)
+        self.assertFalse(
+            store.record_watch("https://ex.com/p", "x", "a" * 64, "", later)
+        )
+        self.assertEqual(store.count("watched_pages"), 1)
+
+
+class WatchedPages(unittest.TestCase):
+    def setUp(self):
+        self.env = Env()
+        self.store = self.env.store()
+        self.store.init(NOW)
+
+    def test_premiere_visite_puis_changement(self):
+        url = "https://ex.com/p"
+        self.assertFalse(self.store.record_watch(url, "c", "a" * 64, "", NOW))
+        later = NOW + timedelta(days=1)
+        self.assertFalse(self.store.record_watch(url, "c", "a" * 64, "", later))
+        self.assertIsNone(self.store.watched_pages()[url]["changed_at"])
+        last = later + timedelta(days=1)
+        self.assertTrue(self.store.record_watch(url, "c", "b" * 64, "", last))
+        page = self.store.watched_pages()[url]
+        self.assertEqual(page["changed_at"], "2026-11-18T12:00:00+00:00")
+        self.assertEqual(page["first_seen"], "2026-11-16T12:00:00+00:00")
+        self.assertEqual((page["sha256"], page["changes"]), ("b" * 64, 1))
+
+    def test_erreur_garde_l_empreinte(self):
+        url = "https://ex.com/p"
+        self.store.record_watch(url, "c", None, "délai dépassé", NOW)
+        page = self.store.watched_pages()[url]
+        self.assertEqual((page["status"], page["sha256"]), ("error", None))
+        self.store.record_watch(url, "c", "a" * 64, "", NOW)
+        later = NOW + timedelta(days=1)
+        self.assertFalse(self.store.record_watch(url, "c", None, "500", later))
+        page = self.store.watched_pages()[url]
+        self.assertEqual((page["status"], page["error"]), ("error", "500"))
+        self.assertEqual(page["sha256"], "a" * 64)
+        self.assertIsNone(page["changed_at"])
+
+    def test_pages_retirees_oubliees(self):
+        for url in ("https://ex.com/a", "https://ex.com/b"):
+            self.store.record_watch(url, "c", "a" * 64, "", NOW)
+        self.assertEqual(self.store.forget_watched(["https://ex.com/a"]), 1)
+        self.assertEqual(list(self.store.watched_pages()), ["https://ex.com/a"])
+
+    def test_creneau_de_surveillance_termine(self):
+        key = "2026-11-16T07:30+01:00/presidentielle-watch"
+        self.store.take_slot(key, "presidentielle-watch", "2026-11-16", NOW, NOW)
+        self.store.finish_slot(key, "done", NOW)
+        slot = self.store.slots_since(NOW - timedelta(hours=1))[0]
+        self.assertEqual((slot["status"], slot["run_id"]), ("done", None))
+        with self.assertRaises(ValueError):
+            self.store.finish_slot(key, "running", NOW)
 
 
 class ReadOnly(unittest.TestCase):

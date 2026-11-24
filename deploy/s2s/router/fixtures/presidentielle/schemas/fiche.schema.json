@@ -135,7 +135,7 @@
           "type": "string"
         },
         "position": {
-          "enum": ["pour", "contre", "abstention"],
+          "enum": ["pour", "contre", "abstention", "non_votant", "sans_vote"],
           "title": "Position",
           "type": "string"
         },

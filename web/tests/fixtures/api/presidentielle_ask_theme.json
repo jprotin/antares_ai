@@ -1,0 +1,60 @@
+{
+  "kind": "theme",
+  "introduction": "Voici les passages relus qui portent sur le thème Écologie et énergie.",
+  "theme": {
+    "id": "ecologie",
+    "libelle": "Écologie et énergie"
+  },
+  "ordre": [
+    "carla-exemplia",
+    "gaston-fictorin",
+    "aline-fictiva",
+    "bruno-demonstra"
+  ],
+  "passages": [
+    {
+      "id": "p27:aline-fictiva:ecolo-nucleaire",
+      "candidat": "aline-fictiva",
+      "nom": "Aline Fictiva",
+      "theme": "ecologie",
+      "citation": "Nous lancerons la construction de six nouveaux réacteurs.",
+      "nature": "candidat",
+      "source": {
+        "id": "aline-programme",
+        "titre": "Programme fictif d'Aline Fictiva",
+        "url": "https://aline-fictiva.exemple.invalid/programme.pdf",
+        "niveau": "candidat",
+        "publie_le": "2026-10-15",
+        "consulte_le": "2026-11-20"
+      },
+      "page": 15
+    },
+    {
+      "id": "p27:bruno-demonstra:ecolo-nucleaire",
+      "candidat": "bruno-demonstra",
+      "nom": "Bruno Démonstra",
+      "theme": "ecologie",
+      "citation": "Nous fermerons progressivement les centrales nucléaires d'ici 2050.",
+      "nature": "candidat",
+      "source": {
+        "id": "bruno-programme",
+        "titre": "Programme fictif de Bruno Démonstra",
+        "url": "https://bruno-demonstra.exemple.invalid/programme.pdf",
+        "niveau": "candidat",
+        "publie_le": "2026-09-30",
+        "consulte_le": "2026-11-20"
+      },
+      "page": 10
+    }
+  ],
+  "sans_position": [
+    {
+      "candidat": "carla-exemplia",
+      "nom": "Carla Exemplia",
+      "texte": "Pas de position connue à ce jour"
+    }
+  ],
+  "model": null,
+  "moteur": null,
+  "base_version": "f992981426f9"
+}

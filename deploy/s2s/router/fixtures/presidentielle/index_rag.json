@@ -1,0 +1,53 @@
+{
+  "_commentaire": "Réponse simulée de POST /query du RAG intégré (jeu fictif) : un passage valide, un passage supprimé de la base, un passage rangé dans la collection d'un autre candidat, des identifiants malformés ou absents.",
+  "hits": [
+    {
+      "score": 0.91,
+      "source": "aline-fictiva/ecolo-nucleaire",
+      "collection": "proj-p27-aline-fictiva",
+      "text": "Ancien texte indexé, jamais affiché",
+      "doc_id": "p27:aline-fictiva:ecolo-nucleaire",
+      "origin": "presidentielle"
+    },
+    {
+      "score": 0.88,
+      "source": "aline-fictiva/ecolo-supprimee",
+      "collection": "proj-p27-aline-fictiva",
+      "text": "Mesure retirée de la fiche publiée",
+      "doc_id": "p27:aline-fictiva:ecolo-supprimee",
+      "origin": "presidentielle"
+    },
+    {
+      "score": 0.85,
+      "source": "bruno-demonstra/ecolo-nucleaire",
+      "collection": "proj-p27-aline-fictiva",
+      "text": "Passage de Bruno rangé sous Aline",
+      "doc_id": "p27:bruno-demonstra:ecolo-nucleaire",
+      "origin": "presidentielle"
+    },
+    {
+      "score": 0.8,
+      "source": "?",
+      "collection": "proj-p27-aline-fictiva",
+      "text": "Identifiant malformé",
+      "doc_id": "p27:../x",
+      "origin": "presidentielle"
+    },
+    {
+      "score": 0.7,
+      "source": "?",
+      "collection": "proj-p27-aline-fictiva",
+      "text": "Sans identifiant",
+      "doc_id": null,
+      "origin": null
+    },
+    {
+      "score": 0.6,
+      "source": "bruno-demonstra/ecolo-nucleaire",
+      "collection": "proj-p27-bruno-demonstra",
+      "text": "Texte de l'index différent de la base",
+      "doc_id": "p27:bruno-demonstra:ecolo-nucleaire",
+      "origin": "presidentielle"
+    }
+  ]
+}

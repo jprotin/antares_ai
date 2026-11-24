@@ -55,7 +55,9 @@
 - /api/presidentielle : base « Présidentielle 2027 » en lecture seule (fiches, thèmes,
                    journal), /meta (partage, appel en cours, modèle de l'assistant,
                    cible, erreurs de fichiers pour le propriétaire) et /quiz (grille,
-                   rattachements, éligibilité) ; cf. presidentielle_api.py.
+                   rattachements, éligibilité) ; extraction pour l'outil de saisie
+                   (POST /api/presidentielle/extraire, accès local seulement) ;
+                   cf. presidentielle_api.py.
 - /healthz       : sonde de santé.
 """
 
@@ -88,6 +90,7 @@ import mcp
 import modes
 import presidentielle_api
 import presidentielle_common
+import presidentielle_index
 import providers
 import rag
 import ragstore
@@ -1906,6 +1909,13 @@ app.include_router(
             model_available=lambda name: model_available(name),
             last_voice_at=lambda: last_voice["at"],
             idle_seconds=lambda: presidentielle_common.delai_appel(TASKS_CONFIG),
+            complete=lambda *args, **kwargs: providers.complete(*args, **kwargs),
+            tasks_db=lambda: VEILLE_DB,
+            index=presidentielle_index.Index(
+                SETTINGS_PATH.with_name("presidentielle-index.json"),
+                lambda: connections.rag(),
+                ragstore.http,
+            ),
         )
     )
 )

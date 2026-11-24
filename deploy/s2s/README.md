@@ -485,7 +485,11 @@ docker compose run --rm antares-tasks veille --dry-run  # essai à blanc : rien 
 docker compose run --rm antares-tasks veille            # une veille maintenant
 docker compose run --rm antares-tasks meteo             # la météo du jour
 docker compose run --rm antares-tasks schedule          # prochains passages, manqués
+docker compose run --rm antares-tasks presidentielle-watch --dry-run  # pages des candidats
 ```
+
+La surveillance des pages des candidats à la présidentielle (`presidentielle_watch` dans
+`tasks.yaml`) est décrite dans `docs/runbooks/presidentielle-votes-et-surveillance.md`.
 
 - **Toujours une sous-commande** avec `run` : sans argument, le conteneur ouvrirait une
   seconde boucle planifiée. Un lancement manuel ne prend pas de créneau : le passage
@@ -603,6 +607,68 @@ docker run --rm --entrypoint python -v "$PWD/tasks:/app:ro" -v "$PWD/router:/rou
 docker run --rm --entrypoint python -v "$PWD/router:/router:ro" -w /router \
   antares/s2s:1.0.0 -m unittest discover -p 'test_*.py'
 ```
+
+## Présidentielle 2027
+
+Page **Présidentielle 2027** du menu : fiches identiques des candidats (ordre tiré au
+sort à chaque visite), assistant qui ne répond que par des citations relues, quiz calculé
+dans le navigateur, page Méthode avec la règle de calcul et le journal. Aucune
+recommandation de vote. Décision : ADR 0016.
+
+- **Dépôt de données** : les vraies fiches vivent dans un dépôt git séparé, désigné par
+  `PRESIDENTIELLE_DATA` dans `.env` et monté en lecture seule dans `llm-router` et
+  `antares-tasks`. Vide : jeu fictif (`router/fixtures/presidentielle/demo/`, quatre
+  candidats inventés). Le dossier doit exister avant `docker compose up` ; son chemin
+  ne doit contenir ni « : » ni « , » (refusé par `presidentielle.sh`).
+- **Outil de saisie** : `./presidentielle.sh <commande>` (`etat`, `source ajouter`,
+  `extraire`, `verifier`, `publier`, `restaurer`, `rattacher`, `index`,
+  `liste-officielle`, `phase entre-tours`, `surveillance`, `scrutins`, `votes`,
+  `textes reconstruire`, `source lecture`). Il écrit dans le dépôt de données
+  seulement, ne lance jamais git et affiche la commande à lancer après relecture.
+- **Citations** : chaque citation est cherchée mot pour mot dans le texte de sa source
+  (`textes/<empreinte>.txt`, jamais retouché par la comparaison ; réécrit seulement
+  par `source lecture`) ; elle peut chevaucher des sauts de page,
+  le saut et les lignes voisines faites d'un numéro de page (« 12 », « - 12 - »,
+  « 12/40 ») ou d'un titre courant (ligne répétée parmi les 3 premières, ou les
+  3 dernières, lignes d'au moins 3 pages ou 30 % des pages, jamais moins de 2,
+  numéros de page confondus) étant ignorés pour la comparaison ;
+  `page` est la page où elle commence.
+  Même règle pour `verifier`, `extraire` et l'onglet « Évolution »
+  (`presidentielle_common.texte_de_controle`). Un PDF dont les colonnes restent mêlées
+  se lit en `lecture: brute` (`pdftotext -raw`) : `source ajouter … --lecture brute`,
+  ou `source lecture <source_id> brute` pour une source inscrite (texte régénéré,
+  journalisé, refusé si une citation publiée ne se retrouverait plus).
+- **Évolution** : chaque publication garde une copie figée de la fiche
+  (`historique/<candidat>/v<N>.yaml`) et chaque document son texte (`textes/<empreinte>.txt`),
+  versionnés dans le dépôt de données ; une nouvelle version d'un programme s'inscrit
+  par `source ajouter … --remplace <ancienne_source_id>`. L'onglet « Évolution » de
+  chaque fiche montre la frise des versions et compare deux versions d'un programme mot
+  pour mot (texte brut, sans résumé ni qualificatif). Les versions jamais capturées ne
+  sont pas récupérables.
+- **Modèle** : `gemma4:e4b` seulement (liste blanche de `base.yaml`), jamais de repli ;
+  pendant un appel vocal, l'assistant et l'extraction attendent.
+- **Thèmes** : les 10 thèmes du quiz, plus `culture` et `solidarites`, thèmes des
+  fiches hors quiz (fiche, assistant, index, évolution ; ni question, ni rapport, ni
+  rattachement ; interdits dans la grille).
+- **Sans grille du quiz** : les mesures publiées restent visibles sous des thèmes
+  déduits ; le quiz affiche « La grille du quiz n'est pas encore publiée. ».
+- **Partage** : nginx limite `/api/presidentielle` à 60 requêtes par minute et par
+  compte du tunnel (aucune limite en local).
+- **Calendrier** : liste officielle en mars 2027, entre-deux-tours vers le 22 avril
+  2027 (page réduite aux deux qualifiés), archive automatique le 3 mai 2027 à 0 h, heure
+  de Paris (base figée, corrections avec `--correction "<motif>"` seulement).
+- **Guides** : `docs/runbooks/presidentielle-exploitation.md` (saisie des fiches, gestes
+  datés, correction, questions pièges) et
+  `docs/runbooks/presidentielle-votes-et-surveillance.md` (scrutins, surveillance).
+
+Tests : ceux du routeur et des tâches ci-dessus (`test_presidentielle_*.py`,
+`test_tasks_presidentielle_watch.py`) ; questions pièges sur la pile en service, hors
+appel : `docker compose exec llm-router python /app/presidentielle_eval.py`.
+
+**Retrait** : retirer `presidentielleFeature` de `web/src/app/features.ts`, l'appel
+`app.include_router(presidentielle_api.construire(…))` de `router/router.py` et les
+montages `/presidentielle` de `compose.yaml`, puis supprimer les collections
+`proj-p27-*` dans Qdrant. Le dépôt de données reste à vous.
 
 ## Vérifications
 

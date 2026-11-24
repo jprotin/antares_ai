@@ -1,6 +1,8 @@
 // Sous-page Méthode : règles de neutralité, niveaux de source, règle de calcul du quiz
-// et ses quatre exemples (ceux de la spec, tels quels), axes des thèmes, journal des
-// modifications (du plus récent au plus ancien), version de la base.
+// et ses quatre exemples (ceux de la spec, tels quels), thèmes des fiches (dont ceux
+// hors quiz), axes des thèmes, journal des
+// modifications (du plus récent au plus ancien), évolution des fiches et des programmes,
+// version de la base.
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -12,7 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { formatDate, NIVEAU_LABEL, PAGE_TITLE } from "./labels";
+import { formatDate, NIVEAU_LABEL, NO_GRID, PAGE_TITLE } from "./labels";
 import { LoadState } from "./LoadState";
 import { BaseVersion, Notices } from "./Notices";
 import { Section } from "./Section";
@@ -28,6 +30,7 @@ const RULES = [
   "« Pas de position connue » n'est pas « contre » : un silence ne compte jamais.",
   "Méthode publique : la règle de calcul est affichée ici, avec des exemples chiffrés.",
   "Aucune recommandation de vote, ni dans les écrans ni dans les réponses.",
+  "Entre les deux tours, seuls les deux candidats qualifiés sont présentés ; une question du quiz compte dès que l'un des deux y a une position. Après le second tour, la base est figée : plus rien n'est publié, sauf une correction inscrite au journal.",
 ];
 
 const LEVELS = [
@@ -53,6 +56,7 @@ const CALCULATION = [
   "Seuil : un pourcentage n'est affiché que s'il repose sur au moins 10 questions (la moitié de la grille). En dessous : « données insuffisantes (n questions) ».",
   "Poids : 10 thèmes, 2 questions chacun, donc tous les thèmes pèsent autant.",
   "Les votes réels n'entrent pas dans le calcul, sinon les candidats sans mandat seraient désavantagés.",
+  "Barres à deux pôles, par thème : chaque option est placée vers un pôle de l'axe ou « mixte ». La partie colorée de la barre est la part de vos réponses vers le premier pôle de l'axe (affiché à gauche), une réponse « mixte » comptant pour moitié de chaque côté ; « sans avis » et « aucune de ces propositions » ne comptent dans aucun pôle. Les barres à deux pôles n'entrent pas dans le calcul de la proximité.",
 ];
 
 const EXAMPLES = [
@@ -76,6 +80,15 @@ const EXAMPLES = [
   },
 ];
 
+const EVOLUTION = [
+  "Chaque version publiée d'une fiche est gardée telle quelle. L'onglet « Évolution » de chaque fiche liste les versions, de la plus récente à la plus ancienne : date, motif inscrit au journal, mesures ajoutées, retirées ou reformulées (avec leur citation et leur source), nouvelles sources et changement de statut.",
+  "Quand un candidat publie une nouvelle version de son programme, elle est inscrite comme remplaçant la précédente. Chaque version garde sa date de publication, sa date de consultation et son empreinte.",
+  "Deux versions d'un même programme se comparent mot pour mot, paragraphe par paragraphe (ajouté, retiré, modifié), avec la page de chaque côté. Pour chaque citation de la fiche sont indiquées la première version qui la contient et, s'il y a lieu, la première qui ne la contient plus (recherche mot pour mot, apostrophes, guillemets et espaces unifiés).",
+  "Seul le texte des fiches et des documents est affiché : ni résumé, ni appréciation du changement.",
+  "Une mesure retirée parce qu'elle avait été saisie par erreur (citation inexacte, attribuée à tort ou sortie de son contexte) n'est plus montrée dans aucune version : seule la date du retrait est indiquée, sans citation ni source.",
+  "Limite : les versions publiées avant la première copie conservée ne sont pas récupérables.",
+];
+
 const OBJET_LABEL: Record<string, string> = {
   fiche: "Fiche",
   rattachement: "Rattachements du quiz",
@@ -84,8 +97,43 @@ const OBJET_LABEL: Record<string, string> = {
   base: "Base",
 };
 
+const THEMES_NOTE =
+  "Les mesures de chaque fiche sont classées par thème, dans le même ordre pour tous. Les thèmes du quiz ont chacun deux questions et un axe. Les thèmes marqués « hors quiz » ci-dessous figurent sur les fiches, dans l'assistant et dans l'évolution, mais pas dans le quiz : aucune question, aucun axe, aucune place dans le rapport, pour que les dix thèmes du quiz gardent le même poids.";
+
+function Themes({ base }: { base: BasePubliee }) {
+  return (
+    <Section data-methode="themes" title="Thèmes des fiches">
+      <p className="presidentielle-note">{THEMES_NOTE}</p>
+      {base.themes.length > 0 && (
+        <ul className="presidentielle-liste list-disc">
+          {base.themes.map((theme) => (
+            <li
+              key={theme.id}
+              data-theme-methode={theme.id}
+              data-hors-quiz={theme.hors_quiz ? "" : undefined}
+            >
+              {theme.libelle}
+              {theme.hors_quiz && (
+                <>
+                  {" "}
+                  <Badge variant="outline">hors quiz</Badge>
+                </>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+    </Section>
+  );
+}
+
 function Axes({ base }: { base: BasePubliee }) {
   const frozen = base.axes_statut === "gelee";
+  // Thèmes déduits des mesures (grille absente) et thèmes hors quiz : sans axe, non
+  // listés ici
+  const axes = base.themes.flatMap((theme) =>
+    theme.axe ? [{ theme, axe: theme.axe }] : [],
+  );
   return (
     <Section data-methode="axes" title="Axes des thèmes">
       <p className="presidentielle-note">
@@ -99,14 +147,22 @@ function Axes({ base }: { base: BasePubliee }) {
           </>
         )}
       </p>
-      <ul className="grid gap-2">
-        {base.themes.map((theme) => (
-          <li key={theme.id} data-axe={theme.id}>
-            <strong>{theme.libelle}</strong> : {theme.axe.pole_a} /{" "}
-            {theme.axe.pole_b}
-          </li>
-        ))}
-      </ul>
+      {axes.length ? (
+        <ul className="grid gap-2">
+          {axes.map(({ theme, axe }) => (
+            <li key={theme.id} data-axe={theme.id}>
+              <strong>{theme.libelle}</strong> : {axe.pole_a} / {axe.pole_b}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p
+          className="presidentielle-manque"
+          data-testid="presidentielle-sans-axes"
+        >
+          {NO_GRID}
+        </p>
+      )}
     </Section>
   );
 }
@@ -197,6 +253,17 @@ export function MethodPage() {
             </TableBody>
           </Table>
         </Section>
+        <Section
+          data-methode="evolution"
+          title="Évolution des fiches et des programmes"
+        >
+          <ul className="presidentielle-liste list-disc">
+            {EVOLUTION.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        </Section>
+        {base && <Themes base={base} />}
         {base && <Axes base={base} />}
         {base && <Journal base={base} />}
         {base && <BaseVersion version={base.version} />}

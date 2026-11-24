@@ -1,5 +1,6 @@
 ---
-# Documents inventés : adresses en exemple.invalid, empreintes SHA-256 fictives
+# Documents inventés : adresses en exemple.invalid, empreintes SHA-256 fictives ;
+# textes de carla-programme et de sa version révisée dans textes/ (vue « Évolution »)
 sources:
   - id: etat-declarations
     titre: Liste fictive des déclarations de candidature
@@ -46,6 +47,15 @@ sources:
     consulte_le: 2026-11-20
     sha256: 01e82940cf8199b8b6773fa54c9108647799d544224a216aab360ad37ca43503
     candidat: carla-exemplia
+  - id: carla-programme-2
+    titre: Programme fictif de Carla Exemplia, version révisée
+    url: https://carla-exemplia.exemple.invalid/programme-v2.pdf
+    niveau: candidat
+    publie_le: 2026-11-19
+    consulte_le: 2026-11-20
+    sha256: 8a9a905f4b017e541c48c0bacc81192079f239bc59b81444cd5f1d50660905fb
+    candidat: carla-exemplia
+    remplace: carla-programme
   - id: gaston-programme
     titre: Programme fictif de Gaston Fictorin
     url: https://gaston-fictorin.exemple.invalid/programme.pdf

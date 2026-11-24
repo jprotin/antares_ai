@@ -65,4 +65,65 @@
     font-style: italic;
     overflow-wrap: anywhere;
   }
+
+  /* Vue « Évolution » : frise des versions (trait vertical neutre) et comparaison mot
+     pour mot. Ajouts soulignés, retraits barrés : jamais la couleur seule, et aucune
+     couleur qui jugerait le changement. */
+  .presidentielle-frise {
+    border-left: 2px solid var(--border);
+    padding-left: 1rem;
+  }
+
+  .presidentielle-diff ins {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+    background: var(--muted);
+  }
+
+  .presidentielle-diff del {
+    text-decoration: line-through;
+    color: var(--muted-foreground);
+  }
+
+  .presidentielle-diff p {
+    overflow-wrap: anywhere;
+  }
+
+  /* Barre à deux pôles du quiz : pôle A, barre, pôle B ; sur petit écran, les deux
+     libellés au-dessus de la barre */
+  .presidentielle-axe {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(6rem, 2fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .presidentielle-axe__pole {
+    font-size: 0.8rem;
+    color: var(--muted-foreground);
+  }
+
+  .presidentielle-axe__pole:first-child {
+    text-align: right;
+  }
+
+  @media (max-width: 639px) {
+    .presidentielle-axe {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .presidentielle-axe > :not(.presidentielle-axe__pole) {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
+
+    .presidentielle-axe__pole:last-child {
+      text-align: right;
+    }
+
+    .presidentielle-axe__pole:first-child {
+      text-align: left;
+    }
+  }
 }

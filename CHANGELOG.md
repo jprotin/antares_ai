@@ -6,6 +6,20 @@ Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/).
 
 ### Ajouté
 
+- Présidentielle 2027 (ADR 0016) : page à quatre sous-pages (Candidats, Assistant, Quiz,
+  Méthode) ; fiches relues et publiées dans un dépôt de données séparé
+  (`PRESIDENTIELLE_DATA`, jeu fictif par défaut) par l'outil `presidentielle.sh` ;
+  assistant qui ne montre que des citations relues, sur `gemma4:e4b` seulement, en
+  attente pendant un appel vocal ; quiz et rapport calculés dans le navigateur ; votes
+  réels à l'Assemblée et surveillance quotidienne des sites des candidats ;
+  entre-deux-tours réduit aux deux qualifiés et archive automatique le 3 mai 2027
+  (corrections journalisées seulement) ; onglet « Évolution » de chaque fiche (versions
+  figées dans `historique/`, lignée des programmes par `source ajouter --remplace`,
+  comparaison mot pour mot des textes versionnés dans `textes/`) ; mesures visibles
+  avant la publication de la grille du quiz (thèmes déduits des mesures) ; thèmes des
+  fiches hors quiz « Culture, sport et vie associative » et « Famille et solidarités »
+  (fiche, assistant, évolution ; jamais dans le quiz) ; débit limité
+  par compte du partage. Guide : `docs/runbooks/presidentielle-exploitation.md`.
 - Ossature à menu et pages (ADR 0015) : menu accordéon à gauche (shadcn Sidebar,
   repliable, tiroir sur mobile) avec Accueil, Conversation, Répétition, Actualités et
   Réglages en pied ; une adresse par page (`#/reglages/agents`) ; tableau de bord

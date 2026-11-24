@@ -27,6 +27,13 @@ map "$origin_local$origin_share" $origin_allowed {
     "00"    0;
 }
 
+# Présidentielle 2027 : débit par compte du partage (x-antares-user, écrit par ngrok
+# après la connexion Google). En local, l'en-tête est absent : clé vide, aucune limite.
+# 60 requêtes par minute et par compte, rafale de 30 (une visite lit base, méta, quiz,
+# évolution) ; au-delà, 429. Le routeur borne aussi les questions des invités (10 par
+# minute, presidentielle_api.QUOTA_INVITE).
+limit_req_zone $http_x_antares_user zone=presidentielle_partage:1m rate=60r/m;
+
 # Serveur par défaut : tout Host autre que 127.0.0.1 ou localhost (DNS rebinding : un nom
 # piégé qui pointe vers 127.0.0.1) reçoit une connexion fermée sans réponse. Le partage
 # ngrok (share.sh, --host-header=rewrite) arrive sous le nom local.
@@ -151,6 +158,50 @@ server {
         client_max_body_size 1k;
     }
 
+    # Assistant de la présidentielle : question de 500 caractères au plus envoyée en POST
+    # (absente du journal d'accès), corps de 4 Ko au plus ; choix des passages par le
+    # modèle local, plus son chargement éventuel. Pas d'add_header : les en-têtes de
+    # sécurité du server s'appliquent.
+    # Délai : pire cas du routeur (presidentielle_api, presidentielle_index,
+    # presidentielle_assistant) = recherche par le sens 20 s (DELAI_SENS) + attente du
+    # tour de génération 20 s (ATTENTE_VERROU) + modèle 150 s (DELAI_MODELE, chargement
+    # compris) + liste des modèles, soit un peu plus de 190 s : 240 s, pour que la
+    # réponse du routeur (504 « trop de temps » compris) arrive toujours au navigateur.
+    location = /api/presidentielle/ask {
+        # Origine étrangère (cf. map $origin_allowed) : refusée
+        if ($origin_allowed = 0) {
+            return 403;
+        }
+        limit_req zone=presidentielle_partage burst=10 nodelay;
+        limit_req_status 429;
+        proxy_pass $router_upstream;
+        proxy_set_header Host $host;
+        proxy_read_timeout 240s;
+        client_max_body_size 4k;
+    }
+
+    # Lectures de la présidentielle (base, méta, quiz, évolution) et routes du
+    # propriétaire : comme /api/, plus le débit par compte du partage
+    location /api/presidentielle {
+        if ($origin_allowed = 0) {
+            return 403;
+        }
+        limit_req zone=presidentielle_partage burst=30 nodelay;
+        limit_req_status 429;
+        proxy_pass $router_upstream;
+        proxy_set_header Host $host;
+        proxy_read_timeout 60s;
+        client_max_body_size 64k;
+        # Base publique (plusieurs Mo de fiches) : compressée pour les invités du partage.
+        # Données publiques, sans secret ni écho de la requête : pas de risque BREACH.
+        gzip on;
+        gzip_proxied any;
+        gzip_types application/json;
+        gzip_min_length 1024;
+        gzip_comp_level 5;
+        gzip_vary on;
+    }
+
     # Réglages (modèle, voix, agent, mode…) et agents : routeur LLM
     location /api/ {
         # Défense en profondeur (le routeur contrôle aussi les écritures, write_guard.py)
@@ -188,5 +239,10 @@ server {
 
     location / {
         try_files $uri $uri/ =404;
+        # Fichiers statiques de l'interface (scripts, styles) : compressés pour le partage
+        gzip on;
+        gzip_types text/css application/javascript image/svg+xml application/json;
+        gzip_min_length 1024;
+        gzip_vary on;
     }
 }

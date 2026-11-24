@@ -193,6 +193,13 @@ def build(path: Path) -> None:
         "INSERT INTO slots VALUES ('2026-11-16T18:00+01:00/veille', 'veille', '2026-11-16', "
         "'2026-11-16T17:00:00+00:00', 'missed', NULL, '2026-11-16T17:30:00+00:00')"
     )
+    # Surveillance de la présidentielle (même table) : ni créneau de veille manqué, ni
+    # jour de veille
+    conn.execute(
+        "INSERT INTO slots VALUES ('2026-11-17T07:30+01:00/presidentielle-watch', "
+        "'presidentielle-watch', '2026-11-17', '2026-11-17T06:30:00+00:00', 'failed', "
+        "NULL, '2026-11-17T06:31:00+00:00')"
+    )
     conn.commit()
     conn.close()
 
