@@ -224,7 +224,7 @@ def _missed(rows: list[sqlite3.Row]) -> list[dict]:
 
 MISSED_SQL = (
     "SELECT slot_at, status FROM slots WHERE status IN ('missed', 'failed') "
-    "AND run_id IS NULL AND {where} ORDER BY slot_at"
+    "AND task = 'veille' AND run_id IS NULL AND {where} ORDER BY slot_at"
 )
 
 
@@ -297,7 +297,8 @@ def _latest(conn: sqlite3.Connection, now: datetime) -> dict:
     )
     missed = conn.execute(MISSED_SQL.format(where="slot_at >= ?"), (since,)).fetchall()
     days = conn.execute(
-        "SELECT day FROM runs UNION SELECT day FROM slots ORDER BY day DESC LIMIT ?",
+        "SELECT day FROM runs UNION SELECT day FROM slots WHERE task = 'veille' "
+        "ORDER BY day DESC LIMIT ?",
         (MAX_DAYS,),
     ).fetchall()
     return {

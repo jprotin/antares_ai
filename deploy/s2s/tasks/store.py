@@ -8,6 +8,10 @@ lit en lecture seule (veille.py).
   créneau sont écrits en une seule transaction.
 - Essai à blanc : connexion en lecture seule ; base absente = rien vu, aucune idée passée.
 - Heures enregistrées en ISO 8601 UTC avec décalage ; `day` = jour local (AAAA-MM-JJ).
+- Schéma 5 : pages des candidats suivies par la surveillance de la présidentielle
+  (`watched_pages`, cf. watch.py) : dernière empreinte, dernière visite, dernier
+  changement ; table créée au démarrage dans une base de schéma 4, données gardées. Le
+  routeur la lit en lecture seule (GET /api/presidentielle/nouveautes).
 - Schéma 4 : résumé chiffré de chaque jour (`daily_stats` : articles mis à la une et
   lus, par catégorie et par source), gardé `DAILY_STATS_DAYS` jours pour les
   statistiques de l'interface ; recalculé après chaque passage, rempli au démarrage pour
@@ -27,7 +31,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-SCHEMA_VERSION = 4
+SCHEMA_VERSION = 5
 # Forme des articles et idées écrits par ce code (cf. router/veille.py)
 SCHEMA_ITEMS = 2
 SLOT_STATUSES = ("running", "done", "missed", "failed")
@@ -88,6 +92,17 @@ CREATE TABLE IF NOT EXISTS daily_stats (
     featured_json TEXT NOT NULL,
     collected_json TEXT NOT NULL,
     updated_at TEXT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS watched_pages (
+    url TEXT PRIMARY KEY,
+    candidat TEXT NOT NULL,
+    sha256 TEXT,
+    first_seen TEXT,
+    checked_at TEXT NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('ok', 'error')),
+    error TEXT NOT NULL DEFAULT '',
+    changed_at TEXT,
+    changes INTEGER NOT NULL DEFAULT 0
 );
 CREATE TABLE IF NOT EXISTS meta (
     key TEXT PRIMARY KEY,
@@ -346,6 +361,7 @@ class Store:
             "meta",
             "manual_runs",
             "daily_stats",
+            "watched_pages",
         ):
             raise ValueError(table)
         rows = self._read(f"SELECT COUNT(*) AS n FROM {table}")
@@ -375,6 +391,11 @@ class Store:
             (request_id,),
         )
         return dict(rows[0]) if rows else None
+
+    def watched_pages(self) -> dict[str, dict]:
+        """Pages suivies par la surveillance de la présidentielle, par adresse."""
+        rows = self._read("SELECT * FROM watched_pages ORDER BY url")
+        return {r["url"]: dict(r) for r in rows}
 
     # --- Écriture ---------------------------------------------------------------------
 
@@ -431,6 +452,97 @@ class Store:
                     (slot_key, task, day, iso(slot_at), iso(now)),
                 )
             return cursor.rowcount == 1
+        finally:
+            conn.close()
+
+    def finish_slot(self, slot_key: str, status: str, now: datetime) -> None:
+        """État final d'un créneau pris sans passage de veille (surveillance)."""
+        if status not in ("done", "failed"):
+            raise ValueError(f"statut de créneau inconnu : {status}")
+        conn = self._write()
+        try:
+            with conn:
+                conn.execute(
+                    "UPDATE slots SET status = ?, updated_at = ? WHERE slot_key = ?",
+                    (status, iso(now), slot_key),
+                )
+        finally:
+            conn.close()
+
+    def record_watch(
+        self,
+        url: str,
+        candidat: str,
+        sha256: str | None,
+        error: str,
+        now: datetime,
+    ) -> bool:
+        """Visite d'une page suivie ; True si son empreinte a changé depuis la dernière
+        visite réussie. Première visite réussie : empreinte notée, aucun changement.
+        Échec (`sha256` None) : erreur notée, empreinte gardée, aucun changement."""
+        conn = self._write()
+        try:
+            with conn:
+                row = conn.execute(
+                    "SELECT sha256 FROM watched_pages WHERE url = ?", (url,)
+                ).fetchone()
+                if row is None:
+                    conn.execute(
+                        "INSERT INTO watched_pages (url, candidat, sha256, first_seen, "
+                        "checked_at, status, error) VALUES (?, ?, ?, ?, ?, ?, ?)",
+                        (
+                            url,
+                            candidat,
+                            sha256,
+                            iso(now) if sha256 else None,
+                            iso(now),
+                            "ok" if sha256 else "error",
+                            "" if sha256 else error,
+                        ),
+                    )
+                    return False
+                if sha256 is None:
+                    conn.execute(
+                        "UPDATE watched_pages SET candidat = ?, checked_at = ?, "
+                        "status = 'error', error = ? WHERE url = ?",
+                        (candidat, iso(now), error, url),
+                    )
+                    return False
+                known = row["sha256"]
+                changed = known is not None and known != sha256
+                conn.execute(
+                    "UPDATE watched_pages SET candidat = ?, sha256 = ?, "
+                    "first_seen = COALESCE(first_seen, ?), checked_at = ?, "
+                    "status = 'ok', error = '', "
+                    "changed_at = CASE WHEN ? THEN ? ELSE changed_at END, "
+                    "changes = changes + ? WHERE url = ?",
+                    (
+                        candidat,
+                        sha256,
+                        iso(now),
+                        iso(now),
+                        changed,
+                        iso(now),
+                        int(changed),
+                        url,
+                    ),
+                )
+                return changed
+        finally:
+            conn.close()
+
+    def forget_watched(self, keep: Iterable[str]) -> int:
+        """Retire les pages qui ne sont plus suivies ; nombre de lignes retirées."""
+        keep = set(keep)
+        conn = self._write()
+        try:
+            with conn:
+                urls = [r["url"] for r in conn.execute("SELECT url FROM watched_pages")]
+                gone = [url for url in urls if url not in keep]
+                conn.executemany(
+                    "DELETE FROM watched_pages WHERE url = ?", [(u,) for u in gone]
+                )
+            return len(gone)
         finally:
             conn.close()
 

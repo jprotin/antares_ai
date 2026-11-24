@@ -17,6 +17,8 @@ import documents
 import rag
 
 PROJECT_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,63}$")
+# Projets réservés à l'index de la présidentielle (presidentielle_index.py)
+RESERVED_PREFIX = "p27-"
 # Limite du service rag (MAX_TEXT_CHARS de rag/server.py)
 MAX_TEXT_CHARS = 200_000
 SCROLL_PAGE = 256
@@ -56,6 +58,8 @@ def _config() -> connections.Rag:
 def _collection(project: str) -> str:
     if not PROJECT_RE.match(project):
         raise StoreError(f"nom de projet invalide : {project}")
+    if project.startswith(RESERVED_PREFIX):
+        raise StoreError(f"projet réservé à la présidentielle : {project}")
     return f"{rag.PREFIX}{project}"
 
 

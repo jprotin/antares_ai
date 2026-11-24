@@ -1,0 +1,40 @@
+---
+# Personne inventée (jeu de démonstration) ; aucun texte sur l'écologie (thème vide)
+id: carla-exemplia
+nom_affiche: Carla Exemplia
+initiales: CE
+fictif: true
+statut: declare
+statut_source: etat-declarations
+declaration:
+  date: 2026-11-03
+  source_id: etat-declarations
+description:
+  texte: Candidate inventée pour la démonstration, maire fictive d'une ville moyenne.
+  nature: redaction
+lignes_phares:
+  - texte: Des centres de santé dans chaque canton
+    source_id: carla-programme
+mesures:
+  - id: eco-bareme
+    theme: economie
+    citation: « Le barème de l’impôt sur le revenu ne sera pas modifié pendant le quinquennat. »
+    source_id: carla-programme
+    page: 2
+    ajoutee_le: 2026-11-19
+  - id: sante-centres
+    theme: sante
+    citation: Chaque canton aura son centre de santé public
+    source_id: carla-programme
+    page: 7
+    ajoutee_le: 2026-11-19
+  - id: immigration-titres
+    theme: immigration
+    citation: Les demandes de titre de séjour seront traitées en trois mois au plus.
+    source_id: carla-programme
+    page: 11
+    ajoutee_le: 2026-11-19
+parlementaire: false
+version: 1
+mise_a_jour: 2026-11-19
+relue_le: 2026-11-19

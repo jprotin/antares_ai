@@ -1,0 +1,129 @@
+{
+  "scrutin": {
+    "@xmlns": "http://schemas.assemblee-nationale.fr/referentiel",
+    "@xmlns:xsi": "http://www.w3.org/2001/XMLSchema-instance",
+    "uid": "VTANR5L17V9001",
+    "numero": "9001",
+    "organeRef": "PO900000",
+    "legislature": "17",
+    "sessionRef": "SCR900000",
+    "seanceRef": "RUANR5L17S2025IDS90001",
+    "dateScrutin": "2025-03-12",
+    "quantiemeJourSeance": "1",
+    "typeVote": {
+      "codeTypeVote": "SPO",
+      "libelleTypeVote": "scrutin public ordinaire",
+      "typeMajorite": "majorité absolue des suffrages exprimés"
+    },
+    "sort": {
+      "code": "adopté",
+      "libelle": "l'Assemblée nationale a adopté"
+    },
+    "titre": "l'ensemble d'un projet de loi fictif (données de test inventées)",
+    "demandeur": {
+      "texte": "Président du groupe fictif"
+    },
+    "objet": {
+      "libelle": "l'ensemble d'un projet de loi fictif",
+      "dossierLegislatif": null,
+      "referenceLegislative": null
+    },
+    "modePublicationDesVotes": "DecompteNominatif",
+    "syntheseVote": {
+      "nombreVotants": "4",
+      "suffragesExprimes": "3",
+      "nbrSuffragesRequis": "2",
+      "annonce": "L'Assemblée nationale a adopté.",
+      "decompte": {
+        "nonVotants": "1",
+        "pour": "2",
+        "contre": "1",
+        "abstentions": "1",
+        "nonVotantsVolontaires": "0"
+      }
+    },
+    "ventilationVotes": {
+      "organe": {
+        "organeRef": "PO900000",
+        "groupes": {
+          "groupe": [
+            {
+              "organeRef": "PO900001",
+              "nombreMembresGroupe": "3",
+              "vote": {
+                "positionMajoritaire": "pour",
+                "decompteVoix": {
+                  "nonVotants": "0",
+                  "pour": "2",
+                  "contre": "0",
+                  "abstentions": "1",
+                  "nonVotantsVolontaires": "0"
+                },
+                "decompteNominatif": {
+                  "nonVotants": null,
+                  "pours": {
+                    "votant": [
+                      {
+                        "acteurRef": "PA900001",
+                        "mandatRef": "PM900001",
+                        "parDelegation": "false"
+                      },
+                      {
+                        "acteurRef": "PA900002",
+                        "mandatRef": "PM900002",
+                        "parDelegation": "true"
+                      }
+                    ]
+                  },
+                  "contres": null,
+                  "abstentions": {
+                    "votant": {
+                      "acteurRef": "PA900003",
+                      "mandatRef": "PM900003",
+                      "parDelegation": "false"
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "organeRef": "PO900002",
+              "nombreMembresGroupe": "2",
+              "vote": {
+                "positionMajoritaire": "contre",
+                "decompteVoix": {
+                  "nonVotants": "1",
+                  "pour": "0",
+                  "contre": "1",
+                  "abstentions": "0",
+                  "nonVotantsVolontaires": "0"
+                },
+                "decompteNominatif": {
+                  "nonVotants": {
+                    "votant": {
+                      "acteurRef": "PA900005",
+                      "mandatRef": "PM900005",
+                      "causePositionVote": "PAN"
+                    }
+                  },
+                  "pours": null,
+                  "contres": {
+                    "votant": {
+                      "acteurRef": "PA900004",
+                      "mandatRef": "PM900004",
+                      "parDelegation": "false"
+                    }
+                  },
+                  "abstentions": null,
+                  "nonVotantsVolontaires": null
+                }
+              }
+            }
+          ]
+        }
+      }
+    },
+    "miseAuPoint": null,
+    "lieuVote": "Hémicycle"
+  }
+}

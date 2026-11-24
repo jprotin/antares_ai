@@ -1,0 +1,1657 @@
+{
+  "presidentielle": {
+    "disponible": true,
+    "message": null,
+    "jeu": "demonstration",
+    "liste": "declares",
+    "phase": "archive",
+    "qualifies": [
+      "aline-fictiva",
+      "bruno-demonstra"
+    ],
+    "version": "436479713285",
+    "tours": {
+      "premier": "2027-04-18",
+      "second": "2027-05-02"
+    },
+    "archive_apres": "2027-05-02",
+    "axes_statut": "gelee",
+    "themes": [
+      {
+        "id": "economie",
+        "libelle": "Économie et fiscalité",
+        "axe": {
+          "pole_a": "plus de redistribution par l'impôt",
+          "pole_b": "moins d'impôts et de dépense publique"
+        },
+        "hors_quiz": false
+      },
+      {
+        "id": "travail",
+        "libelle": "Travail et retraites",
+        "axe": {
+          "pole_a": "plus de protection collective",
+          "pole_b": "plus de liberté de négocier"
+        },
+        "hors_quiz": false
+      },
+      {
+        "id": "sante",
+        "libelle": "Santé",
+        "axe": {
+          "pole_a": "plus d'organisation publique",
+          "pole_b": "plus d'incitations et de libre choix"
+        },
+        "hors_quiz": false
+      },
+      {
+        "id": "education",
+        "libelle": "Éducation",
+        "axe": {
+          "pole_a": "plus de cadre national",
+          "pole_b": "plus d'autonomie des établissements"
+        },
+        "hors_quiz": false
+      },
+      {
+        "id": "ecologie",
+        "libelle": "Écologie et énergie",
+        "axe": {
+          "pole_a": "priorité à la sobriété",
+          "pole_b": "priorité à la production d'énergie"
+        },
+        "hors_quiz": false
+      },
+      {
+        "id": "immigration",
+        "libelle": "Immigration",
+        "axe": {
+          "pole_a": "plus d'accueil",
+          "pole_b": "plus de contrôle"
+        },
+        "hors_quiz": false
+      },
+      {
+        "id": "securite",
+        "libelle": "Sécurité et justice",
+        "axe": {
+          "pole_a": "plus de prévention",
+          "pole_b": "plus de sanction"
+        },
+        "hors_quiz": false
+      },
+      {
+        "id": "logement",
+        "libelle": "Logement",
+        "axe": {
+          "pole_a": "plus de logement public",
+          "pole_b": "plus d'initiative privée"
+        },
+        "hors_quiz": false
+      },
+      {
+        "id": "institutions",
+        "libelle": "Institutions et démocratie",
+        "axe": {
+          "pole_a": "plus de démocratie directe",
+          "pole_b": "plus de démocratie représentative"
+        },
+        "hors_quiz": false
+      },
+      {
+        "id": "europe",
+        "libelle": "Europe et international",
+        "axe": {
+          "pole_a": "plus d'intégration européenne",
+          "pole_b": "plus de souveraineté nationale"
+        },
+        "hors_quiz": false
+      },
+      {
+        "id": "culture",
+        "libelle": "Culture, sport et vie associative",
+        "axe": null,
+        "hors_quiz": true
+      },
+      {
+        "id": "solidarites",
+        "libelle": "Famille et solidarités",
+        "axe": null,
+        "hors_quiz": true
+      }
+    ],
+    "candidats": [
+      {
+        "id": "aline-fictiva",
+        "nom_affiche": "Aline Fictiva",
+        "initiales": "AF",
+        "alias": [
+          "A. Fictiva"
+        ],
+        "fictif": true,
+        "statut": "declare",
+        "statut_source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-10-12",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Candidate inventée pour la démonstration, députée fictive depuis 2022. Ses positions servent à montrer la fiche.",
+          "nature": "redaction"
+        },
+        "lignes_phares": [
+          {
+            "texte": "Un médecin traitant pour chaque habitant",
+            "nature": "candidat",
+            "source": {
+              "id": "aline-site",
+              "titre": "Site fictif d'Aline Fictiva, page des priorités",
+              "url": "https://aline-fictiva.exemple.invalid/priorites",
+              "niveau": "candidat",
+              "publie_le": null,
+              "consulte_le": "2026-11-20"
+            }
+          },
+          {
+            "texte": "Une fiscalité plus progressive",
+            "nature": "candidat",
+            "source": {
+              "id": "aline-site",
+              "titre": "Site fictif d'Aline Fictiva, page des priorités",
+              "url": "https://aline-fictiva.exemple.invalid/priorites",
+              "niveau": "candidat",
+              "publie_le": null,
+              "consulte_le": "2026-11-20"
+            }
+          },
+          {
+            "texte": "Des classes de vingt élèves en primaire",
+            "nature": "candidat",
+            "source": {
+              "id": "aline-site",
+              "titre": "Site fictif d'Aline Fictiva, page des priorités",
+              "url": "https://aline-fictiva.exemple.invalid/priorites",
+              "niveau": "candidat",
+              "publie_le": null,
+              "consulte_le": "2026-11-20"
+            }
+          }
+        ],
+        "mesures": [
+          {
+            "id": "eco-impot",
+            "theme": "economie",
+            "citation": "Nous créerons deux tranches d'impôt supplémentaires pour les revenus les plus élevés.",
+            "nature": "candidat",
+            "resume": "Deux tranches d'impôt de plus pour les hauts revenus.",
+            "source": {
+              "id": "aline-programme",
+              "titre": "Programme fictif d'Aline Fictiva",
+              "url": "https://aline-fictiva.exemple.invalid/programme.pdf",
+              "niveau": "candidat",
+              "publie_le": "2026-10-15",
+              "consulte_le": "2026-11-20"
+            },
+            "page": 4,
+            "ajoutee_le": "2027-04-20",
+            "entre_tours": true
+          },
+          {
+            "id": "eco-dette",
+            "theme": "economie",
+            "citation": "Le déficit sera réduit par une hausse ciblée de certains impôts, et non par des coupes dans les services publics.",
+            "nature": "candidat",
+            "resume": null,
+            "source": {
+              "id": "aline-programme",
+              "titre": "Programme fictif d'Aline Fictiva",
+              "url": "https://aline-fictiva.exemple.invalid/programme.pdf",
+              "niveau": "candidat",
+              "publie_le": "2026-10-15",
+              "consulte_le": "2026-11-20"
+            },
+            "page": 5,
+            "ajoutee_le": "2026-11-20",
+            "entre_tours": false
+          },
+          {
+            "id": "sante-installation",
+            "theme": "sante",
+            "citation": "Les jeunes médecins exerceront leurs trois premières années dans un territoire qui en manque.",
+            "nature": "candidat",
+            "resume": null,
+            "source": {
+              "id": "aline-programme",
+              "titre": "Programme fictif d'Aline Fictiva",
+              "url": "https://aline-fictiva.exemple.invalid/programme.pdf",
+              "niveau": "candidat",
+              "publie_le": "2026-10-15",
+              "consulte_le": "2026-11-20"
+            },
+            "page": 9,
+            "ajoutee_le": "2026-11-20",
+            "entre_tours": false
+          },
+          {
+            "id": "educ-classes",
+            "theme": "education",
+            "citation": "Aucune classe de primaire ne dépassera vingt élèves.",
+            "nature": "candidat",
+            "resume": null,
+            "source": {
+              "id": "aline-programme",
+              "titre": "Programme fictif d'Aline Fictiva",
+              "url": "https://aline-fictiva.exemple.invalid/programme.pdf",
+              "niveau": "candidat",
+              "publie_le": "2026-10-15",
+              "consulte_le": "2026-11-20"
+            },
+            "page": 12,
+            "ajoutee_le": "2026-11-20",
+            "entre_tours": false
+          },
+          {
+            "id": "ecolo-nucleaire",
+            "theme": "ecologie",
+            "citation": "Nous lancerons la construction de six nouveaux réacteurs.",
+            "nature": "candidat",
+            "resume": null,
+            "source": {
+              "id": "aline-programme",
+              "titre": "Programme fictif d'Aline Fictiva",
+              "url": "https://aline-fictiva.exemple.invalid/programme.pdf",
+              "niveau": "candidat",
+              "publie_le": "2026-10-15",
+              "consulte_le": "2026-11-20"
+            },
+            "page": 15,
+            "ajoutee_le": "2026-11-20",
+            "entre_tours": false
+          },
+          {
+            "id": "securite-police",
+            "theme": "securite",
+            "citation": "Nous recruterons dix mille policiers et gendarmes de proximité.",
+            "nature": "candidat",
+            "resume": null,
+            "source": {
+              "id": "aline-programme",
+              "titre": "Programme fictif d'Aline Fictiva",
+              "url": "https://aline-fictiva.exemple.invalid/programme.pdf",
+              "niveau": "candidat",
+              "publie_le": "2026-10-15",
+              "consulte_le": "2026-11-20"
+            },
+            "page": 18,
+            "ajoutee_le": "2026-11-20",
+            "entre_tours": false
+          },
+          {
+            "id": "europe-defense",
+            "theme": "europe",
+            "citation": "La France proposera un budget européen commun pour la défense.",
+            "nature": "candidat",
+            "resume": null,
+            "source": {
+              "id": "aline-programme",
+              "titre": "Programme fictif d'Aline Fictiva",
+              "url": "https://aline-fictiva.exemple.invalid/programme.pdf",
+              "niveau": "candidat",
+              "publie_le": "2026-10-15",
+              "consulte_le": "2026-11-20"
+            },
+            "page": 21,
+            "ajoutee_le": "2026-11-20",
+            "entre_tours": false
+          },
+          {
+            "id": "culture-musees",
+            "theme": "culture",
+            "citation": "Les musées nationaux seront gratuits le premier dimanche de chaque mois.",
+            "nature": "candidat",
+            "resume": null,
+            "source": {
+              "id": "aline-programme",
+              "titre": "Programme fictif d'Aline Fictiva",
+              "url": "https://aline-fictiva.exemple.invalid/programme.pdf",
+              "niveau": "candidat",
+              "publie_le": "2026-10-15",
+              "consulte_le": "2026-11-20"
+            },
+            "page": 23,
+            "ajoutee_le": "2026-11-20",
+            "entre_tours": false
+          },
+          {
+            "id": "solidarites-aidants",
+            "theme": "solidarites",
+            "citation": "Les aidants familiaux recevront un congé rémunéré de trois mois.",
+            "nature": "candidat",
+            "resume": null,
+            "source": {
+              "id": "aline-programme",
+              "titre": "Programme fictif d'Aline Fictiva",
+              "url": "https://aline-fictiva.exemple.invalid/programme.pdf",
+              "niveau": "candidat",
+              "publie_le": "2026-10-15",
+              "consulte_le": "2026-11-20"
+            },
+            "page": 25,
+            "ajoutee_le": "2026-11-20",
+            "entre_tours": false
+          }
+        ],
+        "parlementaire": true,
+        "votes": [
+          {
+            "id": "vote-energie",
+            "scrutin": "Scrutin fictif n° 101 sur la loi de programmation de l'énergie",
+            "date": "2025-03-12",
+            "position": "pour",
+            "theme": "ecologie",
+            "source": {
+              "id": "aline-votes",
+              "titre": "Scrutins fictifs de l'Assemblée, votes d'Aline Fictiva",
+              "url": "https://assemblee.exemple.invalid/deputes/aline-fictiva/votes",
+              "niveau": "vote_reel",
+              "publie_le": null,
+              "consulte_le": "2026-11-20"
+            }
+          },
+          {
+            "id": "vote-franchises",
+            "scrutin": "Scrutin fictif n° 214 sur les franchises médicales",
+            "date": "2025-10-28",
+            "position": "contre",
+            "theme": "sante",
+            "source": {
+              "id": "aline-votes",
+              "titre": "Scrutins fictifs de l'Assemblée, votes d'Aline Fictiva",
+              "url": "https://assemblee.exemple.invalid/deputes/aline-fictiva/votes",
+              "niveau": "vote_reel",
+              "publie_le": null,
+              "consulte_le": "2026-11-20"
+            }
+          }
+        ],
+        "version": 1,
+        "mise_a_jour": "2027-04-20",
+        "relue_le": "2026-11-20"
+      },
+      {
+        "id": "bruno-demonstra",
+        "nom_affiche": "Bruno Démonstra",
+        "initiales": "BD",
+        "alias": [],
+        "fictif": true,
+        "statut": "declare",
+        "statut_source": {
+          "id": "etat-declarations",
+          "titre": "Liste fictive des déclarations de candidature",
+          "url": "https://etat.exemple.invalid/declarations",
+          "niveau": "officiel_etat",
+          "publie_le": "2026-11-02",
+          "consulte_le": "2026-11-20"
+        },
+        "declaration": {
+          "date": "2026-09-28",
+          "source": {
+            "id": "etat-declarations",
+            "titre": "Liste fictive des déclarations de candidature",
+            "url": "https://etat.exemple.invalid/declarations",
+            "niveau": "officiel_etat",
+            "publie_le": "2026-11-02",
+            "consulte_le": "2026-11-20"
+          }
+        },
+        "description": {
+          "texte": "Candidat inventé pour la démonstration, chef d'entreprise fictif, sans mandat électif.",
+          "nature": "redaction"
+        },
+        "lignes_phares": [],
+        "mesures": [
+          {
+            "id": "eco-impot",
+            "theme": "economie",
+            "citation": "L'impôt sur le revenu baissera de dix pour cent pour les classes moyennes.",
+            "nature": "candidat",
+            "resume": null,
+            "source": {
+              "id": "bruno-programme",
+              "titre": "Programme fictif de Bruno Démonstra",
+              "url": "https://bruno-demonstra.exemple.invalid/programme.pdf",
+              "niveau": "candidat",
+              "publie_le": "2026-09-30",
+              "consulte_le": "2026-11-20"
+            },
+            "page": 3,
+            "ajoutee_le": "2026-11-20",
+            "entre_tours": false
+          },
+          {
+            "id": "travail-retraite",
+            "theme": "travail",
+            "citation": "L'âge légal de départ restera fixé à soixante-quatre ans.",
+            "nature": "candidat",
+            "resume": null,
+            "source": {
+              "id": "bruno-programme",
+              "titre": "Programme fictif de Bruno Démonstra",
+              "url": "https://bruno-demonstra.exemple.invalid/programme.pdf",
+              "niveau": "candidat",
+              "publie_le": "2026-09-30",
+              "consulte_le": "2026-11-20"
+            },
+            "page": 6,
+            "ajoutee_le": "2026-11-20",
+            "entre_tours": false
+          },
+          {
+            "id": "sante-aides",
+            "theme": "sante",
+            "citation": "Une prime de cinquante mille euros sera versée à chaque médecin qui s'installe à la campagne.",
+            "nature": "candidat",
+            "resume": null,
+            "source": {
+              "id": "bruno-programme",
+              "titre": "Programme fictif de Bruno Démonstra",
+              "url": "https://bruno-demonstra.exemple.invalid/programme.pdf",
+              "niveau": "candidat",
+              "publie_le": "2026-09-30",
+              "consulte_le": "2026-11-20"
+            },
+            "page": 8,
+            "ajoutee_le": "2026-11-20",
+            "entre_tours": false
+          },
+          {
+            "id": "ecolo-nucleaire",
+            "theme": "ecologie",
+            "citation": "Nous fermerons progressivement les centrales nucléaires d'ici 2050.",
+            "nature": "candidat",
+            "resume": null,
+            "source": {
+              "id": "bruno-programme",
+              "titre": "Programme fictif de Bruno Démonstra",
+              "url": "https://bruno-demonstra.exemple.invalid/programme.pdf",
+              "niveau": "candidat",
+              "publie_le": "2026-09-30",
+              "consulte_le": "2026-11-20"
+            },
+            "page": 10,
+            "ajoutee_le": "2026-11-20",
+            "entre_tours": false
+          },
+          {
+            "id": "logement-construction",
+            "theme": "logement",
+            "citation": "L'État financera la construction de cent cinquante mille logements sociaux par an.",
+            "nature": "candidat",
+            "resume": null,
+            "source": {
+              "id": "bruno-programme",
+              "titre": "Programme fictif de Bruno Démonstra",
+              "url": "https://bruno-demonstra.exemple.invalid/programme.pdf",
+              "niveau": "candidat",
+              "publie_le": "2026-09-30",
+              "consulte_le": "2026-11-20"
+            },
+            "page": 13,
+            "ajoutee_le": "2026-11-20",
+            "entre_tours": false
+          }
+        ],
+        "parlementaire": false,
+        "votes": [],
+        "version": 1,
+        "mise_a_jour": "2026-11-20",
+        "relue_le": "2026-11-20"
+      }
+    ],
+    "journal": [
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "aline-fictiva",
+        "version": 1,
+        "motif": "Publication de la fiche fictive"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "bruno-demonstra",
+        "version": 1,
+        "motif": "Publication de la fiche fictive"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "carla-exemplia",
+        "version": 2,
+        "motif": "Ajout d'une mesure sur les institutions"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "fiche",
+        "cible": "gaston-fictorin",
+        "version": 1,
+        "motif": "Candidature fictive retirée le 10 novembre 2026"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "rattachement",
+        "motif": "Rattachements des quatre candidats fictifs"
+      },
+      {
+        "date": "2026-11-20",
+        "objet": "gel_grille",
+        "motif": "Gel de la grille de démonstration",
+        "empreinte": "sha256:9b1719d9d56159dfa7178a2b40215f2a85f83bf437eff780baf5d25bc123bafb"
+      },
+      {
+        "date": "2026-11-18",
+        "objet": "base",
+        "motif": "Création du jeu de démonstration (données inventées)"
+      }
+    ]
+  },
+  "presidentielle/meta": {
+    "disponible": true,
+    "message": null,
+    "jeu": "demonstration",
+    "liste": "declares",
+    "phase": "archive",
+    "version": "436479713285",
+    "sharing": false,
+    "guest": false,
+    "appel_en_cours": false,
+    "assistant": {
+      "modele": "ollama/gemma4:e4b",
+      "modeles_autorises": [
+        "litellm-ai-to-boost/gemma4:e4b",
+        "ollama/gemma4:e4b"
+      ],
+      "message": null
+    },
+    "cible": "local",
+    "fiches": 2,
+    "erreurs": [],
+    "qualifies": [
+      "aline-fictiva",
+      "bruno-demonstra"
+    ]
+  },
+  "presidentielle/quiz": {
+    "disponible": true,
+    "message": null,
+    "jeu": "demonstration",
+    "liste": "declares",
+    "phase": "archive",
+    "qualifies": [
+      "aline-fictiva",
+      "bruno-demonstra"
+    ],
+    "version": "436479713285",
+    "grille_version": "9b1719d9d561",
+    "axes_statut": "gelee",
+    "barres_visibles": true,
+    "gel": {
+      "le": "2026-11-20",
+      "empreinte": "sha256:9b1719d9d56159dfa7178a2b40215f2a85f83bf437eff780baf5d25bc123bafb"
+    },
+    "participants": [
+      "aline-fictiva",
+      "bruno-demonstra"
+    ],
+    "themes": [
+      {
+        "id": "economie",
+        "libelle": "Économie et fiscalité",
+        "axe": {
+          "pole_a": "plus de redistribution par l'impôt",
+          "pole_b": "moins d'impôts et de dépense publique"
+        },
+        "questions": [
+          {
+            "id": "economie-1",
+            "enonce": "Comment faire évoluer l'impôt sur le revenu ?",
+            "statut": "validee",
+            "options": [
+              {
+                "id": "economie-1-a",
+                "libelle": "Ajouter des tranches pour les plus hauts revenus",
+                "pole": "a",
+                "speciale": false
+              },
+              {
+                "id": "economie-1-b",
+                "libelle": "Baisser l'impôt des classes moyennes",
+                "pole": "b",
+                "speciale": false
+              },
+              {
+                "id": "economie-1-c",
+                "libelle": "Garder le barème actuel",
+                "pole": "mixte",
+                "speciale": false
+              },
+              {
+                "id": "aucune",
+                "libelle": "Aucune de ces propositions",
+                "pole": null,
+                "speciale": true
+              },
+              {
+                "id": "sans-avis",
+                "libelle": "Sans avis",
+                "pole": null,
+                "speciale": true
+              }
+            ],
+            "eligible": true,
+            "couverture": {
+              "participants": 2,
+              "positions": 2,
+              "options_occupees": 2
+            }
+          },
+          {
+            "id": "economie-2",
+            "enonce": "Comment réduire le déficit public ?",
+            "statut": "validee",
+            "options": [
+              {
+                "id": "economie-2-a",
+                "libelle": "Accepter plus de déficit pour investir",
+                "pole": "a",
+                "speciale": false
+              },
+              {
+                "id": "economie-2-b",
+                "libelle": "Réduire la dépense publique",
+                "pole": "b",
+                "speciale": false
+              },
+              {
+                "id": "economie-2-c",
+                "libelle": "Augmenter certains impôts",
+                "pole": "mixte",
+                "speciale": false
+              },
+              {
+                "id": "aucune",
+                "libelle": "Aucune de ces propositions",
+                "pole": null,
+                "speciale": true
+              },
+              {
+                "id": "sans-avis",
+                "libelle": "Sans avis",
+                "pole": null,
+                "speciale": true
+              }
+            ],
+            "eligible": true,
+            "couverture": {
+              "participants": 2,
+              "positions": 1,
+              "options_occupees": 1
+            }
+          }
+        ]
+      },
+      {
+        "id": "travail",
+        "libelle": "Travail et retraites",
+        "axe": {
+          "pole_a": "plus de protection collective",
+          "pole_b": "plus de liberté de négocier"
+        },
+        "questions": [
+          {
+            "id": "travail-1",
+            "enonce": "Quel âge légal de départ à la retraite ?",
+            "statut": "validee",
+            "options": [
+              {
+                "id": "travail-1-a",
+                "libelle": "Revenir à 62 ans",
+                "pole": "a",
+                "speciale": false
+              },
+              {
+                "id": "travail-1-b",
+                "libelle": "Garder 64 ans",
+                "pole": "mixte",
+                "speciale": false
+              },
+              {
+                "id": "travail-1-c",
+                "libelle": "Passer à 65 ans ou plus",
+                "pole": "b",
+                "speciale": false
+              },
+              {
+                "id": "aucune",
+                "libelle": "Aucune de ces propositions",
+                "pole": null,
+                "speciale": true
+              },
+              {
+                "id": "sans-avis",
+                "libelle": "Sans avis",
+                "pole": null,
+                "speciale": true
+              }
+            ],
+            "eligible": true,
+            "couverture": {
+              "participants": 2,
+              "positions": 1,
+              "options_occupees": 1
+            }
+          },
+          {
+            "id": "travail-2",
+            "enonce": "Faut-il changer la durée légale du travail ?",
+            "statut": "validee",
+            "options": [
+              {
+                "id": "travail-2-a",
+                "libelle": "La réduire à 32 heures",
+                "pole": "a",
+                "speciale": false
+              },
+              {
+                "id": "travail-2-b",
+                "libelle": "La garder à 35 heures",
+                "pole": "mixte",
+                "speciale": false
+              },
+              {
+                "id": "travail-2-c",
+                "libelle": "La laisser fixer par accord d'entreprise",
+                "pole": "b",
+                "speciale": false
+              },
+              {
+                "id": "aucune",
+                "libelle": "Aucune de ces propositions",
+                "pole": null,
+                "speciale": true
+              },
+              {
+                "id": "sans-avis",
+                "libelle": "Sans avis",
+                "pole": null,
+                "speciale": true
+              }
+            ],
+            "eligible": false,
+            "couverture": {
+              "participants": 2,
+              "positions": 0,
+              "options_occupees": 0
+            }
+          }
+        ]
+      },
+      {
+        "id": "sante",
+        "libelle": "Santé",
+        "axe": {
+          "pole_a": "plus d'organisation publique",
+          "pole_b": "plus d'incitations et de libre choix"
+        },
+        "questions": [
+          {
+            "id": "sante-1",
+            "enonce": "Comment lutter contre les déserts médicaux ?",
+            "statut": "validee",
+            "options": [
+              {
+                "id": "sante-1-a",
+                "libelle": "Obliger les jeunes médecins à s'installer où ils manquent",
+                "pole": "a",
+                "speciale": false
+              },
+              {
+                "id": "sante-1-b",
+                "libelle": "Augmenter les aides à l'installation",
+                "pole": "b",
+                "speciale": false
+              },
+              {
+                "id": "sante-1-c",
+                "libelle": "Ouvrir des centres de santé publics",
+                "pole": "a",
+                "speciale": false
+              },
+              {
+                "id": "aucune",
+                "libelle": "Aucune de ces propositions",
+                "pole": null,
+                "speciale": true
+              },
+              {
+                "id": "sans-avis",
+                "libelle": "Sans avis",
+                "pole": null,
+                "speciale": true
+              }
+            ],
+            "eligible": true,
+            "couverture": {
+              "participants": 2,
+              "positions": 2,
+              "options_occupees": 2
+            }
+          },
+          {
+            "id": "sante-2",
+            "enonce": "Que faire des franchises médicales ?",
+            "statut": "validee",
+            "options": [
+              {
+                "id": "sante-2-a",
+                "libelle": "Les supprimer",
+                "pole": "a",
+                "speciale": false
+              },
+              {
+                "id": "sante-2-b",
+                "libelle": "Les garder telles quelles",
+                "pole": "mixte",
+                "speciale": false
+              },
+              {
+                "id": "sante-2-c",
+                "libelle": "Les augmenter pour financer l'hôpital",
+                "pole": "b",
+                "speciale": false
+              },
+              {
+                "id": "aucune",
+                "libelle": "Aucune de ces propositions",
+                "pole": null,
+                "speciale": true
+              },
+              {
+                "id": "sans-avis",
+                "libelle": "Sans avis",
+                "pole": null,
+                "speciale": true
+              }
+            ],
+            "eligible": false,
+            "couverture": {
+              "participants": 2,
+              "positions": 0,
+              "options_occupees": 0
+            }
+          }
+        ]
+      },
+      {
+        "id": "education",
+        "libelle": "Éducation",
+        "axe": {
+          "pole_a": "plus de cadre national",
+          "pole_b": "plus d'autonomie des établissements"
+        },
+        "questions": [
+          {
+            "id": "education-1",
+            "enonce": "Quelle taille pour les classes de primaire ?",
+            "statut": "validee",
+            "options": [
+              {
+                "id": "education-1-a",
+                "libelle": "Vingt élèves au plus partout",
+                "pole": "a",
+                "speciale": false
+              },
+              {
+                "id": "education-1-b",
+                "libelle": "Laisser chaque école décider",
+                "pole": "b",
+                "speciale": false
+              },
+              {
+                "id": "education-1-c",
+                "libelle": "Garder les règles actuelles",
+                "pole": "mixte",
+                "speciale": false
+              },
+              {
+                "id": "aucune",
+                "libelle": "Aucune de ces propositions",
+                "pole": null,
+                "speciale": true
+              },
+              {
+                "id": "sans-avis",
+                "libelle": "Sans avis",
+                "pole": null,
+                "speciale": true
+              }
+            ],
+            "eligible": true,
+            "couverture": {
+              "participants": 2,
+              "positions": 1,
+              "options_occupees": 1
+            }
+          },
+          {
+            "id": "education-2",
+            "enonce": "Comment rémunérer les enseignants ?",
+            "statut": "validee",
+            "options": [
+              {
+                "id": "education-2-a",
+                "libelle": "Une hausse égale pour tous",
+                "pole": "a",
+                "speciale": false
+              },
+              {
+                "id": "education-2-b",
+                "libelle": "Une part liée aux résultats",
+                "pole": "b",
+                "speciale": false
+              },
+              {
+                "id": "education-2-c",
+                "libelle": "Une hausse liée à de nouvelles missions",
+                "pole": "mixte",
+                "speciale": false
+              },
+              {
+                "id": "aucune",
+                "libelle": "Aucune de ces propositions",
+                "pole": null,
+                "speciale": true
+              },
+              {
+                "id": "sans-avis",
+                "libelle": "Sans avis",
+                "pole": null,
+                "speciale": true
+              }
+            ],
+            "eligible": false,
+            "couverture": {
+              "participants": 2,
+              "positions": 0,
+              "options_occupees": 0
+            }
+          }
+        ]
+      },
+      {
+        "id": "ecologie",
+        "libelle": "Écologie et énergie",
+        "axe": {
+          "pole_a": "priorité à la sobriété",
+          "pole_b": "priorité à la production d'énergie"
+        },
+        "questions": [
+          {
+            "id": "ecologie-1",
+            "enonce": "Quelle place pour le nucléaire ?",
+            "statut": "validee",
+            "options": [
+              {
+                "id": "ecologie-1-a",
+                "libelle": "En sortir progressivement",
+                "pole": "a",
+                "speciale": false
+              },
+              {
+                "id": "ecologie-1-b",
+                "libelle": "Construire de nouveaux réacteurs",
+                "pole": "b",
+                "speciale": false
+              },
+              {
+                "id": "ecologie-1-c",
+                "libelle": "Garder le parc actuel sans en construire",
+                "pole": "mixte",
+                "speciale": false
+              },
+              {
+                "id": "aucune",
+                "libelle": "Aucune de ces propositions",
+                "pole": null,
+                "speciale": true
+              },
+              {
+                "id": "sans-avis",
+                "libelle": "Sans avis",
+                "pole": null,
+                "speciale": true
+              }
+            ],
+            "eligible": true,
+            "couverture": {
+              "participants": 2,
+              "positions": 2,
+              "options_occupees": 2
+            }
+          },
+          {
+            "id": "ecologie-2",
+            "enonce": "Comment réduire les émissions des transports ?",
+            "statut": "validee",
+            "options": [
+              {
+                "id": "ecologie-2-a",
+                "libelle": "Baisser fortement le prix du train",
+                "pole": "a",
+                "speciale": false
+              },
+              {
+                "id": "ecologie-2-b",
+                "libelle": "Aider l'achat de voitures électriques",
+                "pole": "b",
+                "speciale": false
+              },
+              {
+                "id": "ecologie-2-c",
+                "libelle": "Taxer davantage l'avion",
+                "pole": "a",
+                "speciale": false
+              },
+              {
+                "id": "aucune",
+                "libelle": "Aucune de ces propositions",
+                "pole": null,
+                "speciale": true
+              },
+              {
+                "id": "sans-avis",
+                "libelle": "Sans avis",
+                "pole": null,
+                "speciale": true
+              }
+            ],
+            "eligible": false,
+            "couverture": {
+              "participants": 2,
+              "positions": 0,
+              "options_occupees": 0
+            }
+          }
+        ]
+      },
+      {
+        "id": "immigration",
+        "libelle": "Immigration",
+        "axe": {
+          "pole_a": "plus d'accueil",
+          "pole_b": "plus de contrôle"
+        },
+        "questions": [
+          {
+            "id": "immigration-1",
+            "enonce": "Comment traiter les demandes de titre de séjour ?",
+            "statut": "validee",
+            "options": [
+              {
+                "id": "immigration-1-a",
+                "libelle": "Raccourcir les délais d'examen",
+                "pole": "mixte",
+                "speciale": false
+              },
+              {
+                "id": "immigration-1-b",
+                "libelle": "Durcir les conditions d'obtention",
+                "pole": "b",
+                "speciale": false
+              },
+              {
+                "id": "immigration-1-c",
+                "libelle": "Élargir les régularisations par le travail",
+                "pole": "a",
+                "speciale": false
+              },
+              {
+                "id": "aucune",
+                "libelle": "Aucune de ces propositions",
+                "pole": null,
+                "speciale": true
+              },
+              {
+                "id": "sans-avis",
+                "libelle": "Sans avis",
+                "pole": null,
+                "speciale": true
+              }
+            ],
+            "eligible": false,
+            "couverture": {
+              "participants": 2,
+              "positions": 0,
+              "options_occupees": 0
+            }
+          },
+          {
+            "id": "immigration-2",
+            "enonce": "Que faire de l'aide médicale de l'État ?",
+            "statut": "validee",
+            "options": [
+              {
+                "id": "immigration-2-a",
+                "libelle": "La garder telle quelle",
+                "pole": "a",
+                "speciale": false
+              },
+              {
+                "id": "immigration-2-b",
+                "libelle": "La limiter aux soins urgents",
+                "pole": "b",
+                "speciale": false
+              },
+              {
+                "id": "immigration-2-c",
+                "libelle": "La transformer en aide d'urgence étendue",
+                "pole": "mixte",
+                "speciale": false
+              },
+              {
+                "id": "aucune",
+                "libelle": "Aucune de ces propositions",
+                "pole": null,
+                "speciale": true
+              },
+              {
+                "id": "sans-avis",
+                "libelle": "Sans avis",
+                "pole": null,
+                "speciale": true
+              }
+            ],
+            "eligible": false,
+            "couverture": {
+              "participants": 2,
+              "positions": 0,
+              "options_occupees": 0
+            }
+          }
+        ]
+      },
+      {
+        "id": "securite",
+        "libelle": "Sécurité et justice",
+        "axe": {
+          "pole_a": "plus de prévention",
+          "pole_b": "plus de sanction"
+        },
+        "questions": [
+          {
+            "id": "securite-1",
+            "enonce": "Quels moyens pour la sécurité du quotidien ?",
+            "statut": "validee",
+            "options": [
+              {
+                "id": "securite-1-a",
+                "libelle": "Recruter des policiers de proximité",
+                "pole": "mixte",
+                "speciale": false
+              },
+              {
+                "id": "securite-1-b",
+                "libelle": "Renforcer les associations de prévention",
+                "pole": "a",
+                "speciale": false
+              },
+              {
+                "id": "securite-1-c",
+                "libelle": "Construire de nouvelles places de prison",
+                "pole": "b",
+                "speciale": false
+              },
+              {
+                "id": "aucune",
+                "libelle": "Aucune de ces propositions",
+                "pole": null,
+                "speciale": true
+              },
+              {
+                "id": "sans-avis",
+                "libelle": "Sans avis",
+                "pole": null,
+                "speciale": true
+              }
+            ],
+            "eligible": true,
+            "couverture": {
+              "participants": 2,
+              "positions": 1,
+              "options_occupees": 1
+            }
+          },
+          {
+            "id": "securite-2",
+            "enonce": "Faut-il changer les peines pour les mineurs ?",
+            "statut": "validee",
+            "options": [
+              {
+                "id": "securite-2-a",
+                "libelle": "Garder la justice des mineurs actuelle",
+                "pole": "a",
+                "speciale": false
+              },
+              {
+                "id": "securite-2-b",
+                "libelle": "Juger les mineurs de seize ans comme des majeurs",
+                "pole": "b",
+                "speciale": false
+              },
+              {
+                "id": "securite-2-c",
+                "libelle": "Accélérer les jugements sans changer les peines",
+                "pole": "mixte",
+                "speciale": false
+              },
+              {
+                "id": "aucune",
+                "libelle": "Aucune de ces propositions",
+                "pole": null,
+                "speciale": true
+              },
+              {
+                "id": "sans-avis",
+                "libelle": "Sans avis",
+                "pole": null,
+                "speciale": true
+              }
+            ],
+            "eligible": false,
+            "couverture": {
+              "participants": 2,
+              "positions": 0,
+              "options_occupees": 0
+            }
+          }
+        ]
+      },
+      {
+        "id": "logement",
+        "libelle": "Logement",
+        "axe": {
+          "pole_a": "plus de logement public",
+          "pole_b": "plus d'initiative privée"
+        },
+        "questions": [
+          {
+            "id": "logement-1",
+            "enonce": "Comment loger davantage de ménages ?",
+            "statut": "validee",
+            "options": [
+              {
+                "id": "logement-1-a",
+                "libelle": "Construire plus de logements sociaux",
+                "pole": "a",
+                "speciale": false
+              },
+              {
+                "id": "logement-1-b",
+                "libelle": "Alléger les règles de construction",
+                "pole": "b",
+                "speciale": false
+              },
+              {
+                "id": "logement-1-c",
+                "libelle": "Taxer les logements vides",
+                "pole": "mixte",
+                "speciale": false
+              },
+              {
+                "id": "aucune",
+                "libelle": "Aucune de ces propositions",
+                "pole": null,
+                "speciale": true
+              },
+              {
+                "id": "sans-avis",
+                "libelle": "Sans avis",
+                "pole": null,
+                "speciale": true
+              }
+            ],
+            "eligible": true,
+            "couverture": {
+              "participants": 2,
+              "positions": 1,
+              "options_occupees": 1
+            }
+          },
+          {
+            "id": "logement-2",
+            "enonce": "Faut-il encadrer les loyers ?",
+            "statut": "validee",
+            "options": [
+              {
+                "id": "logement-2-a",
+                "libelle": "L'étendre à toutes les grandes villes",
+                "pole": "a",
+                "speciale": false
+              },
+              {
+                "id": "logement-2-b",
+                "libelle": "Le supprimer",
+                "pole": "b",
+                "speciale": false
+              },
+              {
+                "id": "logement-2-c",
+                "libelle": "Le laisser au choix des communes",
+                "pole": "mixte",
+                "speciale": false
+              },
+              {
+                "id": "aucune",
+                "libelle": "Aucune de ces propositions",
+                "pole": null,
+                "speciale": true
+              },
+              {
+                "id": "sans-avis",
+                "libelle": "Sans avis",
+                "pole": null,
+                "speciale": true
+              }
+            ],
+            "eligible": false,
+            "couverture": {
+              "participants": 2,
+              "positions": 0,
+              "options_occupees": 0
+            }
+          }
+        ]
+      },
+      {
+        "id": "institutions",
+        "libelle": "Institutions et démocratie",
+        "axe": {
+          "pole_a": "plus de démocratie directe",
+          "pole_b": "plus de démocratie représentative"
+        },
+        "questions": [
+          {
+            "id": "institutions-1",
+            "enonce": "Comment associer les citoyens aux décisions ?",
+            "statut": "validee",
+            "options": [
+              {
+                "id": "institutions-1-a",
+                "libelle": "Un référendum d'initiative citoyenne",
+                "pole": "a",
+                "speciale": false
+              },
+              {
+                "id": "institutions-1-b",
+                "libelle": "Garder le référendum actuel",
+                "pole": "b",
+                "speciale": false
+              },
+              {
+                "id": "institutions-1-c",
+                "libelle": "Des assemblées de citoyens tirés au sort",
+                "pole": "mixte",
+                "speciale": false
+              },
+              {
+                "id": "aucune",
+                "libelle": "Aucune de ces propositions",
+                "pole": null,
+                "speciale": true
+              },
+              {
+                "id": "sans-avis",
+                "libelle": "Sans avis",
+                "pole": null,
+                "speciale": true
+              }
+            ],
+            "eligible": false,
+            "couverture": {
+              "participants": 2,
+              "positions": 0,
+              "options_occupees": 0
+            }
+          },
+          {
+            "id": "institutions-2",
+            "enonce": "Quel mode d'élection des députés ?",
+            "statut": "validee",
+            "options": [
+              {
+                "id": "institutions-2-a",
+                "libelle": "La proportionnelle intégrale",
+                "pole": "a",
+                "speciale": false
+              },
+              {
+                "id": "institutions-2-b",
+                "libelle": "Le scrutin majoritaire actuel",
+                "pole": "b",
+                "speciale": false
+              },
+              {
+                "id": "institutions-2-c",
+                "libelle": "Une dose de proportionnelle",
+                "pole": "mixte",
+                "speciale": false
+              },
+              {
+                "id": "aucune",
+                "libelle": "Aucune de ces propositions",
+                "pole": null,
+                "speciale": true
+              },
+              {
+                "id": "sans-avis",
+                "libelle": "Sans avis",
+                "pole": null,
+                "speciale": true
+              }
+            ],
+            "eligible": false,
+            "couverture": {
+              "participants": 2,
+              "positions": 0,
+              "options_occupees": 0
+            }
+          }
+        ]
+      },
+      {
+        "id": "europe",
+        "libelle": "Europe et international",
+        "axe": {
+          "pole_a": "plus d'intégration européenne",
+          "pole_b": "plus de souveraineté nationale"
+        },
+        "questions": [
+          {
+            "id": "europe-1",
+            "enonce": "Faut-il une défense européenne commune ?",
+            "statut": "validee",
+            "options": [
+              {
+                "id": "europe-1-a",
+                "libelle": "Un budget commun de défense",
+                "pole": "a",
+                "speciale": false
+              },
+              {
+                "id": "europe-1-b",
+                "libelle": "Une défense seulement nationale",
+                "pole": "b",
+                "speciale": false
+              },
+              {
+                "id": "europe-1-c",
+                "libelle": "Des achats d'armement en commun",
+                "pole": "mixte",
+                "speciale": false
+              },
+              {
+                "id": "aucune",
+                "libelle": "Aucune de ces propositions",
+                "pole": null,
+                "speciale": true
+              },
+              {
+                "id": "sans-avis",
+                "libelle": "Sans avis",
+                "pole": null,
+                "speciale": true
+              }
+            ],
+            "eligible": true,
+            "couverture": {
+              "participants": 2,
+              "positions": 1,
+              "options_occupees": 1
+            }
+          },
+          {
+            "id": "europe-2",
+            "enonce": "Quelle règle de vote au Conseil de l'Union ?",
+            "statut": "validee",
+            "options": [
+              {
+                "id": "europe-2-a",
+                "libelle": "Étendre la majorité qualifiée",
+                "pole": "a",
+                "speciale": false
+              },
+              {
+                "id": "europe-2-b",
+                "libelle": "Garder l'unanimité",
+                "pole": "b",
+                "speciale": false
+              },
+              {
+                "id": "europe-2-c",
+                "libelle": "Changer selon les sujets",
+                "pole": "mixte",
+                "speciale": false
+              },
+              {
+                "id": "aucune",
+                "libelle": "Aucune de ces propositions",
+                "pole": null,
+                "speciale": true
+              },
+              {
+                "id": "sans-avis",
+                "libelle": "Sans avis",
+                "pole": null,
+                "speciale": true
+              }
+            ],
+            "eligible": false,
+            "couverture": {
+              "participants": 2,
+              "positions": 0,
+              "options_occupees": 0
+            }
+          }
+        ]
+      }
+    ],
+    "rattachements": [
+      {
+        "question": "economie-1",
+        "candidat": "aline-fictiva",
+        "option": "economie-1-a",
+        "mesure_id": "eco-impot"
+      },
+      {
+        "question": "economie-1",
+        "candidat": "bruno-demonstra",
+        "option": "economie-1-b",
+        "mesure_id": "eco-impot"
+      },
+      {
+        "question": "economie-2",
+        "candidat": "aline-fictiva",
+        "option": "economie-2-c",
+        "mesure_id": "eco-dette"
+      },
+      {
+        "question": "travail-1",
+        "candidat": "bruno-demonstra",
+        "option": "travail-1-b",
+        "mesure_id": "travail-retraite"
+      },
+      {
+        "question": "sante-1",
+        "candidat": "aline-fictiva",
+        "option": "sante-1-a",
+        "mesure_id": "sante-installation"
+      },
+      {
+        "question": "sante-1",
+        "candidat": "bruno-demonstra",
+        "option": "sante-1-b",
+        "mesure_id": "sante-aides"
+      },
+      {
+        "question": "education-1",
+        "candidat": "aline-fictiva",
+        "option": "education-1-a",
+        "mesure_id": "educ-classes"
+      },
+      {
+        "question": "ecologie-1",
+        "candidat": "aline-fictiva",
+        "option": "ecologie-1-b",
+        "mesure_id": "ecolo-nucleaire"
+      },
+      {
+        "question": "ecologie-1",
+        "candidat": "bruno-demonstra",
+        "option": "ecologie-1-a",
+        "mesure_id": "ecolo-nucleaire"
+      },
+      {
+        "question": "securite-1",
+        "candidat": "aline-fictiva",
+        "option": "securite-1-a",
+        "mesure_id": "securite-police"
+      },
+      {
+        "question": "logement-1",
+        "candidat": "bruno-demonstra",
+        "option": "logement-1-a",
+        "mesure_id": "logement-construction"
+      },
+      {
+        "question": "europe-1",
+        "candidat": "aline-fictiva",
+        "option": "europe-1-a",
+        "mesure_id": "europe-defense"
+      }
+    ]
+  }
+}

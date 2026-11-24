@@ -4,6 +4,11 @@ entrees:
   - date: 2026-11-18
     objet: base
     motif: Création du jeu de démonstration (données inventées)
+  - date: 2026-11-19
+    objet: fiche
+    cible: carla-exemplia
+    version: 1
+    motif: Publication de la fiche fictive
   - date: 2026-11-20
     objet: fiche
     cible: aline-fictiva

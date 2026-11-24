@@ -11,6 +11,8 @@ import tempfile
 import unittest
 from pathlib import Path
 
+from pydantic import ValidationError
+
 import yaml  # type: ignore[import-untyped]  # stubs absents de l'image et du hook
 
 import presidentielle
@@ -508,6 +510,13 @@ class Pieges(Jeu):
         self.assertIsNone(presidentielle.charger(self.dossier).grille)
         self.assertEqual(len(presidentielle.charger(self.dossier).fiches), 4)
 
+    def test_grille_absente_sans_mesure_rien_a_signaler(self):
+        # Base réelle à ses débuts : ni grille ni mesure, aucun avertissement
+        (self.dossier / GRILLE).unlink()
+        for fiche in (self.dossier / "candidats").glob("*.yaml"):
+            fiche.unlink()
+        self.assertEqual(self.erreurs(), [])
+
     def test_lire_yaml_attrape_les_erreurs_de_construction(self):
         path = self.dossier / "x.yaml"
         for texte in ("? {a: 1}\n: 2\n", "a: !!python/object:os.system x\n"):
@@ -664,6 +673,97 @@ class ThemesSansGrille(Jeu):
         self.assertEqual(len(presidentielle.charger(self.dossier).fiches), 4)
 
 
+class ThemesHorsQuiz(Jeu):
+    """Thèmes des fiches hors quiz (ADR 0016) : admis pour les mesures et les votes,
+    interdits dans la grille et dans un rattachement."""
+
+    def test_mesures_hors_quiz_du_jeu_fictif_admises(self):
+        self.assertValide()
+        etat = presidentielle.charger(self.dossier)
+        themes = {m.theme for m in etat.fiches["aline-fictiva"].mesures}
+        self.assertLessEqual(set(presidentielle.THEMES_HORS_QUIZ), themes)
+        self.assertEqual(presidentielle.THEMES_HORS_QUIZ, ("culture", "solidarites"))
+        grille = {t.id for t in etat.grille.themes}
+        self.assertFalse(grille & set(presidentielle.THEMES_HORS_QUIZ))
+
+    def test_vote_hors_quiz_admis(self):
+        self.modifier(ALINE, lambda d: d["votes"][0].update(theme="solidarites"))
+        self.assertValide()
+
+    def test_theme_inconnu_toujours_refuse(self):
+        self.modifier(ALINE, lambda d: d["mesures"][0].update(theme="numerique"))
+        self.assertRefus("thème « numerique » inconnu", ALINE)
+
+    def test_grille_avec_theme_hors_quiz_refusee(self):
+        def culture(data):
+            theme = data["themes"][-1]
+            ancien = theme["id"]
+            theme["id"] = "culture"
+            # Aucune mesure ni aucun rattachement sur l'ancien thème dans ce test
+            for question in theme["questions"]:
+                question["id"] = question["id"].replace(ancien, "culture")
+                for option in question["options"]:
+                    option["id"] = option["id"].replace(ancien, "culture")
+
+        ancien = self.lire(GRILLE)["themes"][-1]["id"]
+        self.modifier(
+            RATTACHEMENTS,
+            lambda d: d.update(
+                rattachements=[
+                    r
+                    for r in d["rattachements"]
+                    if not r["question"].startswith(ancien)
+                ]
+            ),
+        )
+        for path in (self.dossier / "candidats").glob("*.yaml"):
+            rel = f"candidats/{path.name}"
+            self.modifier(
+                rel,
+                lambda d: d.update(
+                    mesures=[m for m in d["mesures"] if m["theme"] != ancien],
+                    votes=[v for v in d.get("votes") or [] if v.get("theme") != ancien],
+                ),
+            )
+        self.grille_modifiee(culture)
+        erreurs = self.erreurs()
+        self.assertIn(
+            "thème culture : thème des fiches hors quiz, interdit dans la grille",
+            [e.message for e in erreurs if e.fichier == GRILLE],
+        )
+        self.assertIsNone(presidentielle.charger(self.dossier).grille)
+
+    def test_rattachement_mesure_hors_quiz_refuse(self):
+        self.modifier(
+            RATTACHEMENTS,
+            lambda d: d["rattachements"].append(
+                {
+                    "question": "immigration-1",
+                    "candidat": "aline-fictiva",
+                    "option": "immigration-1-a",
+                    "mesure_id": "culture-musees",
+                }
+            ),
+        )
+        self.assertRefus("du thème culture, hors quiz", RATTACHEMENTS)
+
+    def test_grille_en_defaut_mesures_hors_quiz_non_signalees(self):
+        self.modifier(
+            GRILLE, lambda d: d["themes"][0]["questions"][0].update(options=[])
+        )
+        erreurs = self.erreurs()
+        self.assertTrue(erreurs)
+        self.assertFalse(
+            [e for e in erreurs if "culture" in e.message or "solidarites" in e.message]
+        )
+
+    def test_themes_admis(self):
+        self.assertIsNone(schema.themes_admis(None))
+        self.assertEqual(
+            schema.themes_admis({"economie"}), {"economie", "culture", "solidarites"}
+        )
+
+
 class LiensSymboliques(Jeu):
     def test_lien_symbolique_ignore(self):
         dehors = self.dossier.parent / "dehors.yaml"
@@ -721,6 +821,39 @@ class Cas(unittest.TestCase):
                 for erreur in visees:
                     self.assertTrue(erreur.fichier.startswith(fichier), erreur)
                     self.assertIn(cas["erreur"], erreur.message)
+
+
+class RetraitsErreur(unittest.TestCase):
+    """Journal : mesures retirées pour erreur (publier --retrait-erreur)."""
+
+    ENTREE = {
+        "date": "2026-11-21",
+        "objet": "fiche",
+        "cible": "carla-exemplia",
+        "version": 3,
+        "motif": "Erreur de saisie corrigée",
+    }
+
+    def test_retraits_d_une_fiche_acceptes(self):
+        entree = schema.EntreeJournal.model_validate(
+            {**self.ENTREE, "retraits_erreur": ["sante-centres"]}
+        )
+        self.assertEqual(entree.retraits_erreur, ["sante-centres"])
+        sans = schema.EntreeJournal.model_validate(self.ENTREE)
+        self.assertIsNone(sans.retraits_erreur)
+
+    def test_retraits_mal_formes_refuses(self):
+        cas = (
+            ({"retraits_erreur": []}, "vide"),
+            ({"retraits_erreur": ["a", "a"]}, "en double"),
+            ({"retraits_erreur": ["Sante"]}, "pattern"),
+            ({"objet": "base", "cible": None, "retraits_erreur": ["a"]}, "réservé"),
+            ({"version": None, "retraits_erreur": ["a"]}, "réservé"),
+        )
+        for champs, attendu in cas:
+            with self.subTest(champs=champs):
+                with self.assertRaisesRegex(ValidationError, attendu):
+                    schema.EntreeJournal.model_validate({**self.ENTREE, **champs})
 
 
 class SchemasJson(unittest.TestCase):

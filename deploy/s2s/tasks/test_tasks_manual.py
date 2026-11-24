@@ -275,7 +275,7 @@ class Migration(unittest.TestCase):
         row = store.runs()[0]
         self.assertEqual((row["others_json"], row["request_id"]), ("[]", None))
         conn = sqlite3.connect(env.db)
-        self.assertEqual(conn.execute("PRAGMA user_version").fetchone()[0], 4)
+        self.assertEqual(conn.execute("PRAGMA user_version").fetchone()[0], 5)
         conn.close()
 
 

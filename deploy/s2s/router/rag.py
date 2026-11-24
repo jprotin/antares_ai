@@ -20,6 +20,8 @@ import connections
 RAG_LIMIT = int(os.environ.get("RAG_LIMIT", "4"))
 PREFIX = "proj-"
 COMMON = "knowledge"
+# Collections de la présidentielle (presidentielle_index.py) : jamais listées comme projets
+HIDDEN_PREFIX = PREFIX + "p27-"
 EXCERPT_CHARS = 600
 # Une relance courte (« et ensuite ? ») est complétée par la question précédente
 SHORT_QUESTION = 60
@@ -70,6 +72,8 @@ async def projects() -> list[dict]:
         for collection in collections:
             name = collection["name"]
             if not name.startswith(PREFIX):
+                continue
+            if name.startswith(HIDDEN_PREFIX):
                 continue
             info = (await http.get(f"{config.qdrant_url}/collections/{name}")).json()
             chunks = info["result"].get("points_count") or 0

@@ -11,6 +11,13 @@ function fixture(name: string): unknown {
   return JSON.parse(readFileSync(new URL(`${name}.json`, FIXTURES), "utf8"));
 }
 
+// Routes GET /api/presidentielle/evolution/… relevées sur le routeur (clé : chemin)
+function evolution(): Record<string, unknown> {
+  const routes = { ...(fixture("presidentielle_evolution") as object) };
+  delete (routes as Record<string, unknown>)._commentaire;
+  return routes;
+}
+
 export type Recorded = { method: string; path: string; body: unknown };
 
 type Handler = (route: Route, recorded: Recorded) => Promise<void> | void;
@@ -42,6 +49,15 @@ export class MockApi {
     presidentielle: fixture("presidentielle"),
     "presidentielle/meta": fixture("presidentielle_meta"),
     "presidentielle/quiz": fixture("presidentielle_quiz"),
+    // Vue « Évolution » : sortie du routeur sur le jeu fictif (une entrée par route)
+    ...evolution(),
+    // Surveillance des pages (lot 4b) : aucun signalement par défaut
+    "presidentielle/nouveautes": {
+      signalements: [],
+      pages_suivies: 0,
+      en_erreur: 0,
+      derniere_visite: null,
+    },
   };
   // Veille : prompts d'idées fabriqués pendant le test (POST), en plus de ceux que le
   // dernier passage annonce (`has_prompt`)
@@ -97,6 +113,8 @@ export class MockApi {
       if (override) return override.handler(route, recorded);
       const veille = this.veille(recorded);
       if (veille) return route.fulfill(veille);
+      const assistant = this.presidentielleAsk(recorded);
+      if (assistant) return route.fulfill(assistant);
       const name = path.replace(/^\/api\//, "");
       if (recorded.method === "GET" && name in this.state) {
         return route.fulfill({ json: this.state[name] });
@@ -113,6 +131,19 @@ export class MockApi {
       return route.fulfill({ json: recorded.body ?? {} });
     });
     return this;
+  }
+
+  // Assistant de la présidentielle (lot 2) : réponse de recherche relevée sur le routeur
+  // (jeu fictif), dans l'ordre envoyé par la page, comme le routeur pour un ordre valide
+  private presidentielleAsk({ method, path, body }: Recorded) {
+    if (method !== "POST" || path !== "/api/presidentielle/ask") return null;
+    const { ordre } = (body ?? {}) as { ordre?: string[] };
+    return {
+      json: {
+        ...(fixture("presidentielle_ask_recherche") as object),
+        ...(Array.isArray(ordre) ? { ordre } : {}),
+      },
+    };
   }
 
   // Routes de la veille : vote (corps renvoyé avec voted_at), prompt d'une idée (GET : 404

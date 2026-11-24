@@ -18,7 +18,8 @@
       "axe": {
         "pole_a": "plus de redistribution par l'impôt",
         "pole_b": "moins d'impôts et de dépense publique"
-      }
+      },
+      "hors_quiz": false
     },
     {
       "id": "travail",
@@ -26,7 +27,8 @@
       "axe": {
         "pole_a": "plus de protection collective",
         "pole_b": "plus de liberté de négocier"
-      }
+      },
+      "hors_quiz": false
     },
     {
       "id": "sante",
@@ -34,7 +36,8 @@
       "axe": {
         "pole_a": "plus d'organisation publique",
         "pole_b": "plus d'incitations et de libre choix"
-      }
+      },
+      "hors_quiz": false
     },
     {
       "id": "education",
@@ -42,7 +45,8 @@
       "axe": {
         "pole_a": "plus de cadre national",
         "pole_b": "plus d'autonomie des établissements"
-      }
+      },
+      "hors_quiz": false
     },
     {
       "id": "ecologie",
@@ -50,7 +54,8 @@
       "axe": {
         "pole_a": "priorité à la sobriété",
         "pole_b": "priorité à la production d'énergie"
-      }
+      },
+      "hors_quiz": false
     },
     {
       "id": "immigration",
@@ -58,7 +63,8 @@
       "axe": {
         "pole_a": "plus d'accueil",
         "pole_b": "plus de contrôle"
-      }
+      },
+      "hors_quiz": false
     },
     {
       "id": "securite",
@@ -66,7 +72,8 @@
       "axe": {
         "pole_a": "plus de prévention",
         "pole_b": "plus de sanction"
-      }
+      },
+      "hors_quiz": false
     },
     {
       "id": "logement",
@@ -74,7 +81,8 @@
       "axe": {
         "pole_a": "plus de logement public",
         "pole_b": "plus d'initiative privée"
-      }
+      },
+      "hors_quiz": false
     },
     {
       "id": "institutions",
@@ -82,7 +90,8 @@
       "axe": {
         "pole_a": "plus de démocratie directe",
         "pole_b": "plus de démocratie représentative"
-      }
+      },
+      "hors_quiz": false
     },
     {
       "id": "europe",
@@ -90,7 +99,20 @@
       "axe": {
         "pole_a": "plus d'intégration européenne",
         "pole_b": "plus de souveraineté nationale"
-      }
+      },
+      "hors_quiz": false
+    },
+    {
+      "id": "culture",
+      "libelle": "Culture, sport et vie associative",
+      "axe": null,
+      "hors_quiz": true
+    },
+    {
+      "id": "solidarites",
+      "libelle": "Famille et solidarités",
+      "axe": null,
+      "hors_quiz": true
     }
   ],
   "candidats": [
@@ -282,6 +304,40 @@
             "consulte_le": "2026-11-20"
           },
           "page": 21,
+          "ajoutee_le": "2026-11-20"
+        },
+        {
+          "id": "culture-musees",
+          "theme": "culture",
+          "citation": "Les musées nationaux seront gratuits le premier dimanche de chaque mois.",
+          "nature": "candidat",
+          "resume": null,
+          "source": {
+            "id": "aline-programme",
+            "titre": "Programme fictif d'Aline Fictiva",
+            "url": "https://aline-fictiva.exemple.invalid/programme.pdf",
+            "niveau": "candidat",
+            "publie_le": "2026-10-15",
+            "consulte_le": "2026-11-20"
+          },
+          "page": 23,
+          "ajoutee_le": "2026-11-20"
+        },
+        {
+          "id": "solidarites-aidants",
+          "theme": "solidarites",
+          "citation": "Les aidants familiaux recevront un congé rémunéré de trois mois.",
+          "nature": "candidat",
+          "resume": null,
+          "source": {
+            "id": "aline-programme",
+            "titre": "Programme fictif d'Aline Fictiva",
+            "url": "https://aline-fictiva.exemple.invalid/programme.pdf",
+            "niveau": "candidat",
+            "publie_le": "2026-10-15",
+            "consulte_le": "2026-11-20"
+          },
+          "page": 25,
           "ajoutee_le": "2026-11-20"
         }
       ],

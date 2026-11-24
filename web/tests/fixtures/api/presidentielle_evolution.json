@@ -1,0 +1,426 @@
+{
+  "_commentaire": "Sortie du routeur (presidentielle_evolution.py) sur le jeu fictif : évolution des quatre fiches, comparaison des deux versions du programme de Carla Exemplia",
+  "presidentielle/evolution/aline-fictiva": {
+    "candidat": "aline-fictiva",
+    "nom_affiche": "Aline Fictiva",
+    "version": 1,
+    "versions": [
+      {
+        "version": 1,
+        "date": "2026-11-20",
+        "motif": "Publication de la fiche fictive",
+        "conservee": true,
+        "copie_en_defaut": false,
+        "comparee_a": null,
+        "changements": null,
+        "statut": "declare",
+        "mesures": 7
+      }
+    ],
+    "programmes": []
+  },
+  "presidentielle/evolution/bruno-demonstra": {
+    "candidat": "bruno-demonstra",
+    "nom_affiche": "Bruno Démonstra",
+    "version": 1,
+    "versions": [
+      {
+        "version": 1,
+        "date": "2026-11-20",
+        "motif": "Publication de la fiche fictive",
+        "conservee": true,
+        "copie_en_defaut": false,
+        "comparee_a": null,
+        "changements": null,
+        "statut": "declare",
+        "mesures": 5
+      }
+    ],
+    "programmes": []
+  },
+  "presidentielle/evolution/carla-exemplia": {
+    "candidat": "carla-exemplia",
+    "nom_affiche": "Carla Exemplia",
+    "version": 2,
+    "versions": [
+      {
+        "version": 2,
+        "date": "2026-11-20",
+        "motif": "Ajout d'une mesure sur les institutions",
+        "conservee": true,
+        "copie_en_defaut": false,
+        "comparee_a": 1,
+        "changements": {
+          "mesures_ajoutees": [
+            {
+              "id": "institutions-referendum",
+              "theme": "institutions",
+              "citation": "Un référendum d'initiative citoyenne sera possible avec un million de signatures.",
+              "source": {
+                "id": "carla-programme",
+                "titre": "Programme fictif de Carla Exemplia",
+                "url": "https://carla-exemplia.exemple.invalid/programme.pdf",
+                "niveau": "candidat",
+                "publie_le": "2026-11-05",
+                "consulte_le": "2026-11-20"
+              },
+              "page": 14
+            }
+          ],
+          "mesures_retirees": [],
+          "mesures_reformulees": [
+            {
+              "id": "sante-centres",
+              "citation_modifiee": true,
+              "avant": {
+                "id": "sante-centres",
+                "theme": "sante",
+                "citation": "Chaque canton aura son centre de santé public",
+                "source": {
+                  "id": "carla-programme",
+                  "titre": "Programme fictif de Carla Exemplia",
+                  "url": "https://carla-exemplia.exemple.invalid/programme.pdf",
+                  "niveau": "candidat",
+                  "publie_le": "2026-11-05",
+                  "consulte_le": "2026-11-20"
+                },
+                "page": 7
+              },
+              "apres": {
+                "id": "sante-centres",
+                "theme": "sante",
+                "citation": "Chaque canton aura son centre de santé public, avec des médecins salariés.",
+                "source": {
+                  "id": "carla-programme",
+                  "titre": "Programme fictif de Carla Exemplia",
+                  "url": "https://carla-exemplia.exemple.invalid/programme.pdf",
+                  "niveau": "candidat",
+                  "publie_le": "2026-11-05",
+                  "consulte_le": "2026-11-20"
+                },
+                "page": 7
+              }
+            }
+          ],
+          "nouvelles_sources": [],
+          "statut": null
+        },
+        "statut": "declare",
+        "mesures": 4
+      },
+      {
+        "version": 1,
+        "date": "2026-11-19",
+        "motif": "Publication de la fiche fictive",
+        "conservee": true,
+        "copie_en_defaut": false,
+        "comparee_a": null,
+        "changements": null,
+        "statut": "declare",
+        "mesures": 3
+      }
+    ],
+    "programmes": [
+      {
+        "titre": "Programme fictif de Carla Exemplia, version révisée",
+        "versions": [
+          {
+            "id": "carla-programme",
+            "titre": "Programme fictif de Carla Exemplia",
+            "url": "https://carla-exemplia.exemple.invalid/programme.pdf",
+            "niveau": "candidat",
+            "publie_le": "2026-11-05",
+            "consulte_le": "2026-11-20",
+            "remplace": null,
+            "texte": true
+          },
+          {
+            "id": "carla-programme-2",
+            "titre": "Programme fictif de Carla Exemplia, version révisée",
+            "url": "https://carla-exemplia.exemple.invalid/programme-v2.pdf",
+            "niveau": "candidat",
+            "publie_le": "2026-11-19",
+            "consulte_le": "2026-11-20",
+            "remplace": "carla-programme",
+            "texte": true
+          }
+        ],
+        "mesures": [
+          {
+            "mesure": {
+              "id": "eco-bareme",
+              "theme": "economie",
+              "citation": "« Le barème de l’impôt sur le revenu ne sera pas modifié pendant le quinquennat. »",
+              "source": {
+                "id": "carla-programme",
+                "titre": "Programme fictif de Carla Exemplia",
+                "url": "https://carla-exemplia.exemple.invalid/programme.pdf",
+                "niveau": "candidat",
+                "publie_le": "2026-11-05",
+                "consulte_le": "2026-11-20"
+              },
+              "page": 2
+            },
+            "premiere": "carla-programme",
+            "page_premiere": 2,
+            "premiere_incertaine": false,
+            "disparue": null,
+            "reapparue": null,
+            "presences": {
+              "carla-programme": {
+                "presente": true,
+                "page": 2
+              },
+              "carla-programme-2": {
+                "presente": true,
+                "page": 2
+              }
+            }
+          },
+          {
+            "mesure": {
+              "id": "sante-centres",
+              "theme": "sante",
+              "citation": "Chaque canton aura son centre de santé public, avec des médecins salariés.",
+              "source": {
+                "id": "carla-programme",
+                "titre": "Programme fictif de Carla Exemplia",
+                "url": "https://carla-exemplia.exemple.invalid/programme.pdf",
+                "niveau": "candidat",
+                "publie_le": "2026-11-05",
+                "consulte_le": "2026-11-20"
+              },
+              "page": 7
+            },
+            "premiere": "carla-programme",
+            "page_premiere": 7,
+            "premiere_incertaine": false,
+            "disparue": null,
+            "reapparue": null,
+            "presences": {
+              "carla-programme": {
+                "presente": true,
+                "page": 7
+              },
+              "carla-programme-2": {
+                "presente": true,
+                "page": 7
+              }
+            }
+          },
+          {
+            "mesure": {
+              "id": "immigration-titres",
+              "theme": "immigration",
+              "citation": "Les demandes de titre de séjour seront traitées en trois mois au plus.",
+              "source": {
+                "id": "carla-programme",
+                "titre": "Programme fictif de Carla Exemplia",
+                "url": "https://carla-exemplia.exemple.invalid/programme.pdf",
+                "niveau": "candidat",
+                "publie_le": "2026-11-05",
+                "consulte_le": "2026-11-20"
+              },
+              "page": 11
+            },
+            "premiere": "carla-programme",
+            "page_premiere": 11,
+            "premiere_incertaine": false,
+            "disparue": "carla-programme-2",
+            "reapparue": null,
+            "presences": {
+              "carla-programme": {
+                "presente": true,
+                "page": 11
+              },
+              "carla-programme-2": {
+                "presente": false,
+                "page": null
+              }
+            }
+          },
+          {
+            "mesure": {
+              "id": "institutions-referendum",
+              "theme": "institutions",
+              "citation": "Un référendum d'initiative citoyenne sera possible avec un million de signatures.",
+              "source": {
+                "id": "carla-programme",
+                "titre": "Programme fictif de Carla Exemplia",
+                "url": "https://carla-exemplia.exemple.invalid/programme.pdf",
+                "niveau": "candidat",
+                "publie_le": "2026-11-05",
+                "consulte_le": "2026-11-20"
+              },
+              "page": 14
+            },
+            "premiere": "carla-programme",
+            "page_premiere": 14,
+            "premiere_incertaine": false,
+            "disparue": null,
+            "reapparue": null,
+            "presences": {
+              "carla-programme": {
+                "presente": true,
+                "page": 14
+              },
+              "carla-programme-2": {
+                "presente": true,
+                "page": 12
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "presidentielle/evolution/gaston-fictorin": {
+    "candidat": "gaston-fictorin",
+    "nom_affiche": "Gaston Fictorin",
+    "version": 1,
+    "versions": [
+      {
+        "version": 1,
+        "date": "2026-11-20",
+        "motif": "Candidature fictive retirée le 10 novembre 2026",
+        "conservee": true,
+        "copie_en_defaut": false,
+        "comparee_a": null,
+        "changements": null,
+        "statut": "retire",
+        "mesures": 2
+      }
+    ],
+    "programmes": []
+  },
+  "presidentielle/evolution/carla-exemplia/comparaison": {
+    "candidat": "carla-exemplia",
+    "de": {
+      "id": "carla-programme",
+      "titre": "Programme fictif de Carla Exemplia",
+      "url": "https://carla-exemplia.exemple.invalid/programme.pdf",
+      "niveau": "candidat",
+      "publie_le": "2026-11-05",
+      "consulte_le": "2026-11-20"
+    },
+    "a": {
+      "id": "carla-programme-2",
+      "titre": "Programme fictif de Carla Exemplia, version révisée",
+      "url": "https://carla-exemplia.exemple.invalid/programme-v2.pdf",
+      "niveau": "candidat",
+      "publie_le": "2026-11-19",
+      "consulte_le": "2026-11-20"
+    },
+    "blocs": [
+      {
+        "type": "modifie",
+        "page_avant": 1,
+        "page_apres": 1,
+        "avant": "Programme fictif de Carla Exemplia, jeu de démonstration. Toutes les personnes et propositions sont inventées.",
+        "apres": "Programme fictif de Carla Exemplia, version révisée, jeu de démonstration. Toutes les personnes et propositions sont inventées.",
+        "mots": [
+          {
+            "type": "egal",
+            "texte": "Programme fictif de Carla Exemplia,"
+          },
+          {
+            "type": "ajoute",
+            "texte": "version révisée,"
+          },
+          {
+            "type": "egal",
+            "texte": "jeu de démonstration. Toutes les personnes et propositions sont inventées."
+          }
+        ]
+      },
+      {
+        "type": "modifie",
+        "page_avant": 4,
+        "page_apres": 4,
+        "avant": "Les horaires des services publics de démonstration seront élargis le samedi matin.",
+        "apres": "Les horaires des services publics de démonstration seront élargis le samedi matin et le mercredi soir.",
+        "mots": [
+          {
+            "type": "egal",
+            "texte": "Les horaires des services publics de démonstration seront élargis le samedi"
+          },
+          {
+            "type": "retire",
+            "texte": "matin."
+          },
+          {
+            "type": "ajoute",
+            "texte": "matin et le mercredi soir."
+          }
+        ]
+      },
+      {
+        "type": "ajoute",
+        "page_avant": null,
+        "page_apres": 5,
+        "avant": null,
+        "apres": "Chaque école fictive aura une bibliothèque ouverte aux familles.",
+        "mots": null
+      },
+      {
+        "type": "retire",
+        "page_avant": 10,
+        "page_apres": null,
+        "avant": "Immigration, constats",
+        "apres": null,
+        "mots": null
+      },
+      {
+        "type": "retire",
+        "page_avant": 10,
+        "page_apres": null,
+        "avant": "Les délais de traitement fictifs dépassent aujourd’hui un an.",
+        "apres": null,
+        "mots": null
+      },
+      {
+        "type": "modifie",
+        "page_avant": 11,
+        "page_apres": 10,
+        "avant": "Les demandes de titre de séjour seront traitées en trois mois au plus.",
+        "apres": "Les demandes de titre de séjour seront traitées en deux mois au plus.",
+        "mots": [
+          {
+            "type": "egal",
+            "texte": "Les demandes de titre de séjour seront traitées en"
+          },
+          {
+            "type": "retire",
+            "texte": "trois"
+          },
+          {
+            "type": "ajoute",
+            "texte": "deux"
+          },
+          {
+            "type": "egal",
+            "texte": "mois au plus."
+          }
+        ]
+      },
+      {
+        "type": "retire",
+        "page_avant": 13,
+        "page_apres": null,
+        "avant": "Institutions, constats",
+        "apres": null,
+        "mots": null
+      },
+      {
+        "type": "retire",
+        "page_avant": 13,
+        "page_apres": null,
+        "avant": "La participation fictive aux élections locales recule.",
+        "apres": null,
+        "mots": null
+      }
+    ],
+    "inchanges": 23,
+    "tronque": false
+  }
+}

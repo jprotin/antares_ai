@@ -65,6 +65,25 @@
           ],
           "default": null,
           "title": "Candidat"
+        },
+        "remplace": {
+          "anyOf": [
+            {
+              "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Remplace"
+        },
+        "lecture": {
+          "default": "ordre",
+          "enum": ["ordre", "brute"],
+          "title": "Lecture",
+          "type": "string"
         }
       },
       "required": ["id", "titre", "url", "niveau", "consulte_le"],

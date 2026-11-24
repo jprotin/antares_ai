@@ -65,6 +65,19 @@ mesures:
     source_id: aline-programme
     page: 21
     ajoutee_le: 2026-11-20
+  # Thèmes des fiches hors quiz (ADR 0016) : ni question, ni rattachement
+  - id: culture-musees
+    theme: culture
+    citation: Les musées nationaux seront gratuits le premier dimanche de chaque mois.
+    source_id: aline-programme
+    page: 23
+    ajoutee_le: 2026-11-20
+  - id: solidarites-aidants
+    theme: solidarites
+    citation: Les aidants familiaux recevront un congé rémunéré de trois mois.
+    source_id: aline-programme
+    page: 25
+    ajoutee_le: 2026-11-20
 parlementaire: true
 votes:
   - id: vote-energie

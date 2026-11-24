@@ -1,0 +1,13 @@
+{
+  "signalements": [
+    {
+      "url": "https://aline.exemple.invalid/programme",
+      "candidat": "aline-fictiva",
+      "nom": "Aline Fictiva",
+      "detecte_le": "2026-11-21T06:30:00+00:00"
+    }
+  ],
+  "pages_suivies": 3,
+  "en_erreur": 1,
+  "derniere_visite": "2026-11-22T06:30:04+00:00"
+}

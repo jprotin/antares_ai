@@ -40,9 +40,21 @@ INITIALES = r"^[A-Z]{2,4}$"
 MODELE_AUTORISE = r"^[a-z0-9][a-z0-9-]*/gemma4:e4b$"
 MODELES_PAR_DEFAUT = ["litellm-ai-to-boost/gemma4:e4b", "ollama/gemma4:e4b"]
 DOMAINE_FICTIF = "exemple.invalid"
+# Sites des scrutins de l'Assemblée nationale (quiz/scrutins.yaml)
+DOMAINES_AN = frozenset(
+    {
+        "www.assemblee-nationale.fr",
+        "assemblee-nationale.fr",
+        "data.assemblee-nationale.fr",
+    }
+)
 DESCRIPTION_MAX = 300
 LIGNES_PHARES_MAX = 5
 THEMES = 10
+# Thèmes des fiches hors quiz (ADR 0016) : admis pour les mesures et les votes en plus
+# de ceux de la grille, jamais dans la grille ni dans un rattachement (poids égal des
+# 10 thèmes du quiz inchangé)
+THEMES_HORS_QUIZ = ("culture", "solidarites")
 QUESTIONS_PAR_THEME = 2
 OPTIONS_MIN, OPTIONS_MAX = 3, 5
 # Options toujours présentes, en fin de liste dans le quiz
@@ -102,7 +114,9 @@ class Base(Strict):
     def coherence(self) -> "Base":
         if self.liste == "officielle" and not self.liste_source:
             raise ValueError("liste officielle sans liste_source")
-        if self.phase == "entre_tours" and len(set(self.qualifies)) != 2:
+        if self.phase == "entre_tours" and (
+            len(self.qualifies) != 2 or len(set(self.qualifies)) != 2
+        ):
             raise ValueError("phase entre_tours : 2 qualifiés attendus")
         if self.qualifies and self.phase != "entre_tours":
             raise ValueError("qualifies n'a de sens qu'en phase entre_tours")
@@ -124,6 +138,10 @@ def domaine_fictif(url: str) -> bool:
     return host == DOMAINE_FICTIF or host.endswith("." + DOMAINE_FICTIF)
 
 
+Lecture = Literal["ordre", "brute"]
+LECTURES: tuple[str, ...] = ("ordre", "brute")
+
+
 class Source(Strict):
     id: str = Field(pattern=IDENTIFIANT)
     titre: str = Field(min_length=1)
@@ -133,11 +151,20 @@ class Source(Strict):
     consulte_le: date
     sha256: str | None = Field(default=None, pattern=r"^[0-9a-f]{64}$")
     candidat: str | None = Field(default=None, pattern=IDENTIFIANT)
+    # Lignée des documents de programme : identifiant de la version précédente du même
+    # document (source ajouter --remplace) ; contrôlée par `controler_lignee`
+    remplace: str | None = Field(default=None, pattern=IDENTIFIANT)
+    # Lecture d'un PDF par pdftotext : `ordre` (défaut, ordre de lecture, colonne par
+    # colonne) ; `brute` (-raw, ordre du flux du PDF) quand les colonnes restent mêlées
+    # dans l'ordre de lecture (source ajouter --lecture, source lecture)
+    lecture: Lecture = "ordre"
 
     @model_validator(mode="after")
     def candidat_du_document(self) -> "Source":
         if self.niveau == "candidat" and not self.candidat:
             raise ValueError(f"source {self.id} : niveau candidat sans candidat")
+        if self.remplace == self.id:
+            raise ValueError(f"source {self.id} : se remplace elle-même")
         return self
 
 
@@ -186,7 +213,10 @@ class Vote(Strict):
     id: str = Field(pattern=IDENTIFIANT)
     scrutin: str = Field(min_length=1)
     date: date
-    position: Literal["pour", "contre", "abstention"]
+    # Scrutin public de l'Assemblée (votes importer, lot 4b) : `non_votant` = inscrit
+    # parmi les non-votants (présidence de séance, membre du gouvernement…) ;
+    # `sans_vote` = aucun vote enregistré (absence, mandat non en cours à cette date)
+    position: Literal["pour", "contre", "abstention", "non_votant", "sans_vote"]
     theme: str | None = Field(default=None, pattern=IDENTIFIANT)
     source_id: str
 
@@ -366,6 +396,10 @@ class EntreeJournal(Strict):
     motif: str = Field(min_length=1)
     # Gel ou correction de grille : empreinte de la grille gelée ou corrigée
     empreinte: str | None = Field(default=None, pattern=r"^sha256:[0-9a-f]{64}$")
+    # Publication d'une fiche : mesures retirées parce qu'erronées (citation fausse,
+    # mal attribuée, hors contexte) ; la vue « Évolution » n'en montre plus le texte
+    # (publier --retrait-erreur)
+    retraits_erreur: list[Annotated[str, Field(pattern=IDENTIFIANT)]] | None = None
 
     @model_validator(mode="after")
     def grille_avec_empreinte(self) -> "EntreeJournal":
@@ -373,9 +407,96 @@ class EntreeJournal(Strict):
             raise ValueError(f"{self.objet} sans empreinte")
         return self
 
+    @model_validator(mode="after")
+    def retraits_d_une_fiche(self) -> "EntreeJournal":
+        if self.retraits_erreur is None:
+            return self
+        if self.objet != "fiche" or not self.cible or not self.version:
+            raise ValueError("retraits_erreur réservé à la publication d'une fiche")
+        if not self.retraits_erreur:
+            raise ValueError("retraits_erreur vide")
+        doubles = _doublons(self.retraits_erreur)
+        if doubles:
+            raise ValueError(f"retraits_erreur en double : {', '.join(doubles)}")
+        return self
+
 
 class Journal(Strict):
     entrees: list[EntreeJournal] = []
+
+
+# --- Pages suivies (surveillance.yaml, lot 4b) --------------------------------------
+
+
+class PageSuivie(Strict):
+    url: Annotated[str, AfterValidator(adresse_https)]
+    candidat: str = Field(pattern=IDENTIFIANT)
+    ajoutee_le: date
+
+
+class Surveillance(Strict):
+    """Pages des candidats suivies chaque jour ; écrit par l'outil de saisie
+    (surveillance ajouter, retirer, geler), lu par la tâche presidentielle-watch."""
+
+    pages: list[PageSuivie] = []
+    # Liste validée par l'utilisateur ; une modification la dégèle
+    gelee_le: date | None = None
+
+    @model_validator(mode="after")
+    def adresses_uniques(self) -> "Surveillance":
+        doubles = _doublons(p.url for p in self.pages)
+        if doubles:
+            raise ValueError(f"pages en double : {', '.join(doubles)}")
+        return self
+
+
+# --- Scrutins retenus (quiz/scrutins.yaml, lot 4b) ----------------------------------
+
+
+def adresse_assemblee(value: str) -> str:
+    """Lien https vers le site de l'Assemblée nationale (ou le domaine fictif du jeu de
+    démonstration, contrôlé ensuite selon le jeu par l'outil de saisie)."""
+    adresse_https(value)
+    host = (urlsplit(value).hostname or "").lower()
+    if host not in DOMAINES_AN and not domaine_fictif(value):
+        raise ValueError(f"lien hors du site de l'Assemblée nationale : {value[:80]}")
+    return value
+
+
+class ScrutinRetenu(Strict):
+    id: str = Field(pattern=IDENTIFIANT)
+    theme: str = Field(pattern=IDENTIFIANT)
+    legislature: int = Field(ge=1, le=99)
+    numero: int = Field(ge=1)
+    date: date
+    titre: str = Field(min_length=1, max_length=300)
+    url: Annotated[str, AfterValidator(adresse_assemblee)]
+
+    @property
+    def uid(self) -> str:
+        """Identifiant du scrutin dans les données ouvertes (VTANR5L17V1234)."""
+        return f"VTANR5L{self.legislature}V{self.numero}"
+
+
+class Scrutins(Strict):
+    """Scrutins de l'Assemblée retenus, par thème, fixés avant de regarder les
+    candidats ; la même liste vaut pour tous les parlementaires (votes importer)."""
+
+    scrutins: list[ScrutinRetenu] = []
+    # Liste validée par l'utilisateur (scrutins geler) ; une modification la dégèle
+    gelee_le: date | None = None
+
+    @model_validator(mode="after")
+    def uniques(self) -> "Scrutins":
+        doubles = _doublons(s.id for s in self.scrutins)
+        if doubles:
+            raise ValueError(
+                f"identifiants de scrutin en double : {', '.join(doubles)}"
+            )
+        doubles = _doublons(s.uid for s in self.scrutins)
+        if doubles:
+            raise ValueError(f"scrutins en double : {', '.join(doubles)}")
+        return self
 
 
 MODELES: dict[str, type[BaseModel]] = {
@@ -385,6 +506,7 @@ MODELES: dict[str, type[BaseModel]] = {
     "grille": Grille,
     "rattachements": Rattachements,
     "journal": Journal,
+    "scrutins": Scrutins,
 }
 
 
@@ -596,13 +718,87 @@ def controler_sources(
     ]
 
 
+def controler_lignee(sources: Iterable[Source]) -> list[tuple[str, str]]:
+    """(identifiant, problème) des sources dont le champ `remplace` est en défaut :
+    source remplacée inconnue, d'un autre candidat, déjà remplacée par une autre
+    source, ou lignée en boucle. Seule la source qui porte le champ est visée."""
+    sources = list(sources)
+    par_id = {s.id: s for s in sources}
+    problemes: list[tuple[str, str]] = []
+    remplacantes: dict[str, list[str]] = {}
+    for source in sources:
+        if source.remplace is None:
+            continue
+        ancienne = par_id.get(source.remplace)
+        if ancienne is None:
+            problemes.append(
+                (
+                    source.id,
+                    f"source {source.id} : remplace une source inconnue"
+                    f" ({source.remplace})",
+                )
+            )
+            continue
+        if ancienne.candidat != source.candidat:
+            problemes.append(
+                (
+                    source.id,
+                    f"source {source.id} : remplace {ancienne.id}, document d'un autre"
+                    " candidat",
+                )
+            )
+            continue
+        remplacantes.setdefault(ancienne.id, []).append(source.id)
+    for remplacee, ids in remplacantes.items():
+        if len(ids) > 1:
+            problemes.extend(
+                (
+                    i,
+                    f"source {i} : {remplacee} déjà remplacée par une autre source"
+                    f" ({', '.join(x for x in ids if x != i)})",
+                )
+                for i in ids
+            )
+    for source in sources:
+        vues = {source.id}
+        suivante = par_id.get(source.remplace) if source.remplace else None
+        while suivante is not None:
+            if suivante.id in vues:
+                problemes.append(
+                    (source.id, f"source {source.id} : lignée en boucle (remplace)")
+                )
+                break
+            vues.add(suivante.id)
+            suivante = par_id.get(suivante.remplace) if suivante.remplace else None
+    return problemes
+
+
+def lignees(sources: Iterable[Source], candidat: str | None) -> list[list[Source]]:
+    """Lignées de plus d'une version des documents d'un candidat, de la plus ancienne à
+    la plus récente (sources déjà contrôlées par `controler_lignee`)."""
+    propres = [s for s in sources if s.candidat == candidat]
+    par_id = {s.id: s for s in propres}
+    suivante = {s.remplace: s for s in propres if s.remplace in par_id}
+    resultat = []
+    for source in propres:
+        if source.remplace in par_id or source.id not in suivante:
+            continue
+        chaine = [source]
+        while chaine[-1].id in suivante and len(chaine) <= len(propres):
+            chaine.append(suivante[chaine[-1].id])
+        resultat.append(chaine)
+    return sorted(resultat, key=lambda c: c[-1].id)
+
+
 def controler_base(base: Base, sources: dict[str, Source]) -> list[str]:
     if base.liste_source and base.liste_source not in sources:
         return [f"liste_source : source « {base.liste_source} » inconnue"]
     return []
 
 
-def _sans_accents(texte: str) -> str:
+def sans_accents(texte: str) -> str:
+    """Texte sans accents ni casse (« Éducation » -> « education ») : forme unique,
+    reprise par l'assistant et la recherche par mots."""
     decompose = unicodedata.normalize("NFKD", texte)
     return "".join(c for c in decompose if not unicodedata.combining(c)).casefold()
 
@@ -654,11 +850,11 @@ def noms_interdits(identites: Iterable[Identite], partis: Iterable[str]) -> list
 
 def _contient(texte: str, nom: str) -> bool:
     """Nom présent en mots entiers (« Martinique » ne contient pas « Martin »)."""
-    mots = _mots(_sans_accents(nom))
+    mots = _mots(sans_accents(nom))
     if not mots:
         return False
     motif = r"(?<!\w)" + r"\W+".join(re.escape(m) for m in mots) + r"(?!\w)"
-    return re.search(motif, _sans_accents(texte)) is not None
+    return re.search(motif, sans_accents(texte)) is not None
 
 
 def controler_grille(
@@ -667,7 +863,8 @@ def controler_grille(
     partis: Iterable[str],
     journal: Journal | None,
 ) -> list[str]:
-    """Noms interdits dans tous les textes de la grille ; gel (règle 6)."""
+    """Noms interdits dans tous les textes de la grille ; gel (règle 6) ; aucun thème
+    hors quiz (THEMES_HORS_QUIZ)."""
     identites = list(identites)
     noms = noms_interdits(identites, partis)
     initiales = sorted({i.initiales for i in identites if i.initiales})
@@ -683,6 +880,10 @@ def controler_grille(
             )
 
     for theme in grille.themes:
+        if theme.id in THEMES_HORS_QUIZ:
+            problemes.append(
+                f"thème {theme.id} : thème des fiches hors quiz, interdit dans la grille"
+            )
         controler(f"thème {theme.id}, libellé", theme.libelle)
         controler(f"thème {theme.id}, pôle A", theme.axe.pole_a)
         controler(f"thème {theme.id}, pôle B", theme.axe.pole_b)
@@ -714,6 +915,14 @@ def controler_grille(
                 f" (empreinte actuelle {actuelle})"
             )
     return problemes
+
+
+def themes_admis(grille: Iterable[str] | None) -> set[str] | None:
+    """Thèmes admis pour les mesures et les votes : ceux de la grille et les thèmes
+    hors quiz ; None sans grille (thèmes non vérifiés)."""
+    if grille is None:
+        return None
+    return set(grille) | set(THEMES_HORS_QUIZ)
 
 
 def themes_bruts(data: Any) -> set[str] | None:
@@ -768,6 +977,15 @@ def controler_rattachements(
                     rang,
                     f"{prefix} : mesure « {r.mesure_id} » absente de la fiche"
                     f" {r.candidat} (mesure d'un autre candidat ou inconnue)",
+                )
+            )
+            continue
+        if mesure.theme in THEMES_HORS_QUIZ:
+            problemes.append(
+                (
+                    rang,
+                    f"{prefix} : mesure « {r.mesure_id} » du thème {mesure.theme},"
+                    " hors quiz : aucun rattachement",
                 )
             )
             continue

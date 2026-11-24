@@ -23,8 +23,9 @@ import hashlib
 import html
 import ipaddress
 import logging
-import socket
 import re
+import socket
+import zlib
 from dataclasses import dataclass
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
@@ -253,6 +254,26 @@ async def check_redirect(url: str) -> None:
         raise UnsafeRedirect(f"redirection refusée : {host} n'est pas public")
 
 
+def _decoder(encoding: str):
+    """Décompression bornée selon Content-Encoding : identité, gzip ou deflate (zlib,
+    en-tête détecté) ; tout autre encodage (br, zstd, cumul) est refusé."""
+    encoding = encoding.strip().lower()
+    if encoding in ("", "identity"):
+        return None
+    if encoding not in ("gzip", "x-gzip", "deflate"):
+        raise FeedTooLarge(f"encodage refusé : {encoding[:40]}")
+    inflater = zlib.decompressobj(32 + zlib.MAX_WBITS)
+
+    def decode(data: bytes, limit: int) -> bytes:
+        out = inflater.decompress(data, max(1, limit))
+        if inflater.unconsumed_tail:
+            # Sortie tronquée à `limit` : la borne est dépassée
+            return out + b"\0"
+        return out
+
+    return decode
+
+
 async def fetch_feed(
     client: httpx.AsyncClient, feed: Feed, timeout: float, max_bytes: int
 ) -> bytes:
@@ -268,9 +289,18 @@ async def fetch_feed(
                     url = str(response.url.join(response.headers["location"]))
                     continue
                 response.raise_for_status()
+                decoder = _decoder(response.headers.get("content-encoding", ""))
                 chunks: list[bytes] = []
                 size = 0
-                async for chunk in response.aiter_bytes():
+                # Réponse compressée : octets bruts, décompressés ici avec une borne (une
+                # petite réponse ne peut pas gonfler en mémoire au-delà de `max_bytes`)
+                stream = (
+                    response.aiter_bytes() if decoder is None else response.aiter_raw()
+                )
+                async for raw in stream:
+                    chunk = (
+                        raw if decoder is None else decoder(raw, max_bytes - size + 1)
+                    )
                     size += len(chunk)
                     if size > max_bytes:
                         raise FeedTooLarge(f"plus de {max_bytes} octets")
@@ -413,7 +443,11 @@ async def collect(
 
 def new_client() -> httpx.AsyncClient:
     return httpx.AsyncClient(
-        headers={"User-Agent": USER_AGENT},
+        # Pas de brotli (décompression non bornable ici, cf. _decoder)
+        headers={"User-Agent": USER_AGENT, "Accept-Encoding": "gzip, deflate"},
+        # Aucun mandataire lu dans l'environnement : les contrôles d'adresse visent
+        # bien le serveur contacté
+        trust_env=False,
         # Redirections des flux suivies et contrôlées par fetch_feed
         follow_redirects=False,
         timeout=httpx.Timeout(10),
